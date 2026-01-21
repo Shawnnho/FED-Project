@@ -1,0 +1,1085 @@
+:root {
+  --text: #111;
+  --muted: rgba(0, 0, 0, 0.6);
+  --primary: #2f6bff;
+  --primaryHover: #2558d6;
+  --line: rgba(0, 0, 0, 0.15);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+body {
+  font-family:
+    -apple-system,
+    /* SF Pro on macOS / iOS */ BlinkMacSystemFont,
+    /* older Safari */ "SF Pro Text",
+    "SF Pro Display",
+    system-ui,
+    Segoe UI,
+    /* Windows */ Roboto,
+    /* Android */ Helvetica,
+    Arial,
+    sans-serif;
+}
+
+/* FULL PAGE like your 1st image */
+.page {
+  min-height: 100vh;
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 28px 16px;
+  background: #f5efe7;
+}
+
+/* Your local background image */
+.bg {
+  position: absolute;
+  inset: 0;
+  background: url("images/background.png");
+  background-size: cover;
+  background-position: center;
+  filter: saturate(1.05);
+  transform: scale(1.02);
+}
+
+/* Soft fades so panel stands out like your 1st image */
+.fadeTop {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.85) 0%,
+    rgba(255, 255, 255, 0) 45%
+  );
+  pointer-events: none;
+}
+.fadeBottom {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    900px 520px at 50% 55%,
+    rgba(255, 255, 255, 0.35),
+    rgba(255, 255, 255, 0)
+  );
+  pointer-events: none;
+}
+
+/* The main panel container */
+.panel {
+  position: relative;
+  width: min(520px, 92vw);
+  padding: 18px 18px 16px;
+
+  /* remove the translucent container */
+  background: transparent;
+  backdrop-filter: none;
+
+  /* optional: keep spacing but no box */
+  border-radius: 0;
+}
+
+/* Brand area */
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.logo {
+  width: 200px;
+  height: 200px;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.18));
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.75);
+  text-align: center;
+}
+
+/* Form */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.input {
+  width: 100%;
+  height: 42px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  background: rgba(255, 255, 255, 0.88);
+  padding: 0 12px;
+  outline: none;
+  font-size: 13px;
+}
+.input:focus {
+  border-color: rgba(47, 107, 255, 0.6);
+  box-shadow: 0 0 0 3px rgba(47, 107, 255, 0.15);
+}
+
+.passwordWrap {
+  position: relative;
+}
+.iconBtn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  opacity: 0.85;
+}
+
+.iconBtn img {
+  width: 20px; /* scales your 512px icon down */
+  height: 20px;
+  display: block;
+}
+
+.iconBtn:hover {
+  opacity: 1;
+}
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: -2px;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.75);
+}
+.checkbox input {
+  width: 18px;
+  height: 18px;
+  accent-color: #2f6bff; /* matches your primary colour */
+}
+
+.link {
+  font-size: 14px;
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 700;
+}
+.link:hover {
+  text-decoration: underline;
+}
+
+.error {
+  margin-top: -8px;
+  min-height: 14px;
+  font-size: 12px;
+  color: #dc2626;
+}
+
+.roleDivider {
+  width: 100%;
+  height: 3px; /* thickness */
+  background: black;
+  border-radius: 999px; /* smooth edges */
+  margin: 10px 0;
+  opacity: 0.6;
+}
+
+/* Role buttons */
+.roles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 6px;
+}
+
+.role {
+  border: none;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: 10px;
+  padding: 14px 8px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition:
+    transform 0.08s ease,
+    background 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+.role:hover {
+  transform: translateY(-1px);
+}
+.role[aria-pressed="true"] {
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: 0 0 0 3px rgba(47, 107, 255, 0.18);
+}
+
+.roleIcon {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.roleIcon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.roleText {
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.btn {
+  height: 44px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 900;
+  font-size: 13px;
+}
+
+.primary {
+  background: var(--primary);
+  color: white;
+}
+.primary:hover {
+  background: var(--primaryHover);
+}
+
+.line {
+  height: 2px;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.75);
+  opacity: 0.25;
+  margin: 6px 0;
+}
+
+.google {
+  background: rgba(0, 0, 0, 0.78);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.googleLogo {
+  width: 30px;
+  height: 30px;
+  padding: 3px;
+  border-radius: 4px;
+}
+
+.g {
+  width: 20px;
+  height: 20px;
+  background: white;
+  color: #111;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+}
+
+.foot {
+  text-align: center;
+  font-size: 12px;
+  margin: 6px 0 0;
+  color: rgba(0, 0, 0, 0.72);
+  font-weight: 700;
+}
+
+.status {
+  text-align: center;
+  min-height: 16px;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.7);
+  margin: 6px 0 0;
+}
+
+/* Mobile spacing */
+@media (max-width: 520px) {
+  .centre {
+    font-size: 18px;
+  }
+  .roles {
+    gap: 10px;
+  }
+  .role {
+    padding: 12px 6px;
+  }
+}
+
+.backBtn {
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.75);
+  color: rgba(0, 0, 0, 0.85);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.backBtn:hover {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+/* --- Signup extras --- */
+.signupRoles {
+  margin-bottom: 10px;
+}
+
+.roleIcon img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  display: block;
+}
+
+.googleLogo {
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  padding: 3px;
+  border-radius: 4px;
+}
+
+/* ===============================
+   HOME PAGE STYLES 
+================================ */
+
+.page.home {
+  display: block; /* stop grid centering */
+  place-items: unset; /* override place-items */
+  min-height: 100vh;
+  padding: 0 0 40px;
+  background: #fbf3e6;
+}
+
+/* TOP NAV */
+body {
+  margin: 0;
+}
+
+/* NAV BAR */
+.topbar {
+  background: #f0b35b;
+  position: relative;
+}
+
+/* thick orange bar under nav (Figma style) */
+.topbar::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 10px; /* thickness of the orange bar */
+  background: #ff7c10; /* your exact colour */
+}
+
+.topbar-inner {
+  width: 100%;
+  margin: 0;
+  padding: 10px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+/* Logo far left (scoped so it won't clash with login .brand) */
+.topbar .brand {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  margin: 0;
+}
+
+.topbar .brand-logo {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  display: block;
+}
+
+/* Buttons group to the right */
+.topbar .nav {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: nowrap; /* keep single row on desktop */
+}
+
+/* Pills */
+.topbar .pill {
+  position: relative;
+  padding: 14px 26px; /* big but not crazy huge */
+  border-radius: 15px; /* pill shape like figma */
+  background: #fff;
+  border: none;
+  font-size: 16px;
+  font-weight: 800;
+  color: #222;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  line-height: 1;
+}
+
+.topbar .pill.active {
+  background: #df8f3b;
+  color: #fff;
+  transform: none;
+}
+
+/* Account + badge */
+.topbar .pill.account {
+  padding-right: 28px;
+}
+
+.topbar .notif {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #e11d48;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+  display: grid;
+  place-items: center;
+  border: 3px solid #f0b35b;
+}
+
+/* Responsive (proper for flex) */
+@media (max-width: 860px) {
+  .topbar-inner {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .topbar .nav {
+    margin-left: 0;
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .topbar .pill {
+    padding: 10px 16px;
+    font-size: 14px;
+    min-height: 42px;
+  }
+
+  .topbar .brand-logo {
+    width: 78px;
+    height: 78px;
+  }
+}
+/* ===============================
+   HAMBURGER MENU (MOBILE)
+   Works with your current topbar CSS
+================================ */
+
+/* Hide hamburger + drawer on desktop by default */
+.menuBtn,
+.navMobile,
+.navBackdrop {
+  display: none;
+}
+
+/* Hamburger button base styles (no display here) */
+.menuBtn {
+  margin-left: auto;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  background: rgba(255, 255, 255, 0.75);
+  cursor: pointer;
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+/* Backdrop behind drawer */
+.navBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 1000;
+}
+
+.navBackdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Drawer */
+.navMobile {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: min(320px, 86vw);
+  background: #fbf3e6;
+  border-left: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: -18px 0 40px rgba(0, 0, 0, 0.2);
+  padding: 92px 16px 16px;
+  transform: translateX(110%);
+  transition: transform 0.22s ease;
+  z-index: 1001;
+}
+
+.navMobile.open {
+  transform: translateX(0);
+}
+
+/* Links inside drawer */
+.mLink {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 14px;
+  border-radius: 14px;
+  background: #fff;
+  text-decoration: none;
+  color: #222;
+  font-weight: 900;
+  margin-bottom: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.mLink.active {
+  background: #df8f3b;
+  color: #fff;
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+.mNotif {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #e11d48;
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+/* Prevent page scroll when menu open */
+body.menuOpen {
+  overflow: hidden;
+}
+
+/* ✅ MOBILE BREAKPOINT: switch to hamburger */
+@media (max-width: 720px) {
+  /* stop your old wrap behaviour on mobile */
+  .topbar-inner {
+    flex-wrap: nowrap;
+  }
+
+  /* hide desktop nav pills */
+  .topbar .nav {
+    display: none;
+  }
+
+  /* show hamburger + drawer */
+  .menuBtn,
+  .navMobile,
+  .navBackdrop {
+    display: block;
+  }
+
+  /* logo smaller on mobile */
+  .topbar .brand-logo {
+    width: 64px;
+    height: 64px;
+  }
+}
+
+/* Main content width like your picture 1 */
+.searchWrap,
+.listHeader,
+.list {
+  max-width: 720px; /* key: match your mock width */
+  margin: 16px auto 0;
+  padding: 0 14px;
+}
+
+/* Search bar */
+.searchWrap {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.searchBar {
+  height: 48px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95);
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  gap: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.22);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.07);
+}
+
+.searchIcon {
+  font-size: 18px;
+  opacity: 0.75;
+}
+
+.searchBar input {
+  border: none;
+  outline: none;
+  width: 100%;
+  font-size: 15px;
+  font-weight: 600;
+  background: transparent;
+}
+
+@media (max-width: 520px) {
+  .searchBar {
+    height: 44px;
+  }
+
+  .searchBar input {
+    font-size: 14px;
+  }
+}
+
+/* Filters row */
+.filters {
+  display: grid;
+  grid-template-columns: 130px 140px 130px 1fr;
+  gap: 10px;
+}
+
+.filters select,
+.filters input {
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  background: rgba(255, 255, 255, 0.92);
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  outline: none;
+}
+
+/* Header text */
+.listHeader {
+  text-align: center;
+  margin-top: 16px;
+}
+
+.listHeader h2 {
+  margin: 10px 0 4px;
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.listHeader p {
+  margin: 0;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.65);
+  font-weight: 700;
+}
+
+/* Stall list */
+.list {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Card matches picture 1 */
+.card {
+  display: grid;
+  grid-template-columns: 290px 1fr; /* image + content */
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  overflow: visible;
+  box-shadow: 0 10px 16px rgba(0, 0, 0, 0.06);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.12);
+}
+
+/* image column */
+.cardImg {
+  height: 190px;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.imgFrame {
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow:
+    0 8px 18px rgba(0, 0, 0, 0.12),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+}
+
+.imgFrame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Card body */
+.cardBody {
+  padding: 14px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Title + popular badge on right like your pic */
+.cardTop {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.badgePopular {
+  position: absolute;
+  top: 0;
+  right: -50px; /* pushes badge outward like Figma */
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 20px;
+  padding-right: 32px; /* space for notch */
+  background: #d79042;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 900;
+  border-radius: 6px 0 0 6px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.badgePopular::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 14px solid transparent;
+  border-bottom: 14px solid transparent;
+  border-right: 14px solid #fbf3e6; /* background colour */
+}
+
+/* Cuisine + Grade badges */
+.meta {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.tag {
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: #f3e4d7;
+  font-weight: 900;
+  font-size: 14px;
+}
+
+.grade {
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-weight: 900;
+  font-size: 14px;
+}
+
+.grade.A {
+  background: #dc2626;
+}
+.grade.B {
+  background: #16a34a;
+}
+.grade.C {
+  background: #7c2d12;
+} /* brown like your mock */
+
+/* Description */
+.desc {
+  margin: 0;
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.7);
+  font-weight: 600;
+  line-height: 1.35;
+  max-width: 420px;
+}
+
+/* Bottom row: prep + button */
+.cardBottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.prep {
+  font-size: 12px;
+  font-weight: 900;
+  background: #f3e4d7;
+  padding: 8px 10px;
+  border-radius: 6px;
+  color: rgba(0, 0, 0, 0.75);
+}
+
+/* View stall button like pic 1 */
+.viewBtn {
+  height: 38px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 6px;
+  background: #d79042;
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.viewBtn:hover {
+  background: #c57f35;
+}
+
+.arrow {
+  font-size: 18px;
+  line-height: 0;
+}
+.arrowIcon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+/* Mobile */
+@media (max-width: 720px) {
+  .filters {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .card {
+    grid-template-columns: 1fr;
+  }
+
+  .cardImg {
+    height: 190px;
+  }
+
+  .searchWrap,
+  .listHeader,
+  .list {
+    max-width: 680px;
+  }
+  .cardBody {
+    padding-right: 26px;
+  }
+
+  .badgePopular {
+    margin-left: auto;
+    margin-right: 10px;
+    white-space: nowrap;
+  }
+}
+/* ===== BRUTE FIX: remove any white strip around HOME ===== */
+html,
+body {
+  margin: 0 !important;
+  padding: 0 !important;
+  background: #fbf3e6 !important; /* make body match home background */
+}
+
+/* ensure navbar touches edges */
+.topbar {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* remove any accidental border/outline */
+body,
+main,
+header,
+section,
+nav {
+  border: 0 !important;
+  outline: 0 !important;
+}
+
+/* ensure main starts flush and background matches */
+.page.home {
+  margin: 0 !important;
+  padding: 0 !important;
+  background: #fbf3e6 !important;
+}
+
+/* ===============================
+   EMPTY STATE (No Results)
+   Premium UI
+================================ */
+
+.emptyState {
+  width: 100%;
+  max-width: 720px;
+  margin: 56px auto 0;
+  padding: 48px 24px;
+  text-align: center;
+  background: transparent;
+  animation: fadeUp 0.35s ease-out both;
+}
+
+/* Headline */
+.emptyTitle {
+  margin: 0 0 28px;
+  font-size: 28px;
+  font-weight: 900;
+  color: #111;
+  letter-spacing: -0.3px;
+}
+
+/* Optional helper text (if you add later) */
+.emptyHint {
+  margin: -10px 0 32px;
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+/* Reset Filters button */
+.resetBtn {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+
+  background: linear-gradient(180deg, #f4a261, #f09b57);
+  color: #fff;
+
+  padding: 16px 40px;
+  border-radius: 12px;
+
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 0.2px;
+
+  box-shadow:
+    0 10px 18px rgba(0, 0, 0, 0.18),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.12);
+
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+
+.resetBtn:hover {
+  background: linear-gradient(180deg, #e89552, #e38b45);
+  transform: translateY(-2px);
+  box-shadow:
+    0 14px 24px rgba(0, 0, 0, 0.22),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.resetBtn:active {
+  transform: translateY(0);
+  box-shadow:
+    0 8px 14px rgba(0, 0, 0, 0.18),
+    inset 0 2px 0 rgba(0, 0, 0, 0.18);
+}
+
+/* Smooth entrance */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile */
+@media (max-width: 520px) {
+  .emptyTitle {
+    font-size: 22px;
+  }
+
+  .resetBtn {
+    width: 100%;
+    padding: 16px 0;
+  }
+}
+
+.bottomReset {
+  display: flex;
+  justify-content: center;
+  margin: 26px 0 10px;
+}

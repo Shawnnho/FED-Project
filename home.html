@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Hawker Point — Home</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="home.html" aria-label="Hawker Point Home">
+          <img src="images/logo.png" alt="Hawker Point" class="brand-logo" />
+        </a>
+
+        <!-- Desktop nav (same as your current) -->
+        <nav class="nav" aria-label="Primary navigation">
+          <a class="pill active" href="home.html">Home</a>
+          <a class="pill" href="stalls.html">Stalls</a>
+          <a class="pill" href="orders.html">Orders</a>
+          <a class="pill" href="feedback.html">Feedback</a>
+          <a class="pill" href="hygiene.html">Hygiene</a>
+          <a class="pill account" href="account.html">
+            Account
+            <span class="notif">1</span>
+          </a>
+        </nav>
+
+        <!-- ✅ Hamburger button (mobile only via CSS) -->
+        <button
+          id="menuBtn"
+          class="menuBtn"
+          type="button"
+          aria-label="Open menu"
+          aria-expanded="false"
+        >
+          ☰
+        </button>
+      </div>
+
+      <div id="navBackdrop" class="navBackdrop"></div>
+      <nav id="navMobile" class="navMobile" aria-label="Mobile navigation">
+        <a class="mLink active" href="home.html">Home</a>
+        <a class="mLink" href="stalls.html">Stalls</a>
+        <a class="mLink" href="orders.html">Orders</a>
+        <a class="mLink" href="feedback.html">Feedback</a>
+        <a class="mLink" href="hygiene.html">Hygiene</a>
+        <a class="mLink" href="account.html">
+          Account <span class="mNotif">1</span>
+        </a>
+      </nav>
+    </header>
+
+    <main class="page home">
+      <!-- SEARCH -->
+      <section class="searchWrap">
+        <div class="searchBar">
+          <span class="searchIcon" aria-hidden="true">🔍</span>
+          <input
+            id="q"
+            type="text"
+            placeholder="What are you craving?"
+            autocomplete="off"
+          />
+        </div>
+
+        <!-- FILTERS -->
+        <div class="filters">
+          <select id="cuisine">
+            <option value="">Cuisine</option>
+          </select>
+
+          <select id="grade">
+            <option value="">Hygiene Grade</option>
+            <option value="A">A</option>
+            <option value="B">B</option>
+            <option value="C">C</option>
+          </select>
+
+          <select id="sort">
+            <option value="popular">Sort: Popular</option>
+            <option value="prepAsc">Prep: Fastest</option>
+            <option value="prepDesc">Prep: Slowest</option>
+            <option value="nameAsc">Name: A–Z</option>
+          </select>
+
+          <input id="location" type="text" placeholder="Location" />
+        </div>
+      </section>
+
+      <!-- LIST HEADER -->
+      <section class="listHeader">
+        <h2>Popular Stalls At Maxwell Food Centre</h2>
+        <p id="subline">Showing 0 stalls. Sorted by Most Popular</p>
+      </section>
+
+      <!-- STALL LIST -->
+      <section id="list" class="list" aria-label="Stall list"></section>
+    </main>
+
+    <script src="home.js"></script>
+  </body>
+</html>

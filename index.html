@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Hawker Point — Sign In</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <script type="module" src="firebase-auth.js"></script>
+
+  <body>
+    <main class="page">
+      <div class="bg" aria-hidden="true"></div>
+      <div class="fadeTop" aria-hidden="true"></div>
+      <div class="fadeBottom" aria-hidden="true"></div>
+
+      <section class="panel" aria-label="Sign in panel">
+        <div class="brand">
+          <img class="logo" src="images/logo.png" alt="Hawker Point logo" />
+
+          <p class="subtitle">Order From Singapore Hawker Center.</p>
+          <br />
+        </div>
+
+        <form id="loginForm" class="form" novalidate>
+          <input
+            id="emailOrPhone"
+            class="input"
+            type="text"
+            placeholder="Email or phone number"
+          />
+          <small id="emailError" class="error" aria-live="polite"></small>
+
+          <div class="passwordWrap">
+            <input
+              id="password"
+              class="input"
+              type="password"
+              placeholder="Enter password"
+            />
+
+            <button
+              id="togglePassword"
+              type="button"
+              class="iconBtn"
+              aria-label="Show password"
+            >
+              <img id="eyeIcon" src="images/hide.png" alt="hide password" />
+            </button>
+          </div>
+          <small id="pwError" class="error" aria-live="polite"></small>
+
+          <div class="row">
+            <label class="checkbox">
+              <input id="rememberMe" type="checkbox" />
+              Remember me
+            </label>
+            <a class="link" href="forgot-password.html">Forgot password?</a>
+          </div>
+
+          <div class="roleDivider"></div>
+
+          <div class="roles" role="group" aria-label="Select role">
+            <button
+              type="button"
+              class="role"
+              data-role="guest"
+              aria-pressed="true"
+            >
+              <div class="roleIcon">
+                <img src="images/user (1).png" alt="Guest" />
+              </div>
+              <div class="roleText">Guest</div>
+            </button>
+
+            <button
+              type="button"
+              class="role"
+              data-role="customer"
+              aria-pressed="false"
+            >
+              <div class="roleIcon">
+                <img src="images/user (1).png" alt="Guest" />
+              </div>
+              <div class="roleText">Customer</div>
+            </button>
+
+            <button
+              type="button"
+              class="role"
+              data-role="storeholder"
+              aria-pressed="false"
+            >
+              <div class="roleIcon">
+                <img src="images/chef.png" alt="Guest" />
+              </div>
+              <div class="roleText">Store Holder</div>
+            </button>
+          </div>
+
+          <button class="btn primary" type="submit">Sign in</button>
+
+          <div class="line"></div>
+
+          <button id="googleSignupBtn" class="btn google" type="button">
+            <img src="images/google.png" alt="Google logo" class="googleLogo" />
+            Sign up with Google
+          </button>
+          <p class="foot">
+            Don’t have an account?
+            <a class="link" href="signup.html" id="signUp">Sign up now</a>
+          </p>
+
+          <p id="statusMsg" class="status" aria-live="polite"></p>
+        </form>
+      </section>
+    </main>
+
+    <script src="script.js" defer></script>
+    <script type="module" src="firebase.js"></script>
+  </body>
+</html>

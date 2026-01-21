@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Hawker Point — Sign Up</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body>
+    <main class="page">
+      <div class="bg" aria-hidden="true"></div>
+      <div class="fadeTop" aria-hidden="true"></div>
+      <div class="fadeBottom" aria-hidden="true"></div>
+
+      <section class="panel" aria-label="Sign up panel">
+        <div class="brand">
+          <img class="logo" src="images/logo.png" alt="Hawker Point logo" />
+          <p class="subtitle">
+            Register and order from Singapore’s Hawker Center
+          </p>
+        </div>
+
+        <!-- Role cards (match your design) -->
+        <div class="roles signupRoles" role="group" aria-label="Select role">
+          <button
+            type="button"
+            class="role"
+            data-role="customer"
+            aria-pressed="true"
+          >
+            <div class="roleIcon">
+              <img src="images/user (1).png" alt="Customer" />
+            </div>
+            <div class="roleText">Customer</div>
+          </button>
+
+          <button
+            type="button"
+            class="role"
+            data-role="storeholder"
+            aria-pressed="false"
+          >
+            <div class="roleIcon">
+              <img src="images/chef.png" alt="Stall Holder" />
+            </div>
+            <div class="roleText">Stall Holder</div>
+          </button>
+
+          <button
+            type="button"
+            class="role"
+            data-role="guest"
+            aria-pressed="false"
+          >
+            <div class="roleIcon">
+              <img src="images/user (1).png" alt="Guest" />
+            </div>
+            <div class="roleText">Guest</div>
+          </button>
+        </div>
+
+        <form id="signupForm" class="form" novalidate>
+          <input
+            id="fullName"
+            class="input"
+            type="text"
+            placeholder="Full Name"
+          />
+          <small id="nameError" class="error" aria-live="polite"></small>
+
+          <input
+            id="email"
+            class="input"
+            type="email"
+            placeholder="Email Address"
+          />
+          <small id="emailError" class="error" aria-live="polite"></small>
+
+          <input
+            id="phone"
+            class="input"
+            type="text"
+            placeholder="Phone Number (8 digits)"
+          />
+          <small id="phoneError" class="error" aria-live="polite"></small>
+
+          <div class="passwordWrap">
+            <input
+              id="password"
+              class="input"
+              type="password"
+              placeholder="Enter password"
+            />
+            <button
+              id="togglePassword"
+              type="button"
+              class="iconBtn"
+              aria-label="Show password"
+            >
+              <img id="eyeIcon" src="images/show.png" alt="Show password" />
+            </button>
+          </div>
+          <small id="pwError" class="error" aria-live="polite"></small>
+
+          <button class="btn primary" type="submit">Register</button>
+
+          <div class="line"></div>
+
+          <button id="googleSignupBtn" class="btn google" type="button">
+            <img src="images/google.png" class="googleLogo" alt="Google logo" />
+            or sign up with Google
+          </button>
+
+          <p class="foot">
+            Already have an account?
+            <a class="link" href="index.html">Log in now</a>
+          </p>
+
+          <p id="statusMsg" class="status" aria-live="polite"></p>
+        </form>
+      </section>
+    </main>
+
+    <script type="module" src="signup.js"></script>
+  </body>
+</html>
