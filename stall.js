@@ -1,4 +1,40 @@
-// same stall data (or import it if shared)
+/*************************************************
+ * stall.js (module)
+ * - Loads stall UI from local array
+ * - ✅ Add/Remove Favourite (Firestore users/{uid}.favourites)
+ *************************************************/
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  arrayUnion,
+  arrayRemove,
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+/* ✅ SAME config as your other pages */
+const firebaseConfig = {
+  apiKey: "AIzaSyC-NTWADB-t1OGl7NbdyMVXjpVjnqjpTXg",
+  authDomain: "fedproject-8d254.firebaseapp.com",
+  projectId: "fedproject-8d254",
+  storageBucket: "fedproject-8d254.firebasestorage.app",
+  messagingSenderId: "477538553634",
+  appId: "1:477538553634:web:a14b93bbd93d33b9281f7b",
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// =========================
+// Local stall data
+// =========================
 const stalls = [
   {
     id: "tiong-bahru",
@@ -77,29 +113,36 @@ const stalls = [
   },
 ];
 
-// ===== Get stall id from URL =====
+// =========================
+// Get stall id from URL
+// =========================
 const params = new URLSearchParams(window.location.search);
-const id = params.get("id") || "tiong-bahru"; // default fallback
+const id = params.get("id") || "tiong-bahru";
 const stall = stalls.find((s) => s.id === id);
 
-if (!stall) {
-  window.location.href = "home.html";
-}
+if (!stall) window.location.href = "home.html";
 
-// ===== Elements (match your stall.html) =====
+// =========================
+// DOM
+// =========================
 const heroEl = document.getElementById("stallHero");
 const nameEl = document.getElementById("stallName");
 const cuisineEl = document.getElementById("stallCuisine");
 const gradeEl = document.getElementById("stallGrade");
 const descEl = document.getElementById("stallDesc");
 const metaEl = document.getElementById("stallMeta");
-const hoursEl = document.getElementById("stallHours");
+
+const locationEl = document.getElementById("stallLocation");
 
 const menuLink = document.getElementById("menuLink");
 const callBtn = document.getElementById("callBtn");
 const dirBtn = document.getElementById("dirBtn");
 
-// ===== Fill UI =====
+const favBtn = document.getElementById("favBtn");
+
+// =========================
+// Fill UI
+// =========================
 heroEl.src = stall.img;
 heroEl.alt = `${stall.name} hero image`;
 
@@ -114,21 +157,85 @@ gradeEl.classList.add(
 
 descEl.textContent = stall.desc;
 
-// ===== Opening hours + unit + extras =====
+// Top meta line
 metaEl.textContent = `Open: ${stall.openTime} - ${stall.closeTime} > Unit ${stall.unit}`;
-// hoursEl.textContent = `Open ${stall.openTime} - ${stall.closeTime}`;
 
-const locationEl = document.getElementById("stallLocation");
+// Location line (if you added it in HTML)
 if (locationEl) {
   locationEl.textContent = `📍 ${stall.location} • Unit ${stall.unit}`;
 }
 
-// ===== Links =====
+// Links
 if (menuLink) menuLink.href = `menu.html?id=${stall.id}`;
-
-// (optional) if you don’t have real numbers/addresses yet:
 if (callBtn) callBtn.href = "tel:+6590000000";
-if (dirBtn)
+if (dirBtn) {
   dirBtn.href =
     "https://www.google.com/maps?q=" +
     encodeURIComponent(stall.location || stall.name);
+}
+
+// =========================
+// ✅ Favourite (Firestore)
+// =========================
+function setFavUI(isFav) {
+  if (!favBtn) return;
+  favBtn.classList.toggle("active", isFav);
+  favBtn.setAttribute("aria-pressed", String(isFav));
+  favBtn.setAttribute(
+    "aria-label",
+    isFav ? "Remove favourite" : "Add to favourite",
+  );
+}
+
+onAuthStateChanged(auth, async (user) => {
+  if (!favBtn) return;
+
+  // If not logged in, block favourites
+  if (!user) {
+    setFavUI(false);
+    favBtn.addEventListener("click", () => {
+      alert("Please login to use favourites.");
+      window.location.href = "index.html";
+    });
+    return;
+  }
+
+  const userRef = doc(db, "users", user.uid);
+
+  // Load favourites
+  let isFav = false;
+  try {
+    const snap = await getDoc(userRef);
+    const data = snap.exists() ? snap.data() : {};
+    const favs = Array.isArray(data.favourites) ? data.favourites : [];
+    isFav = favs.includes(stall.id);
+    setFavUI(isFav);
+  } catch (e) {
+    console.error("Failed to load favourites:", e);
+    setFavUI(false);
+  }
+
+  // Toggle favourite
+  favBtn.addEventListener("click", async () => {
+    try {
+      isFav = !isFav;
+      setFavUI(isFav);
+
+      await setDoc(
+        userRef,
+        {
+          favourites: isFav ? arrayUnion(stall.id) : arrayRemove(stall.id),
+        },
+        { merge: true },
+      );
+    } catch (e) {
+      console.error("Failed to update favourite:", e);
+
+      // rollback
+      isFav = !isFav;
+      setFavUI(isFav);
+
+      alert("Failed to update favourite. Try again.");
+    }
+  });
+});

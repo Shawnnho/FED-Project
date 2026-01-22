@@ -227,7 +227,6 @@ onAuthStateChanged(auth, async (user) => {
     window.location.href = "index.html";
     return;
   }
-  
 
   try {
     const data = await loadProfile(user.uid, user);
@@ -250,7 +249,13 @@ onAuthStateChanged(auth, async (user) => {
     accName.textContent = data?.name || user.displayName || "—";
     accRole.textContent = roleLabel(data?.role);
     accEmail.textContent = user.email || data?.email || "—";
-    accPhone.textContent = data?.phone || "—";
+
+    // =========================
+    // ✅ FAVOURITES (Saved Stores)
+    // =========================
+    const savedStoresEl = document.getElementById("savedStores");
+    const favs = Array.isArray(data?.favourites) ? data.favourites : [];
+    if (savedStoresEl) savedStoresEl.textContent = favs.length;
 
     // avatar
     if (accAvatar) {
