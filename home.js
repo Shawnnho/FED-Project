@@ -27,7 +27,16 @@ function applyGuestModeUI() {
 }
 
 applyGuestModeUI();
-
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll('a[href="account.html"]').forEach((link) => {
+    link.addEventListener("click", (e) => {
+      if (isGuest) {
+        e.preventDefault();
+        window.location.href = "index.html";
+      }
+    });
+  });
+});
 /* ===============================
    DATA
 ================================ */

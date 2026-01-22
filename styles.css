@@ -480,6 +480,12 @@ body {
   border: 3px solid #f0b35b;
 }
 
+/* Hide notif badge completely when empty or hidden */
+.notif[hidden],
+.mNotif[hidden] {
+  display: none !important;
+}
+
 /* Responsive (proper for flex) */
 @media (max-width: 860px) {
   .topbar-inner {
@@ -1084,3 +1090,86 @@ nav {
   margin: 26px 0 10px;
 }
 
+/*************************************************
+ * (HOME – FILTER BLOCK)
+ *************************************************/
+
+/* Base empty state (you may already have this) */
+.emptyState {
+  width: 100%;
+  padding: 48px 16px;
+  text-align: center;
+}
+
+/* Guest locked variant */
+.guestLocked {
+  margin-top: 40px;
+}
+
+.guestLocked .emptyTitle {
+  font-size: 28px;
+  font-weight: 800;
+  color: #111;
+  margin-bottom: 10px;
+}
+
+.guestLocked .emptyDesc {
+  font-size: 18px;
+  font-weight: 600;
+  color: #7a7a7a;
+  margin-bottom: 26px;
+  line-height: 1.4;
+}
+
+/* Buttons */
+.guestLocked .guestCTA {
+  width: min(420px, 90%);
+  margin: 0 auto 14px;
+  display: block;
+  padding: 14px 16px;
+  border-radius: 14px;
+  font-weight: 800;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+/* Primary button – Reset Filters */
+.guestLocked .guestCTA {
+  background: #e8944c; /* Hawker orange */
+  color: #fff;
+  border: none;
+}
+
+/* Secondary button – Register */
+.guestLocked .guestCTA.secondary {
+  background: #fff;
+  border: 2px solid #cfcfcf;
+  color: #666;
+  text-decoration: none;
+}
+
+/* Hover effects */
+.guestLocked .guestCTA:hover {
+  opacity: 0.95;
+}
+
+.guestLocked .guestCTA.secondary:hover {
+  background: #f6f6f6;
+}
+
+/*************************************************
+ Disable filter inputs visually in guest mode
+ *************************************************/
+
+body.guest .filters select,
+body.guest .filters input {
+  cursor: not-allowed;
+}
+
+/*************************************************
+  filter bar slightly
+ *************************************************/
+
+body.guest .searchWrap {
+  opacity: 0.85;
+}
