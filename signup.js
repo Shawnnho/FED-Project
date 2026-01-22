@@ -1,3 +1,10 @@
+/*************************************************
+ * signup.js (FULL) - Firebase Auth + Firestore Role Storage
+ * - Email/Password signup
+ * - Google signup
+ * - Stores role + profile in Firestore so it works across devices
+ *************************************************/
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getAuth,
@@ -6,6 +13,14 @@ import {
   createUserWithEmailAndPassword,
   updateProfile,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  serverTimestamp,
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // ✅ Use SAME config as your login
 const firebaseConfig = {
@@ -17,9 +32,11 @@ const firebaseConfig = {
   appId: "1:477538553634:web:a14b93bbd93d33b9281f7b",
 };
 
+// Firebase init
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
+const db = getFirestore(app);
 
 // DOM
 const form = document.getElementById("signupForm");
@@ -49,9 +66,9 @@ roleButtons.forEach((btn) => {
     btn.setAttribute("aria-pressed", "true");
     selectedRole = btn.dataset.role;
 
-    // If Guest selected, skip signup
+    // If Guest selected, skip signup (guest = no account)
     if (selectedRole === "guest") {
-      window.location.href = "index.html";
+      window.location.href = "home.html?mode=guest";
     }
   });
 });
@@ -120,7 +137,51 @@ function validate() {
   return ok;
 }
 
-// Email/password signup
+/* ================================
+   Firestore Profile + Role Helpers
+================================ */
+
+/**
+ * Create user profile if it doesn't exist.
+ * Returns stored role (from DB) so it always works cross-device.
+ */
+async function ensureUserProfile(user, role, phoneValue = "") {
+  const userRef = doc(db, "users", user.uid);
+  const snap = await getDoc(userRef);
+
+  // Create only if first time
+  if (!snap.exists()) {
+    await setDoc(userRef, {
+      name: user.displayName || fullName?.value?.trim() || "",
+      email: user.email || "",
+      phone: phoneValue || "",
+      role: role, // "customer" | "stall_owner" (match your data-role values)
+      createdAt: serverTimestamp(),
+    });
+  }
+
+  // Always read role from DB (source of truth)
+  const finalSnap = await getDoc(userRef);
+  return finalSnap.data().role;
+}
+
+/**
+ * Redirect by role
+ * IMPORTANT: Change these page names to match your project files.
+ */
+function redirectByRole(role) {
+  if (role === "stall_owner") {
+    window.location.href = "stall-dashboard.html";
+  } else {
+    // default customer
+    window.location.href = "index.html";
+  }
+}
+
+/* ================================
+   Email/Password signup
+================================ */
+
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
   if (!validate()) return;
@@ -134,20 +195,20 @@ form.addEventListener("submit", async (e) => {
       password.value,
     );
 
-    // Set display name
+    // Set display name in Firebase Auth
     await updateProfile(cred.user, {
       displayName: fullName.value.trim(),
     });
 
-    // Store role locally for now (simple FED approach)
-    localStorage.setItem("hawker_role", selectedRole);
-    localStorage.setItem("hawker_phone", phone.value.trim());
+    // ✅ Save role + phone in Firestore (cross-device)
+    const role = await ensureUserProfile(
+      cred.user,
+      selectedRole,
+      phone.value.trim(),
+    );
 
-    statusMsg.textContent = `✅ Account created as ${selectedRole}. Redirecting...`;
-
-    setTimeout(() => {
-      window.location.href = "index.html"; // or your home page
-    }, 900);
+    statusMsg.textContent = `✅ Account created as ${role}. Redirecting...`;
+    setTimeout(() => redirectByRole(role), 900);
   } catch (err) {
     console.error(err);
 
@@ -162,7 +223,10 @@ form.addEventListener("submit", async (e) => {
   }
 });
 
-// Google signup button
+/* ================================
+   Google signup button
+================================ */
+
 document
   .getElementById("googleSignupBtn")
   .addEventListener("click", async () => {
@@ -171,13 +235,12 @@ document
 
       const result = await signInWithPopup(auth, provider);
 
-      // Save role
-      localStorage.setItem("hawker_role", selectedRole);
+      // ✅ Save role in Firestore (cross-device)
+      // Phone is optional for Google sign up unless you collect it
+      const role = await ensureUserProfile(result.user, selectedRole, "");
 
-      statusMsg.textContent = `✅ Signed in with Google as ${result.user.displayName || result.user.email}`;
-      setTimeout(() => {
-        window.location.href = "index.html";
-      }, 900);
+      statusMsg.textContent = `✅ Signed in as ${result.user.displayName || result.user.email}`;
+      setTimeout(() => redirectByRole(role), 900);
     } catch (err) {
       console.error(err);
       statusMsg.textContent = `❌ Google sign-up failed: ${err.code || err.message}`;
