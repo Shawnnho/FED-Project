@@ -136,22 +136,38 @@
             >
           </section>
 
-          <div class="passwordWrap">
+          <!-- PASSWORD -->
+          <div class="field">
+            <div class="passwordWrap">
+              <input
+                id="password"
+                class="input"
+                type="password"
+                placeholder="Enter password"
+              />
+              <button
+                id="togglePassword"
+                type="button"
+                class="iconBtn"
+                aria-label="Show password"
+              >
+                <img id="eyeIcon" src="images/show.png" alt="Show password" />
+              </button>
+            </div>
+            <small id="pwError" class="error" aria-live="polite"></small>
+          </div>
+
+          <!-- CONFIRM PASSWORD -->
+          <div class="field">
             <input
-              id="password"
+              id="confirmPassword"
               class="input"
               type="password"
-              placeholder="Enter password"
+              placeholder="Confirm password"
             />
-            <button
-              id="togglePassword"
-              type="button"
-              class="iconBtn"
-              aria-label="Show password"
-            >
-              <img id="eyeIcon" src="images/show.png" alt="Show password" />
-            </button>
+            <small id="confirmPwError" class="error" aria-live="polite"></small>
           </div>
+
           <small id="pwError" class="error" aria-live="polite"></small>
 
           <button class="btn primary" type="submit">Register</button>

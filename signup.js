@@ -51,7 +51,8 @@ const fullName = document.getElementById("fullName");
 const email = document.getElementById("email");
 const phone = document.getElementById("phone");
 const password = document.getElementById("password");
-
+const confirmPassword = document.getElementById("confirmPassword");
+const confirmPwError = document.getElementById("confirmPwError");
 const nameError = document.getElementById("nameError");
 const emailError = document.getElementById("emailError");
 const phoneError = document.getElementById("phoneError");
@@ -156,6 +157,7 @@ function clearErrors() {
   if (stallCentreError) stallCentreError.textContent = "";
   if (stallNameError) stallNameError.textContent = "";
   if (stallCuisineError) stallCuisineError.textContent = "";
+  if (confirmPwError) confirmPwError.textContent = "";
 }
 
 function validateBase() {
@@ -188,6 +190,15 @@ function validateBase() {
     ok = false;
   } else if (password.value.length < 6) {
     pwError.textContent = "Password must be at least 6 characters.";
+    ok = false;
+  }
+
+  // Confirm password
+  if (!confirmPassword?.value) {
+    confirmPwError.textContent = "Please confirm your password.";
+    ok = false;
+  } else if (password.value !== confirmPassword.value) {
+    confirmPwError.textContent = "Passwords do not match.";
     ok = false;
   }
 

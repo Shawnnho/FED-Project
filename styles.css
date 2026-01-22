@@ -1197,3 +1197,48 @@ body.guest .filters input {
 body.guest .searchWrap {
   opacity: 0.85;
 }
+
+/* =====================================
+   SIGNUP – COMPACT PREMIUM OVERRIDES
+   ===================================== */
+
+/* Reduce vertical stacking from form */
+.form {
+  gap: 6px; /* was too big */
+}
+
+/* Tight but readable field spacing */
+.field {
+  margin-bottom: 6px;
+}
+
+/* Errors should not reserve space */
+.error {
+  margin-top: 2px;
+  min-height: 0;
+  line-height: 1.2;
+}
+
+/* Stall holder card – reduce height */
+.stallFields {
+  margin-top: 8px;
+  padding: 10px; /* was too padded */
+  border-radius: 14px;
+}
+
+/* Inputs inside stall holder */
+.stallFields .input,
+.stallFields select {
+  margin-bottom: 6px;
+}
+
+/* Title tighter */
+.stallTitle {
+  margin: 0 0 6px;
+}
+
+/* Hint tighter */
+.hint {
+  margin-top: 2px;
+  font-size: 11px;
+}

@@ -97,3 +97,77 @@ form.addEventListener("submit", (e) => {
 
   statusMsg.textContent = `✅ Signed in as ${selectedRole} (${user})`;
 });
+/* ===============================
+   Signin Role Logic (Guest/Customer/Storeholder)
+   - Guest: Sign in -> home.html?mode=guest
+   - Storeholder: Google sign-in disabled (email/password only)
+================================ */
+
+document.addEventListener("DOMContentLoaded", () => {
+  const roleButtons = Array.from(document.querySelectorAll(".role"));
+  const loginForm = document.getElementById("loginForm");
+  const googleBtn = document.getElementById("googleSignupBtn");
+  const statusMsg = document.getElementById("statusMsg");
+
+  // default based on your HTML (guest is aria-pressed=true)
+  let selectedRole =
+    roleButtons.find((b) => b.getAttribute("aria-pressed") === "true")?.dataset
+      .role || "guest";
+
+  // store default
+  sessionStorage.setItem("signin_role", selectedRole);
+
+  function applyRoleUI() {
+    // Disable Google for storeholder
+    if (googleBtn) {
+      const lockGoogle = selectedRole === "storeholder";
+      googleBtn.disabled = lockGoogle;
+      googleBtn.style.opacity = lockGoogle ? "0.5" : "1";
+      googleBtn.style.cursor = lockGoogle ? "not-allowed" : "pointer";
+      googleBtn.title = lockGoogle
+        ? "Store Holder must sign in using Email & Password"
+        : "";
+    }
+
+    // Optional: show message
+    if (statusMsg) {
+      if (selectedRole === "storeholder") {
+        statusMsg.textContent = "Store Holder: Email & Password sign-in only.";
+      } else if (selectedRole === "guest") {
+        statusMsg.textContent =
+          "Guest mode: limited features (no login required).";
+      } else {
+        statusMsg.textContent = "";
+      }
+    }
+  }
+
+  // Role click
+  roleButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      roleButtons.forEach((b) => b.setAttribute("aria-pressed", "false"));
+      btn.setAttribute("aria-pressed", "true");
+      selectedRole = btn.dataset.role;
+
+      // save so firebase-auth.js can read it
+      sessionStorage.setItem("signin_role", selectedRole);
+
+      applyRoleUI();
+    });
+  });
+
+  // Guest -> clicking Sign in goes home directly
+  loginForm?.addEventListener("submit", (e) => {
+    const role = sessionStorage.getItem("signin_role") || selectedRole;
+
+    if (role === "guest") {
+      e.preventDefault();
+      window.location.href = "home.html?mode=guest";
+      return;
+    }
+
+    // otherwise let your existing Firebase email/password login run
+  });
+
+  applyRoleUI();
+});

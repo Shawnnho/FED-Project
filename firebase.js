@@ -41,3 +41,18 @@ onAuthStateChanged(auth, (user) => {
     statusMsg.textContent = `✅ Logged in as ${user.displayName || user.email}`;
   }
 });
+const role = sessionStorage.getItem("signin_role") || "customer";
+
+if (role === "storeholder") {
+  const statusMsg = document.getElementById("statusMsg");
+  if (statusMsg) {
+    statusMsg.textContent =
+      "❌ Store Holder cannot sign in with Google. Please use Email & Password.";
+  }
+  return;
+}
+
+if (role === "guest") {
+  window.location.href = "home.html?mode=guest";
+  return;
+}
