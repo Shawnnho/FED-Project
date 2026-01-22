@@ -1,3 +1,37 @@
+/*************************************************
+ * home.js - Stall Listing + Filters + Guest Mode (FULL)
+ * - Guest mode: home.html?mode=guest
+ * - Guest can VIEW stalls
+ * - If guest tries to use search/filter/sort/location -> show locked screen (like your design)
+ *************************************************/
+
+// ✅ GUEST MODE
+const params = new URLSearchParams(window.location.search);
+const isGuest = params.get("mode") === "guest";
+
+// Optional: hide / show UI parts if you use these classes in HTML
+function applyGuestModeUI() {
+  if (!isGuest) return;
+
+  document.body.classList.add("guest");
+
+  // Hide elements only for logged-in users (if you add these classes in HTML)
+  document.querySelectorAll(".auth-only").forEach((el) => {
+    el.style.display = "none";
+  });
+
+  // Show guest banner if you have it (optional)
+  document.querySelectorAll(".guest-banner").forEach((el) => {
+    el.style.display = "block";
+  });
+}
+
+applyGuestModeUI();
+
+/* ===============================
+   DATA
+================================ */
+
 const stalls = [
   {
     id: "tiong-bahru",
@@ -73,6 +107,62 @@ const els = {
   resetBtn: document.getElementById("resetFiltersBtn"),
 };
 
+/* ===============================
+   GUEST LOCK SCREEN (INSIDE LIST)
+================================ */
+
+function renderGuestLockedView() {
+  els.list.innerHTML = `
+    <div class="emptyState guestLocked">
+      <h2 class="emptyTitle">Login to access personalised features</h2>
+      <p class="emptyDesc">Unlock full access to ordering, favourite, and more.</p>
+
+      <button class="resetBtn guestCTA" type="button" data-action="reset-filters">
+        Reset Filters
+      </button>
+
+      <a class="resetBtn guestCTA secondary" href="signup.html">
+        Register
+      </a>
+    </div>
+  `;
+}
+
+function resetAllFilters() {
+  els.q.value = "";
+  els.cuisine.value = "";
+  els.grade.value = "";
+  els.sort.value = "popular";
+  els.location.value = "";
+}
+
+/**
+ * Guest can view default list.
+ * If they touch any filter/search/sort/location -> show lock screen.
+ */
+function guestTriedToFilter() {
+  if (!isGuest) return false;
+
+  const touched =
+    els.q.value.trim() !== "" ||
+    els.cuisine.value !== "" ||
+    els.grade.value !== "" ||
+    els.location.value.trim() !== "" ||
+    els.sort.value !== "popular";
+
+  if (touched) {
+    els.subline.textContent = "Guest Mode: Login to use search & filters";
+    renderGuestLockedView();
+    return true;
+  }
+
+  return false;
+}
+
+/* ===============================
+   HELPERS
+================================ */
+
 function uniqueCuisines(data) {
   return Array.from(new Set(data.map((s) => s.cuisine))).sort((a, b) =>
     a.localeCompare(b),
@@ -93,6 +183,16 @@ function renderCuisineOptions() {
   });
 }
 
+// ✅ helper: keep guest mode when navigating
+function withGuestMode(url) {
+  if (!isGuest) return url;
+  return url.includes("?") ? `${url}&mode=guest` : `${url}?mode=guest`;
+}
+
+/* ===============================
+   UI BUILDING
+================================ */
+
 function createCard(stall) {
   const card = document.createElement("article");
   card.className = "card";
@@ -100,8 +200,8 @@ function createCard(stall) {
   card.innerHTML = `
     <div class="cardImg">
       <div class="imgFrame">
-    <img src="${stall.img}" alt="${stall.name}">
-    </div>
+        <img src="${stall.img}" alt="${stall.name}">
+      </div>
     </div>
 
     <div class="cardBody">
@@ -127,16 +227,24 @@ function createCard(stall) {
     </div>
   `;
 
-  // Button click (route later)
   card.querySelector(".viewBtn").addEventListener("click", () => {
-    // Example: go to stall page with query string
-    window.location.href = `stall.html?id=${encodeURIComponent(stall.id)}`;
+    const target = withGuestMode(
+      `stall.html?id=${encodeURIComponent(stall.id)}`,
+    );
+    window.location.href = target;
   });
 
   return card;
 }
 
+/* ===============================
+   FILTERING / RENDER
+================================ */
+
 function applyFilters() {
+  // ✅ if guest tries to use filters, show locked view and stop
+  if (guestTriedToFilter()) return;
+
   const q = els.q.value.trim().toLowerCase();
   const cuisine = els.cuisine.value;
   const grade = els.grade.value;
@@ -182,7 +290,10 @@ function sortLabel(v) {
 function renderList(data, sortValue) {
   els.list.innerHTML = "";
 
-  els.subline.textContent = `Showing ${data.length} Stalls . Sorted by ${sortLabel(sortValue)}`;
+  els.subline.textContent = `Showing ${data.length} Stalls . Sorted by ${sortLabel(
+    sortValue,
+  )}`;
+
   const showReset = hasActiveFilters();
 
   // EMPTY STATE
@@ -232,24 +343,30 @@ function hasActiveFilters() {
   );
 }
 
+/* ===============================
+   RESET BUTTON HANDLING
+================================ */
+
 els.list.addEventListener("click", (e) => {
   const btn = e.target.closest('[data-action="reset-filters"]');
   if (!btn) return;
 
-  els.q.value = "";
-  els.cuisine.value = "";
-  els.grade.value = "";
-  els.sort.value = "popular";
-  els.location.value = "";
-
+  resetAllFilters();
   applyFilters();
 });
 
-// init
+/* ===============================
+   INIT
+================================ */
+
 renderCuisineOptions();
 applyFilters();
 
-// listeners
+/* ===============================
+   LISTENERS
+================================ */
+
+// Guest lock is handled inside applyFilters()
 ["input", "change"].forEach((evt) => {
   els.q.addEventListener(evt, applyFilters);
   els.location.addEventListener(evt, applyFilters);
