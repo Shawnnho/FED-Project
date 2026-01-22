@@ -13,6 +13,10 @@ import {
   signOut,
   sendPasswordResetEmail,
   updateProfile,
+  updateEmail,
+  verifyBeforeUpdateEmail,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 import {
@@ -223,6 +227,7 @@ onAuthStateChanged(auth, async (user) => {
     window.location.href = "index.html";
     return;
   }
+  
 
   try {
     const data = await loadProfile(user.uid, user);
@@ -244,7 +249,7 @@ onAuthStateChanged(auth, async (user) => {
     // UI populate
     accName.textContent = data?.name || user.displayName || "—";
     accRole.textContent = roleLabel(data?.role);
-    accEmail.textContent = data?.email || user.email || "—";
+    accEmail.textContent = user.email || data?.email || "—";
     accPhone.textContent = data?.phone || "—";
 
     // avatar
@@ -334,6 +339,12 @@ onAuthStateChanged(auth, async (user) => {
       </div>
 
       <div class="hpModalRow">
+        <label class="hpModalLabel">Email</label>
+        <input id="mEmail" class="hpModalInput" type="email"
+        value="${(user.email || "").replace(/"/g, "&quot;")}"/>
+      </div>
+
+      <div class="hpModalRow">
         <label class="hpModalLabel">Phone (SG)</label>
         <input id="mPhone" class="hpModalInput" type="text"
           value="${currentPhone.replace(/"/g, "&quot;")}" />
@@ -343,6 +354,7 @@ onAuthStateChanged(auth, async (user) => {
     `,
         onPrimary: async ({ overlay, close }) => {
           const newName = overlay.querySelector("#mName").value.trim();
+          const newEmail = overlay.querySelector("#mEmail").value.trim();
           const newPhone = overlay.querySelector("#mPhone").value.trim();
           const avatarFile = overlay.querySelector("#mAvatar").files?.[0];
           const err = overlay.querySelector(".hpModalErr");
@@ -351,6 +363,36 @@ onAuthStateChanged(auth, async (user) => {
             err.textContent = "Name cannot be empty.";
             return;
           }
+          if (newEmail && newEmail !== user.email) {
+            const isPasswordUser = user.providerData.some(
+              (p) => p.providerId === "password",
+            );
+
+            if (!isPasswordUser) {
+              err.textContent =
+                "Email can only be changed for Email/Password accounts.";
+              return;
+            }
+
+            try {
+              // ✅ Sends verification email to NEW address
+              await verifyBeforeUpdateEmail(user, newEmail);
+
+              err.style.color = "#1b5e20";
+              err.textContent =
+                "✅ Verification email sent to your new address. Please verify it to complete the change.";
+              return; // important: stop, email changes only after verification
+            } catch (e) {
+              if (e.code === "auth/requires-recent-login") {
+                err.textContent =
+                  "⚠️ Please log out and log in again, then try changing email.";
+                return;
+              }
+              err.textContent = `${e.code || ""} ${e.message || ""}`.trim();
+              return;
+            }
+          }
+
           if (newPhone && !isPhone(newPhone)) {
             err.textContent = "Invalid SG phone number.";
             return;
@@ -369,7 +411,12 @@ onAuthStateChanged(auth, async (user) => {
 
           await setDoc(
             doc(db, "users", user.uid),
-            { name: newName, phone: newPhone, updatedAt: serverTimestamp() },
+            {
+              name: newName,
+              phone: newPhone,
+              email: newEmail || user.email || "",
+              updatedAt: serverTimestamp(),
+            },
             { merge: true },
           );
 
