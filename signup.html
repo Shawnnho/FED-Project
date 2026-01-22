@@ -21,7 +21,7 @@
           </p>
         </div>
 
-        <!-- Role cards (match your design) -->
+        <!-- Role cards -->
         <div class="roles signupRoles" role="group" aria-label="Select role">
           <button
             type="button"
@@ -84,6 +84,57 @@
             placeholder="Phone Number (8 digits)"
           />
           <small id="phoneError" class="error" aria-live="polite"></small>
+
+          <!-- ✅ STOREHOLDER EXTRA FIELDS (HIDDEN UNTIL STOREHOLDER SELECTED) -->
+          <section id="stallFields" class="stallFields" hidden>
+            <h3 class="stallTitle">Stall Holder Details</h3>
+
+            <select id="stallCentreId" class="input">
+              <option value="">Select Hawker Centre</option>
+              <option value="maxwell">Maxwell Food Centre</option>
+              <option value="tiong-bahru">Tiong Bahru Market</option>
+              <option value="old-airport-road">
+                Old Airport Road Food Centre
+              </option>
+            </select>
+            <small
+              id="stallCentreError"
+              class="error"
+              aria-live="polite"
+            ></small>
+
+            <input
+              id="stallName"
+              class="input"
+              type="text"
+              placeholder="Stall Name (e.g. Tiong Bahru Chicken Rice)"
+            />
+            <small id="stallNameError" class="error" aria-live="polite"></small>
+
+            <select id="stallCuisine" class="input">
+              <option value="">Cuisine Type</option>
+              <option value="Chinese">Chinese</option>
+              <option value="Malay">Malay</option>
+              <option value="Indian">Indian</option>
+              <option value="Western">Western</option>
+            </select>
+            <small
+              id="stallCuisineError"
+              class="error"
+              aria-live="polite"
+            ></small>
+
+            <input
+              id="unitPreview"
+              class="input"
+              type="text"
+              value="Unit No will be auto-generated after sign up"
+              readonly
+            />
+            <small class="hint"
+              >Unit No is unique within the selected hawker centre.</small
+            >
+          </section>
 
           <div class="passwordWrap">
             <input
