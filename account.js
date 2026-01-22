@@ -250,6 +250,11 @@ onAuthStateChanged(auth, async (user) => {
     accRole.textContent = roleLabel(data?.role);
     accEmail.textContent = user.email || data?.email || "—";
 
+    accPhone.textContent =
+      data?.phone && String(data.phone).trim()
+        ? String(data.phone).trim()
+        : "—";
+
     // =========================
     // ✅ FAVOURITES (Saved Stores)
     // =========================
@@ -316,7 +321,8 @@ onAuthStateChanged(auth, async (user) => {
     editProfileBtn?.addEventListener("click", () => {
       const currentName = (accName?.textContent || "").trim();
       const phoneText = (accPhone?.textContent || "").trim();
-      const currentPhone = phoneText === "—" ? "" : phoneText;
+      const currentPhone =
+        phoneText === "—" || phoneText === "-" ? "" : phoneText;
 
       const { overlay } = openModal({
         title: "Edit Profile",
