@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Hawker Point — Account</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="home.html" aria-label="Hawker Point Home">
+          <img src="images/logo.png" alt="Hawker Point" class="brand-logo" />
+        </a>
+
+        <!-- Desktop nav (same as your current) -->
+        <nav class="nav" aria-label="Primary navigation">
+          <a class="pill active" href="home.html">Home</a>
+          <a class="pill" href="stalls.html">Stalls</a>
+          <a class="pill" href="orders.html">Orders</a>
+          <a class="pill" href="feedback.html">Feedback</a>
+          <a class="pill" href="hygiene.html">Hygiene</a>
+          <a class="pill account" href="account.html">
+            Account
+            <span class="notif" id="notifCount" hidden></span>
+          </a>
+        </nav>
+
+        <!-- ✅ Hamburger button (mobile only via CSS) -->
+        <button
+          id="menuBtn"
+          class="menuBtn"
+          type="button"
+          aria-label="Open menu"
+          aria-expanded="false"
+        >
+          ☰
+        </button>
+      </div>
+
+      <div id="navBackdrop" class="navBackdrop"></div>
+      <nav id="navMobile" class="navMobile" aria-label="Mobile navigation">
+        <a class="mLink" href="home.html">Home</a>
+        <a class="mLink" href="stalls.html">Stalls</a>
+        <a class="mLink" href="orders.html">Orders</a>
+        <a class="mLink" href="feedback.html">Feedback</a>
+        <a class="mLink" href="hygiene.html">Hygiene</a>
+        <a class="mLink active" href="account.html">
+          Account <span class="mNotif" id="mNotifCount" hidden></span>
+        </a>
+      </nav>
+    </header>
+
+    <main class="page accountPage">
+      <section class="accHead">
+        <h1>Account Settings</h1>
+        <p>Manage your account</p>
+      </section>
+
+      <!-- ✅ Profile Information -->
+      <section class="accCard">
+        <div class="accCardTitle">Profile Information</div>
+
+        <div class="profileGrid">
+          <img
+            id="accAvatar"
+            class="accAvatar"
+            src="images/defaultprofile.png"
+            alt="Profile photo"
+          />
+
+          <div class="profileInfo">
+            <div id="accName" class="accName">—</div>
+
+            <div class="accMeta">
+              <div>
+                <span class="k">Role:</span> <span id="accRole">—</span>
+              </div>
+              <div>
+                <span class="k">Email:</span> <span id="accEmail">—</span>
+              </div>
+              <div>
+                <span class="k">Phone:</span> <span id="accPhone">—</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="profileBtns">
+            <button id="editProfileBtn" class="btn small">Edit Profile</button>
+            <button id="changePwBtn" class="btn small ghost">
+              Change Password
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ✅ Preference -->
+      <section class="accCard">
+        <div class="accCardTitle">Preference</div>
+
+        <div class="prefBlock">
+          <div class="prefLabel">Favourite Cuisine</div>
+          <div class="chips">
+            <label class="chip">
+              <input type="checkbox" class="prefCuisine" value="Chinese" />
+              <span>Chinese</span>
+            </label>
+            <label class="chip">
+              <input type="checkbox" class="prefCuisine" value="Malay" />
+              <span>Malay</span>
+            </label>
+            <label class="chip">
+              <input type="checkbox" class="prefCuisine" value="Indian" />
+              <span>Indian</span>
+            </label>
+            <label class="chip">
+              <input type="checkbox" class="prefCuisine" value="Western" />
+              <span>Western</span>
+            </label>
+          </div>
+        </div>
+
+        <hr class="accDivider" />
+
+        <div class="prefBlock">
+          <div class="prefLabel">Notifications</div>
+          <div class="chips">
+            <label class="chip">
+              <input type="checkbox" class="prefNotif" value="orderUpdates" />
+              <span>Order Updates</span>
+            </label>
+            <label class="chip">
+              <input type="checkbox" class="prefNotif" value="promotions" />
+              <span>Promotions</span>
+            </label>
+            <label class="chip">
+              <input type="checkbox" class="prefNotif" value="newStallAlerts" />
+              <span>New Stall Alerts</span>
+            </label>
+          </div>
+        </div>
+
+        <button id="savePrefBtn" class="btn small primary">
+          Save Preference
+        </button>
+      </section>
+
+      <!-- ✅ Order History Summary (dynamic later) -->
+      <section class="accCard">
+        <div class="accCardTitle">Order History Summary</div>
+
+        <div class="summaryGrid">
+          <div><b>Total Orders:</b> <span id="sumTotal">0</span></div>
+          <div><b>Last Order:</b> <span id="sumLast">—</span></div>
+          <div><b>Favourite Stall:</b> <span id="sumFav">—</span></div>
+        </div>
+
+        <button id="viewOrdersBtn" class="btn small">View Order History</button>
+      </section>
+
+      <!-- ✅ Saved Details (dynamic later) -->
+      <section class="accCard">
+        <div class="accCardTitle">Saved Details</div>
+
+        <div class="summaryGrid">
+          <div><b>Saved Menu Items:</b> <span id="savedItems">0</span></div>
+          <div><b>Saved Store:</b> <span id="savedStores">0</span></div>
+          <div><b>Saved Payment Method:</b> <span id="savedPay">0</span></div>
+        </div>
+      </section>
+
+      <!-- Account Actions -->
+      <section class="accCard accDanger">
+        <div class="accCardTitle">Account Actions</div>
+
+        <div class="actionsRow">
+          <button id="logoutBtn" class="btn small">Logout</button>
+          <button id="deactivateBtn" class="btn small dangerBtn">
+            Deactivate Account
+          </button>
+        </div>
+      </section>
+      <p id="accStatus" class="status" aria-live="polite"></p>
+    </main>
+
+    <script type="module" src="account.js"></script>
+    <script src="menu.js" defer></script>
+  </body>
+</html>

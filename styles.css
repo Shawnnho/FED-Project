@@ -1242,3 +1242,379 @@ body.guest .searchWrap {
   margin-top: 2px;
   font-size: 11px;
 }
+/* =========================================
+   ACCOUNT PAGE — MATCH FIGMA (Your classes)
+   Paste at BOTTOM of styles.css
+========================================= */
+
+/* 1) account page should NOT look like login page */
+.page.accountPage {
+  display: block; /* kill the centered grid feel */
+  place-items: unset;
+  min-height: calc(100vh - 90px);
+  background: #fbf3e6; /* your light beige */
+  padding: 24px 0 70px;
+}
+
+/* 2) match Figma column width */
+.accountPage {
+  max-width: 820px; /* Figma looks around 780~850 */
+  margin: 0 auto;
+  padding: 18px 14px 0;
+}
+
+/* 3) title like Figma */
+.accHead {
+  text-align: center;
+  margin: 10px 0 22px;
+}
+.accHead h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+}
+.accHead p {
+  margin: 6px 0 0;
+  color: #7c7c7c;
+  font-weight: 700;
+}
+
+/* 4) cards like Figma: solid white + tighter gaps */
+.accCard {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  margin: 18px 0;
+  overflow: hidden;
+  box-shadow: none; /* keep it clean like your Figma */
+}
+
+/* 5) section header bar: solid grey */
+.accCardTitle {
+  background: #c9ccd1;
+  padding: 12px 16px;
+  font-weight: 900;
+  font-size: 15px;
+  color: #111;
+}
+
+/* 6) profile section layout like mock */
+.profileGrid {
+  display: grid;
+  grid-template-columns: 110px 1fr auto;
+  gap: 14px;
+  padding: 16px;
+  align-items: center;
+}
+
+.accAvatar {
+  width: 86px;
+  height: 86px;
+  border-radius: 999px;
+  object-fit: cover;
+  border: 3px solid rgba(0, 0, 0, 0.12);
+}
+
+.profileInfo {
+  min-width: 0;
+}
+
+.accName {
+  font-weight: 900;
+  font-size: 16px;
+  margin-bottom: 6px;
+}
+
+/* make the meta look like "rows with lines" */
+.accMeta {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+}
+.accMeta > div {
+  display: grid;
+  grid-template-columns: 60px 1fr;
+  align-items: center;
+  column-gap: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.32);
+}
+.accMeta > div:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.accMeta .k {
+  font-weight: 900;
+}
+
+/* buttons position like Figma (right side, bottom aligned) */
+.profileBtns {
+  align-self: end;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+/* 7) button style closer to Figma */
+.btn.small {
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 4px;
+  font-weight: 900;
+  font-size: 12px;
+}
+
+.btn.small.ghost {
+  background: #fff;
+  border: 2px solid rgba(0, 0, 0, 0.35);
+}
+
+/* make primary look like your orange small buttons */
+.btn.small.primary {
+  background: #e8944c;
+  border: none;
+  color: #fff;
+}
+.btn.small.primary:hover {
+  filter: brightness(0.95);
+}
+
+/* 8) preference spacing like Figma */
+.prefBlock {
+  padding: 14px 16px;
+}
+
+.prefLabel {
+  font-weight: 900;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
+/* keep chips as a checkbox row (not pill chips) */
+.chips {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.chip {
+  background: transparent;
+  border: none;
+  padding: 0;
+  border-radius: 0;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chip input {
+  width: 18px;
+  height: 18px;
+}
+
+/* divider line inside preference like Figma */
+.accDivider {
+  border: 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.35);
+  margin: 0 16px;
+}
+
+/* Save button position (right-ish like mock) */
+#savePrefBtn {
+  margin: 6px 16px 14px;
+  width: fit-content;
+}
+
+/* 9) summary blocks spacing */
+.summaryGrid {
+  padding: 14px 16px 10px;
+  display: grid;
+  gap: 10px;
+  font-size: 14px;
+}
+
+/* "View order history" align to the right like mock */
+#viewOrdersBtn {
+  margin: 0 16px 14px auto;
+  display: block;
+}
+
+/* 10) account actions pink block like Figma */
+.accCard.accDanger {
+  background: #f2c9c9;
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+.accCard.accDanger .accCardTitle {
+  background: rgba(0, 0, 0, 0.18);
+}
+
+/* action row spacing */
+.actionsRow {
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+/* deactivate button like Figma red */
+.dangerBtn {
+  background: #d9382c;
+  color: #fff;
+  border: none;
+}
+
+/* mobile stacking */
+@media (max-width: 760px) {
+  .accountPage {
+    max-width: 92vw;
+  }
+  .profileGrid {
+    grid-template-columns: 90px 1fr;
+  }
+  .profileBtns {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
+}
+
+/* =========================================
+   Account Modal (for Edit Profile)
+========================================= */
+.hpModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: grid;
+  place-items: center;
+  z-index: 9999;
+  padding: 18px;
+}
+
+.hpModal {
+  width: min(520px, 96vw);
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+}
+
+.hpModalHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: #c9ccd1;
+}
+
+.hpModalTitle {
+  font-weight: 900;
+  font-size: 16px;
+}
+
+.hpModalClose {
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.hpModalBody {
+  padding: 14px 16px;
+}
+
+.hpModalRow {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.hpModalLabel {
+  font-weight: 900;
+  font-size: 12px;
+}
+
+.hpModalInput {
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  padding: 0 12px;
+  font-weight: 700;
+}
+
+.hpModalHint {
+  font-size: 12px;
+  color: #6b6b6b;
+}
+
+.hpModalFoot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px 16px 16px;
+}
+
+.hpModalBtn {
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 8px;
+  font-weight: 900;
+  border: none;
+  cursor: pointer;
+}
+
+.hpModalBtn.ghost {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+}
+
+.hpModalBtn.primary {
+  background: #e8944c;
+  color: #fff;
+}
+
+/* =========================
+   Account status popup
+========================= */
+#accStatus {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-10px);
+  z-index: 9999;
+
+  min-width: 260px;
+  max-width: 90vw;
+  padding: 12px 16px;
+
+  background: #1b6a2a; /* success default */
+  color: #fff;
+  font-weight: 600;
+  text-align: center;
+
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+}
+
+/* visible state */
+#accStatus.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
+/* error state */
+#accStatus.error {
+  background: #b00020;
+}

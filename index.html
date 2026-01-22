@@ -6,7 +6,6 @@
     <title>Hawker Point — Sign In</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <script type="module" src="firebase-auth.js"></script>
 
   <body>
     <main class="page">
@@ -17,7 +16,6 @@
       <section class="panel" aria-label="Sign in panel">
         <div class="brand">
           <img class="logo" src="images/logo.png" alt="Hawker Point logo" />
-
           <p class="subtitle">Order From Singapore Hawker Center.</p>
           <br />
         </div>
@@ -80,7 +78,7 @@
               aria-pressed="false"
             >
               <div class="roleIcon">
-                <img src="images/user (1).png" alt="Guest" />
+                <img src="images/user (1).png" alt="Customer" />
               </div>
               <div class="roleText">Customer</div>
             </button>
@@ -92,7 +90,7 @@
               aria-pressed="false"
             >
               <div class="roleIcon">
-                <img src="images/chef.png" alt="Guest" />
+                <img src="images/chef.png" alt="Store Holder" />
               </div>
               <div class="roleText">Store Holder</div>
             </button>
@@ -106,6 +104,7 @@
             <img src="images/google.png" alt="Google logo" class="googleLogo" />
             Sign in with Google
           </button>
+
           <p class="foot">
             Don’t have an account?
             <a class="link" href="signup.html" id="signUp">Sign up now</a>
@@ -116,7 +115,7 @@
       </section>
     </main>
 
-    <script src="script.js" defer></script>
-    <script type="module" src="firebase.js"></script>
+    <!-- ✅ ONE script only -->
+    <script type="module" src="script.js"></script>
   </body>
 </html>
