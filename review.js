@@ -48,6 +48,79 @@ let currentUser = null;
 onAuthStateChanged(auth, (u) => {
   currentUser = u;
 });
+const stallSelect = document.getElementById("stall-select");
+const stallTitle = document.getElementById("selected-stall-text");
+
+stallSelect?.addEventListener("change", () => {
+  stallTitle.textContent = stallSelect.options[stallSelect.selectedIndex].text;
+});
+
+const tagWrap = document.getElementById("quickTags");
+const selectedTags = new Set();
+
+tagWrap?.addEventListener("click", (e) => {
+  const btn = e.target.closest(".tagChip");
+  if (!btn) return;
+
+  const tag = btn.dataset.tag;
+
+  if (selectedTags.has(tag)) {
+    selectedTags.delete(tag);
+    btn.classList.remove("isOn");
+    return;
+  }
+
+  if (selectedTags.size >= 3) return;
+
+  selectedTags.add(tag);
+  btn.classList.add("isOn");
+});
+
+function getSelectedTags() {
+  return Array.from(selectedTags);
+}
+
+const textEl = document.getElementById("review-text");
+const charCountEl = document.getElementById("charCount");
+const MAX_CHARS = 500;
+
+function updateCounter() {
+  if (!textEl || !charCountEl) return;
+
+  if (textEl.value.length > MAX_CHARS) {
+    textEl.value = textEl.value.slice(0, MAX_CHARS);
+  }
+
+  charCountEl.textContent = `${textEl.value.length} / ${MAX_CHARS}`;
+}
+
+textEl?.addEventListener("input", updateCounter);
+updateCounter();
+
+const anonToggle = document.getElementById("anonToggle");
+function isAnonymous() {
+  return !!anonToggle?.checked;
+}
+
+function setSubmitState(state) {
+  const btn = document.getElementById("submit-btn");
+  if (!btn) return;
+
+  if (state === "loading") {
+    btn.disabled = true;
+    btn.textContent = "Submitting…";
+  }
+
+  if (state === "success") {
+    btn.disabled = true;
+    btn.textContent = "✅ Submitted";
+  }
+
+  if (state === "idle") {
+    btn.disabled = false;
+    btn.textContent = "Submit Feedback";
+  }
+}
 
 const imgInput = document.getElementById("review-image");
 const imgPreviewWrap = document.getElementById("imgPreviewWrap");
@@ -75,6 +148,7 @@ if (imgInput && imgPreviewWrap && imgPreview) {
     // preview
     const url = URL.createObjectURL(file);
     imgPreview.src = url;
+    imgPreview.onload = () => URL.revokeObjectURL(url);
     imgPreviewWrap.style.display = "flex";
   });
 
@@ -140,7 +214,7 @@ window.submitReview = async function submitReview() {
   }
 
   error.style.display = "none";
-  btn.disabled = true;
+  setSubmitState("loading");
 
   const stallId = stall.value;
   const stallName = stall.options[stall.selectedIndex].text;
@@ -158,7 +232,7 @@ window.submitReview = async function submitReview() {
     if (file.size > 5 * 1024 * 1024) {
       error.innerText = "Image too large (max 5MB)";
       error.style.display = "block";
-      btn.disabled = false;
+      setSubmitState("idle");
       return;
     }
 
@@ -187,8 +261,13 @@ window.submitReview = async function submitReview() {
         stallName: stallName,
 
         // ✅ Firebase Auth (safe)
-        userId: currentUser ? currentUser.uid : null,
-        userName: currentUser?.displayName || currentUser?.email || "Anonymous",
+        userId: isAnonymous() ? null : currentUser?.uid || null,
+        userName: isAnonymous()
+          ? "Anonymous"
+          : currentUser?.displayName || currentUser?.email || "Anonymous",
+
+        tags: getSelectedTags(),
+        anonymous: isAnonymous(),
 
         imageUrl: imageUrl || null,
         createdAt: serverTimestamp(),
@@ -205,8 +284,8 @@ window.submitReview = async function submitReview() {
       );
     });
 
-    btn.style.display = "none";
-    msg.style.display = "flex";
+    setSubmitState("success");
+    if (msg) msg.style.display = "flex";
 
     setTimeout(() => {
       window.location.href = "feedback.html";
@@ -215,6 +294,6 @@ window.submitReview = async function submitReview() {
     console.error(e);
     error.innerText = "Failed to submit review. Try again.";
     error.style.display = "block";
-    btn.disabled = false;
+    setSubmitState("idle");
   }
 };
