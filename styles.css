@@ -434,7 +434,7 @@ body {
 }
 
 .topbar .pill.active {
-  background: #df8f3b; 
+  background: #df8f3b;
   color: #fff;
   transform: none;
 }
@@ -1868,42 +1868,41 @@ select,
 .half {
   flex: 1; /* Split space 50/50 */
 }
-  /* Complaint Form Stack */
-  .name-row {
-    flex-direction: column; /* Stack First/Last Name */
-    gap: 0;
-  }
-  .mobile-hide {
-    display: none;
-  }
+/* Complaint Form Stack */
+.name-row {
+  flex-direction: column; /* Stack First/Last Name */
+  gap: 0;
+}
+.mobile-hide {
+  display: none;
+}
 
-  /* Card Padding */
-  .review-container {
-    padding: 20px 10px;
-  }
-  .review-card {
-    padding: 25px;
-    border-radius: 20px;
-  }
+/* Card Padding */
+.review-container {
+  padding: 20px 10px;
+}
+.review-card {
+  padding: 25px;
+  border-radius: 20px;
+}
 
-  .submit-btn {
-    width: 100%;
-    padding: 15px 0;
-  }
+.submit-btn {
+  width: 100%;
+  padding: 15px 0;
+}
 
-  /* Success Message */
-  .success-message {
-    flex-direction: column;
-    gap: 10px;
-    text-align: center;
-  }
-  .success-message span {
-    font-size: 24px;
-  }
-  .check-img {
-    width: 40px;
-    height: 40px;
-  }
+/* Success Message */
+.success-message {
+  flex-direction: column;
+  gap: 10px;
+  text-align: center;
+}
+.success-message span {
+  font-size: 24px;
+}
+.check-img {
+  width: 40px;
+  height: 40px;
 }
 /* =========================================
    STALL PAGE — FINAL (LEFT ALIGNED)
@@ -2443,4 +2442,14 @@ select,
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+}
+.site-footer {
+  margin-top: 48px;
+  padding: 18px 12px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 14px;
+  color: #7a4a1c;
+  background: #ffb254;
+  border-top: 10px solid #ff7c10;
 }
