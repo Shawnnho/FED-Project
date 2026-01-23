@@ -59,6 +59,26 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
+function setSubmitState(state) {
+  const btn = document.getElementById("submit-btn");
+  if (!btn) return;
+
+  if (state === "loading") {
+    btn.disabled = true;
+    btn.textContent = "Submitting…";
+  }
+
+  if (state === "success") {
+    btn.disabled = true;
+    btn.textContent = "✅ Submitted";
+  }
+
+  if (state === "idle") {
+    btn.disabled = false;
+    btn.textContent = "Submit a Complaint";
+  }
+}
+
 const imgInput = document.getElementById("comp-img");
 const imgPreview = document.getElementById("comp-img-preview");
 
@@ -111,9 +131,7 @@ window.submitComplaint = async function () {
   error.style.display = "none";
 
   // 3) Disable button while uploading/saving
-  btn.disabled = true;
-  const oldText = btn.textContent;
-  btn.textContent = "Submitting…";
+  setSubmitState("loading");
 
   try {
     const user = auth.currentUser;
@@ -168,7 +186,7 @@ window.submitComplaint = async function () {
     });
 
     // 6) Success UI
-    btn.style.display = "none";
+    setSubmitState("success");
     success.style.display = "flex";
 
     setTimeout(function () {
@@ -180,7 +198,6 @@ window.submitComplaint = async function () {
     error.style.display = "block";
 
     // Re-enable button
-    btn.disabled = false;
-    btn.textContent = oldText;
+    setSubmitState("idle");
   }
 };

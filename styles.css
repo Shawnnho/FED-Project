@@ -2857,3 +2857,194 @@ select,
 .submit-btn.success {
   background: #4caf50;
 }
+
+/* =========================================
+   FEEDBACK HISTORY PAGE
+   (feedback_history.html)
+========================================= */
+
+/* Page container */
+.feedback-history-container {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 28px 18px;
+}
+
+/* White card wrapper */
+.feedback-history-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 26px 22px 30px;
+  border: 1px solid #e2e2e2;
+}
+
+/* Header */
+.feedback-history-header {
+  text-align: center;
+  margin-bottom: 22px;
+}
+
+.feedback-history-header h2 {
+  font-size: 32px;
+  font-weight: 900;
+  margin: 0 0 6px;
+}
+
+.feedback-history-header p {
+  font-size: 15px;
+  font-weight: 700;
+  opacity: 0.75;
+  margin: 0;
+}
+
+/* Tabs */
+.historyTabs {
+  display: flex;
+  gap: 10px;
+  margin: 18px 0 18px;
+}
+
+.tabBtn {
+  flex: 1;
+  background: #fff;
+  border: 2px solid #ddd;
+  border-radius: 999px;
+  padding: 10px 0;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.tabBtn.isOn {
+  background: #df8f3b;
+  color: #fff;
+  border-color: #df8f3b;
+}
+
+/* List */
+.historyList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Each feedback item */
+.historyCard {
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #ddd;
+  padding: 14px 14px 16px;
+}
+
+/* Top row */
+.historyTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 6px;
+}
+
+.historyTitle {
+  font-weight: 900;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.historyDate {
+  font-size: 13px;
+  font-weight: 800;
+  opacity: 0.65;
+  white-space: nowrap;
+}
+
+/* Badges */
+.badge {
+  font-size: 12px;
+  font-weight: 900;
+  padding: 5px 10px;
+  border-radius: 999px;
+}
+
+.badgeReview {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.badgeComplaint {
+  background: #fdecea;
+  color: #b71c1c;
+}
+
+/* Body text */
+.historyBody {
+  margin-top: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  opacity: 0.9;
+  line-height: 1.4;
+}
+
+/* Tags */
+.tagLine {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 6px 0 8px;
+}
+
+.miniTag {
+  background: #fff3e6;
+  border: 1px solid #f4a261;
+  color: #a35c00;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+/* Images */
+.historyImg {
+  margin-top: 10px;
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  border-radius: 14px;
+  border: 1px solid #eee;
+}
+
+/* Empty state */
+.historyEmpty {
+  text-align: center;
+  padding: 30px 10px 10px;
+}
+
+.historyEmpty .emptyImg {
+  width: 120px;
+  height: 120px;
+  opacity: 0.85;
+}
+
+.historyEmpty .emptyTitle {
+  font-size: 20px;
+  font-weight: 900;
+  margin-top: 10px;
+}
+
+.historyEmpty .emptySub {
+  font-size: 14px;
+  font-weight: 700;
+  opacity: 0.75;
+  margin: 6px 0 16px;
+}
+
+/* Reuse fancy button style */
+.historyEmpty .submit-btn {
+  display: inline-block;
+  text-decoration: none;
+  padding: 16px 22px;
+}

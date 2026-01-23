@@ -40,7 +40,7 @@ window.fileComplaint = function () {
 };
 
 window.viewHistory = function () {
-  alert("Opening Feedback History...");
+  window.location.href = "feedback_history.html";
 };
 
 /* =========================
