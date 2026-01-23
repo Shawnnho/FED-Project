@@ -113,7 +113,7 @@ body {
 .form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
   align-items: stretch;
 }
 
@@ -188,13 +188,6 @@ body {
   text-decoration: underline;
 }
 
-.error {
-  margin-top: -8px;
-  min-height: 14px;
-  font-size: 12px;
-  color: #dc2626;
-}
-
 .roleDivider {
   width: 100%;
   height: 3px; /* thickness */
@@ -244,12 +237,6 @@ body {
   justify-content: center;
 }
 
-.roleIcon img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
 .roleText {
   font-size: 12px;
   font-weight: 900;
@@ -291,8 +278,9 @@ body {
 }
 
 .googleLogo {
-  width: 30px;
-  height: 30px;
+  width: 18px;
+  height: 18px;
+  background: #fff;
   padding: 3px;
   border-radius: 4px;
 }
@@ -358,14 +346,6 @@ body {
   height: 36px;
   object-fit: contain;
   display: block;
-}
-
-.googleLogo {
-  width: 18px;
-  height: 18px;
-  background: #fff;
-  padding: 3px;
-  border-radius: 4px;
 }
 
 /* ===============================
@@ -1117,14 +1097,6 @@ nav {
 /*************************************************
  * (HOME – FILTER BLOCK)
  *************************************************/
-
-/* Base empty state (you may already have this) */
-.emptyState {
-  width: 100%;
-  padding: 48px 16px;
-  text-align: center;
-}
-
 /* Guest locked variant */
 .guestLocked {
   margin-top: 40px;
@@ -1202,11 +1174,6 @@ body.guest .searchWrap {
    SIGNUP – COMPACT PREMIUM OVERRIDES
    ===================================== */
 
-/* Reduce vertical stacking from form */
-.form {
-  gap: 6px; /* was too big */
-}
-
 /* Tight but readable field spacing */
 .field {
   margin-bottom: 6px;
@@ -1214,9 +1181,11 @@ body.guest .searchWrap {
 
 /* Errors should not reserve space */
 .error {
-  margin-top: 2px;
-  min-height: 0;
+  margin-top: 2px; /* compact spacing */
+  min-height: 0; /* don’t reserve empty space */
   line-height: 1.2;
+  font-size: 12px;
+  color: #dc2626;
 }
 
 /* Stall holder card – reduce height */
@@ -1618,10 +1587,390 @@ body.guest .searchWrap {
 #accStatus.error {
   background: #b00020;
 }
+
+/* =========================================
+   4. REVIEW PAGE STYLES (YOUR CUSTOM WORK)
+========================================= */
+.review-container {
+  display: flex;
+  justify-content: center;
+  padding: 40px 20px;
+  width: 100%;
+}
+
+.review-card {
+  background-color: #ffe4c4;
+  width: 100%;
+  max-width: 1100px;
+  border-radius: 30px;
+  padding: 50px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  border: 1px solid #aaa;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Form Styles */
+select {
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  width: 250px;
+}
+
+.review-card h2 {
+  font-family: "Segoe UI", sans-serif;
+  font-size: 28px;
+  margin: 10px 0 0 0;
+}
+
+.stars {
+  font-size: 40px;
+  color: #ddd;
+  cursor: pointer;
+}
+.star.active {
+  color: #ffc107;
+}
+.rating-text {
+  font-size: 14px;
+  color: #666;
+  font-weight: 700;
+  margin-top: 5px;
+}
+
+.review-input {
+  width: 100%;
+  height: 200px;
+  padding: 20px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-family: Arial, sans-serif;
+  font-size: 18px;
+  resize: none;
+  margin-top: 15px;
+  outline: none;
+}
+
+.submit-btn {
+  background-color: #f4a261;
+  color: white;
+  border: none;
+  padding: 15px 40px;
+  border-radius: 50px;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  align-self: center;
+  margin-top: 20px;
+}
+
+.error-text {
+  color: red;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 10px;
+  font-size: 16px;
+}
+
+/* Success Message */
+.success-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 25px;
+  color: #00c853;
+}
+
+.success-message span {
+  font-size: 30px;
+  font-weight: bold;
+  line-height: 1;
+  padding-top: 2px;
+}
+
+.check-img {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  display: block;
+}
+
+/* Review Mobile Adjustments */
+@media only screen and (max-width: 768px) {
+  .review-container {
+    padding: 20px 10px;
+  }
+  .review-card {
+    padding: 25px;
+    border-radius: 20px;
+  }
+  .review-card h2 {
+    font-size: 24px;
+  }
+  select {
+    width: 100%;
+  }
+  .review-input {
+    height: 150px;
+    font-size: 16px;
+  }
+  .submit-btn {
+    width: 100%;
+    padding: 15px 0;
+  }
+  .success-message {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+  .success-message span {
+    font-size: 24px;
+  }
+  .check-img {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* =========================================
+   4. CONTENT CARDS (Feedback Options)
+========================================= */
+.container {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  padding: 40px 20px;
+  flex-wrap: wrap;
+}
+
+.options {
+  background: #ebebeb;
+  height: 450px;
+  width: 340px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  border-radius: 35px;
+  text-align: center;
+  padding: 60px 20px 40px 20px;
+  box-shadow: none;
+}
+
+.options h3 {
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-size: 24px;
+  font-weight: 650;
+  color: #000;
+  line-height: 1.2;
+  margin-top: 25px;
+  margin-bottom: 8px;
+}
+
+.options p {
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  color: #333;
+  margin-top: 0;
+  line-height: 1.4;
+}
+
+.icon-img {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  margin-bottom: 0;
+}
+
+.buttons {
+  width: 80%;
+  background: #f4a261;
+  border: none;
+  color: white;
+  padding: 16px 0;
+  border-radius: 50px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 18px;
+  transition: 0.2s;
+  margin-top: auto;
+}
+
+.buttons:hover {
+  background: #e08e4d;
+}
+
+/* =========================================
+   5. MOBILE RESPONSIVE
+========================================= */
+@media (max-width: 720px) {
+  /* Activate Hamburger Mode */
+  .topbar-inner {
+    height: 70px;
+    padding: 0 20px;
+    flex-wrap: nowrap;
+  }
+  .nav {
+    display: none;
+  } /* Hide Desktop Pills */
+  .menuBtn,
+  .navMobile,
+  .navBackdrop {
+    display: block;
+  } /* Show Hamburger */
+  .brand-logo {
+    width: 64px;
+    height: 64px;
+  }
+
+  /* Stack Cards Vertically */
+  .container {
+    flex-direction: column;
+    align-items: center;
+    padding: 30px 15px;
+    gap: 30px;
+  }
+
+  .options {
+    width: 100%;
+    max-width: 340px;
+    height: auto;
+    min-height: 450px;
+  }
+}
+
+/* =========================================
+   5. COMPLAINT FORM SPECIFIC STYLES
+========================================= */
+.complaint-header {
+  text-align: center;
+  margin-bottom: 25px;
+}
+.complaint-header h2 {
+  font-size: 32px;
+  margin-bottom: 10px;
+  font-weight: 800;
+}
+.complaint-header p {
+  color: #666;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.form-group {
+  margin-bottom: 15px;
+  width: 100%;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #333;
+  font-size: 14px;
+}
+
+/* Inputs & Textareas */
+.std-input,
+select,
+.review-input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  outline: none;
+  background: white;
+  font-family: Arial, sans-serif;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.short-area {
+  height: 120px;
+  resize: none;
+}
+
+/* Name Row (Side by Side) */
+.name-row {
+  display: flex;
+  gap: 20px;
+  width: 100%;
+}
+.half {
+  flex: 1; /* Split space 50/50 */
+}
+
+/* =========================================
+   6. MOBILE RESPONSIVE
+========================================= */
+@media (max-width: 720px) {
+  /* Navbar */
+  .topbar-inner {
+    height: 70px;
+    padding: 0 20px;
+    flex-wrap: nowrap;
+  }
+  .nav {
+    display: none;
+  }
+  .menuBtn,
+  .navMobile,
+  .navBackdrop {
+    display: block;
+  }
+  .brand-logo {
+    width: 64px;
+    height: 64px;
+  }
+
+  /* Complaint Form Stack */
+  .name-row {
+    flex-direction: column; /* Stack First/Last Name */
+    gap: 0;
+  }
+  .mobile-hide {
+    display: none;
+  }
+
+  /* Card Padding */
+  .review-container {
+    padding: 20px 10px;
+  }
+  .review-card {
+    padding: 25px;
+    border-radius: 20px;
+  }
+
+  .submit-btn {
+    width: 100%;
+    padding: 15px 0;
+  }
+
+  /* Success Message */
+  .success-message {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+  .success-message span {
+    font-size: 24px;
+  }
+  .check-img {
+    width: 40px;
+    height: 40px;
+  }
+}
 /* =========================================
    STALL PAGE — FINAL (LEFT ALIGNED)
 ========================================= */
-
 .page.stallPage {
   max-width: 1920px;
   margin-left: 70px;
@@ -1940,7 +2289,6 @@ body.guest .searchWrap {
 /* =========================================
    FORCE STALL PAGE TO IGNORE GLOBAL GRID
 ========================================= */
-
 .page.stallPage {
   display: block !important;
 }
