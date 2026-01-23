@@ -2195,3 +2195,17 @@ body.guest .searchWrap {
     font-size: 22px;
   }
 }
+
+.likeBtn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: #e11d48;
+
+}
+
+  .likeBtn.active{
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 4px rgba(225, 29,72,0.6))
+  }

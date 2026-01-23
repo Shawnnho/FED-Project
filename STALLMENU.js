@@ -1,4 +1,5 @@
 
+
 const menuBtn = document.getElementById("menuBtn");
 const navMobile = document.getElementById("navMobile");
 const navBackdrop = document.getElementById("navBackdrop");
@@ -89,47 +90,107 @@ function renderMenu(filter = "") {
   listEl.innerHTML = "";
   const q = filter.toLowerCase();
 
-  const filtered = items.filter((i) => i.name.toLowerCase().includes(q));
+  const filtered = items.filter((i) =>
+    i.name.toLowerCase().includes(q)
+  );
 
   if (filtered.length === 0) {
-    listEl.innerHTML = `
-      <div class="emptyState">
-        <h2 class="emptyTitle">No items found</h2>
-      </div>
-    `;
+    const empty = document.createElement("div");
+    empty.classList.add("emptyState");
+
+    const title = document.createElement("h2");
+    title.classList.add("emptyTitle");
+    title.textContent = "No items found";
+
+    empty.appendChild(title);
+    listEl.appendChild(empty);
     return;
   }
 
   filtered.forEach((item) => {
+    // ===== Card =====
     const card = document.createElement("article");
-    card.className = "menuCard";
+    card.classList.add("menuCard");
 
-    card.innerHTML = `
-      <div class="menuImgWrap">
-        <img src="${item.img}" alt="${item.name}">
-      </div>
+    // ===== Image =====
+    const imgWrap = document.createElement("div");
+    imgWrap.classList.add("menuImgWrap");
 
-      <div class="menuInfo">
-        <h3 class="menuName">${item.name}</h3>
-        <p class="menuPrice">$${item.price.toFixed(2)}+</p>
-        <div class="menuLikes">
-          <span class="heart">♥</span>
-          <span>${item.likes}</span>
-        </div>
-      </div>
+    const img = document.createElement("img");
+    img.src = item.img;
+    img.alt = item.name;
 
-      <button class="menuAddBtn">+</button>
-    `;
+    imgWrap.appendChild(img);
 
-    card.querySelector(".menuAddBtn").addEventListener("click", () => {
+    // ===== Info =====
+    const info = document.createElement("div");
+    info.classList.add("menuInfo");
+
+    const name = document.createElement("h3");
+    name.classList.add("menuName");
+    name.textContent = item.name;
+
+    const price = document.createElement("p");
+    price.classList.add("menuPrice");
+    price.textContent = `$${item.price.toFixed(2)}+`;
+
+    // ===== Likes =====
+    const likesWrap = document.createElement("div");
+    likesWrap.classList.add("menuLikes");
+
+    const heart = document.createElement("button");
+    heart.classList.add("likeBtn");
+    heart.textContent = "♥";
+
+    const likeCount = document.createElement("span");
+    likeCount.classList.add("likeCount");
+    likeCount.textContent = item.likes;
+
+    likesWrap.appendChild(heart);
+    likesWrap.appendChild(likeCount);
+
+    info.appendChild(name);
+    info.appendChild(price);
+    info.appendChild(likesWrap);
+
+    // ===== Add button =====
+    const addBtn = document.createElement("button");
+    addBtn.classList.add("menuAddBtn");
+    addBtn.textContent = "+";
+
+    // Cart logic
+    addBtn.addEventListener("click", () => {
       cartCount++;
       cartTotal += item.price;
       updateCart();
     });
 
+    // ===== Like / Unlike toggle =====
+    let liked = false;
+
+    heart.addEventListener("click", () => {
+      liked = !liked;
+
+      if (liked) {
+        item.likes++;
+        heart.classList.add("active");
+      } else {
+        item.likes--;
+        heart.classList.remove("active");
+      }
+
+      likeCount.textContent = item.likes;
+    });
+
+    // ===== Assemble card =====
+    card.appendChild(imgWrap);
+    card.appendChild(info);
+    card.appendChild(addBtn);
+
     listEl.appendChild(card);
   });
 }
+
 
 renderMenu();
 searchEl.addEventListener("input", (e) => renderMenu(e.target.value));
