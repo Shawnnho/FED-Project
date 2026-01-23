@@ -1,98 +1,114 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hawker Point - File a Complaint</title>
-  <link rel="stylesheet" href="styles.css" />
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hawker Point - File a Complaint</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="home.html">
+          <img src="images/Logo.png" alt="Hawker Point" class="brand-logo" />
+        </a>
 
-  <header class="topbar">
-    <div class="topbar-inner">
-      <a class="brand" href="home.html">
-        <img src="images/Logo.png" alt="Hawker Point" class="brand-logo" />
-      </a>
+        <nav class="nav">
+          <a class="pill" href="home.html">Home</a>
+          <a class="pill" href="promotions.html">Promotions</a>
+          <a class="pill" href="orders.html">Orders</a>
+          <a class="pill active" href="feedback.html">Feedback</a>
+          <a class="pill" href="hygiene.html">Hygiene</a>
+          <a class="pill account" href="account.html">Account</a>
+        </nav>
 
-      <nav class="nav">
-        <a class="pill" href="home.html">Home</a>
-        <a class="pill" href="stalls.html">Stalls</a>
-        <a class="pill" href="orders.html">Orders</a>
-        <a class="pill active" href="feedback.html">Feedback</a>
-        <a class="pill" href="hygiene.html">Hygiene</a>
-        <a class="pill account" href="account.html">Account</a>
+        <button id="menuBtn" class="menuBtn" type="button">☰</button>
+      </div>
+
+      <div id="navBackdrop" class="navBackdrop"></div>
+      <nav id="navMobile" class="navMobile">
+        <a class="mLink" href="home.html">Home</a>
+        <a class="mLink" href="promotions.html">Promotions</a>
+        <a class="mLink" href="orders.html">Orders</a>
+        <a class="mLink active" href="feedback.html">Feedback</a>
+        <a class="mLink" href="hygiene.html">Hygiene</a>
+        <a class="mLink" href="account.html">Account</a>
       </nav>
+    </header>
 
-      <button id="menuBtn" class="menuBtn" type="button">☰</button>
-    </div>
-
-    <div id="navBackdrop" class="navBackdrop"></div>
-    <nav id="navMobile" class="navMobile">
-      <a class="mLink" href="home.html">Home</a>
-      <a class="mLink" href="stalls.html">Stalls</a>
-      <a class="mLink" href="orders.html">Orders</a>
-      <a class="mLink active" href="feedback.html">Feedback</a>
-      <a class="mLink" href="hygiene.html">Hygiene</a>
-      <a class="mLink" href="account.html">Account</a>
-    </nav>
-  </header>
-
-  <main class="review-container">
-    <div class="review-card">
-      
-      <div class="complaint-header">
-        <h2>Submit a Complaint</h2>
-        <p>Let us know what went wrong and we'll look into it.</p>
-      </div>
-
-      <div class="form-group">
-        <label>Select Stall</label>
-        <select id="comp-stall" class="full-width">
-          <option value="" disabled selected>Stall Name</option>
-          <option value="western-food">Fat Buddies Western Food</option>
-          <option value="chicken-rice">Tiong Bahru Chicken Rice</option>
-          <option value="muslim-food">Al-Azhar</option>
-          <option value="nasi-lemak">Ah Nasi Lemak</option>
-        </select>
-      </div>
-
-      <div class="name-row">
-        <div class="form-group half">
-          <label>Name</label>
-          <input type="text" id="comp-first" placeholder="First Name" class="std-input">
+    <main class="review-container">
+      <div class="review-card">
+        <div class="complaint-header">
+          <h2>Submit a Complaint</h2>
+          <p>Let us know what went wrong and we'll look into it.</p>
         </div>
-        <div class="form-group half">
-          <label class="mobile-hide">&nbsp;</label> 
-          <input type="text" id="comp-last" placeholder="Last Name" class="std-input">
+
+        <div class="form-group">
+          <label>Select Stall</label>
+          <select id="comp-stall" class="full-width">
+            <option value="" disabled selected>Stall Name</option>
+            <option value="western-food">Fat Buddies Western Food</option>
+            <option value="chicken-rice">Tiong Bahru Chicken Rice</option>
+            <option value="muslim-food">Al-Azhar</option>
+            <option value="nasi-lemak">Ah Nasi Lemak</option>
+          </select>
+        </div>
+
+        <div class="name-row">
+          <div class="form-group half">
+            <label>Name</label>
+            <input
+              type="text"
+              id="comp-first"
+              placeholder="First Name"
+              class="std-input"
+            />
+          </div>
+          <div class="form-group half">
+            <label class="mobile-hide">&nbsp;</label>
+            <input
+              type="text"
+              id="comp-last"
+              placeholder="Last Name"
+              class="std-input"
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Email</label>
+          <input
+            type="email"
+            id="comp-email"
+            placeholder="Your Email"
+            class="std-input"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Your Message</label>
+          <textarea
+            id="comp-msg"
+            placeholder="Enter Your Message"
+            class="review-input short-area"
+          ></textarea>
+        </div>
+
+        <div id="error-msg" class="error-text" style="display: none">
+          Please fill in all fields
+        </div>
+
+        <button id="submit-btn" class="submit-btn" onclick="submitComplaint()">
+          Submit a Complaint
+        </button>
+
+        <div id="success-msg" class="success-message" style="display: none">
+          <img src="images/tick.png" alt="Success" class="check-img" />
+          <span>Complaint Submitted</span>
         </div>
       </div>
+    </main>
 
-      <div class="form-group">
-        <label>Email</label>
-        <input type="email" id="comp-email" placeholder="Your Email" class="std-input">
-      </div>
-
-      <div class="form-group">
-        <label>Your Message</label>
-        <textarea id="comp-msg" placeholder="Enter Your Message" class="review-input short-area"></textarea>
-      </div>
-
-      <div id="error-msg" class="error-text" style="display: none;">
-        Please fill in all fields
-      </div>
-
-      <button id="submit-btn" class="submit-btn" onclick="submitComplaint()">
-        Submit a Complaint
-      </button>
-
-      <div id="success-msg" class="success-message" style="display: none;">
-        <img src="images/tick.png" alt="Success" class="check-img">
-        <span>Complaint Submitted</span>
-      </div>
-
-    </div>
-  </main>
-
-  <script type="module" src="complaint.js"></script>
-</body>
+    <script type="module" src="complaint.js"></script>
+  </body>
 </html>
