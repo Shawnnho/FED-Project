@@ -17,10 +17,12 @@
         <!-- Desktop nav (same as your current) -->
         <nav class="nav" aria-label="Primary navigation">
           <a class="pill active" href="home.html">Home</a>
-          <a class="pill" href="promotions.html">Promotions</a>
+          <a class="pill" href="promotions.html" id="navPromotions"
+            >Promotions</a
+          >
           <a class="pill" href="orders.html">Orders</a>
           <a class="pill" href="feedback.html">Feedback</a>
-          <a class="pill" href="hygiene.html">Hygiene</a>
+          <a class="pill" href="hygiene.html" id="navHygiene">Hygiene</a>
           <a class="pill account" href="account.html">
             Account
             <span class="notif" id="notifCount" hidden></span>
@@ -42,10 +44,12 @@
       <div id="navBackdrop" class="navBackdrop"></div>
       <nav id="navMobile" class="navMobile" aria-label="Mobile navigation">
         <a class="mLink active" href="home.html">Home</a>
-        <a class="mLink" href="promotions.html">Promotions</a>
+        <a class="mLink" href="promotions.html" id="mNavPromotions"
+          >Promotions</a
+        >
         <a class="mLink" href="orders.html">Orders</a>
         <a class="mLink" href="feedback.html">Feedback</a>
-        <a class="mLink" href="hygiene.html">Hygiene</a>
+        <a class="mLink" href="hygiene.html" id="mNavHygiene">Hygiene</a>
         <a class="mLink" href="account.html">
           Account <span class="mNotif" id="mNotifCount" hidden></span>
         </a>
@@ -99,7 +103,7 @@
       <section id="list" class="list" aria-label="Stall list"></section>
     </main>
 
-    <script src="menu.js" defer></script>
+    <script type="module" src="menu.js"></script>
     <script src="home.js"></script>
   </body>
 </html>

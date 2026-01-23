@@ -434,7 +434,7 @@ body {
 }
 
 .topbar .pill.active {
-  background: #df8f3b;
+  background: #df8f3b; 
   color: #fff;
   transform: none;
 }
@@ -1806,45 +1806,6 @@ select {
 }
 
 /* =========================================
-   5. MOBILE RESPONSIVE
-========================================= */
-@media (max-width: 720px) {
-  /* Activate Hamburger Mode */
-  .topbar-inner {
-    height: 70px;
-    padding: 0 20px;
-    flex-wrap: nowrap;
-  }
-  .nav {
-    display: none;
-  } /* Hide Desktop Pills */
-  .menuBtn,
-  .navMobile,
-  .navBackdrop {
-    display: block;
-  } /* Show Hamburger */
-  .brand-logo {
-    width: 64px;
-    height: 64px;
-  }
-
-  /* Stack Cards Vertically */
-  .container {
-    flex-direction: column;
-    align-items: center;
-    padding: 30px 15px;
-    gap: 30px;
-  }
-
-  .options {
-    width: 100%;
-    max-width: 340px;
-    height: auto;
-    min-height: 450px;
-  }
-}
-
-/* =========================================
    5. COMPLAINT FORM SPECIFIC STYLES
 ========================================= */
 .complaint-header {
@@ -1907,30 +1868,6 @@ select,
 .half {
   flex: 1; /* Split space 50/50 */
 }
-
-/* =========================================
-   6. MOBILE RESPONSIVE
-========================================= */
-@media (max-width: 720px) {
-  /* Navbar */
-  .topbar-inner {
-    height: 70px;
-    padding: 0 20px;
-    flex-wrap: nowrap;
-  }
-  .nav {
-    display: none;
-  }
-  .menuBtn,
-  .navMobile,
-  .navBackdrop {
-    display: block;
-  }
-  .brand-logo {
-    width: 64px;
-    height: 64px;
-  }
-
   /* Complaint Form Stack */
   .name-row {
     flex-direction: column; /* Stack First/Last Name */

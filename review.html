@@ -1,100 +1,108 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hawker Point - Write a Review</title>
-  <link rel="stylesheet" href="styles.css" />
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hawker Point - Write a Review</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="home.html" aria-label="Hawker Point Home">
+          <img src="images/logo.png" alt="Hawker Point" class="brand-logo" />
+        </a>
 
-  <header class="topbar">
-    <div class="topbar-inner">
-      <a class="brand" href="home.html" aria-label="Hawker Point Home">
-        <img src="images/Logo.png" alt="Hawker Point" class="brand-logo" />
-      </a>
+        <!-- Desktop nav (same as your current) -->
+        <nav class="nav" aria-label="Primary navigation">
+          <a class="pill active" href="home.html" >Home</a>
+          <a class="pill" href="promotions.html" id="navPromotions"
+            >Promotions</a
+          >
+          <a class="pill" href="orders.html">Orders</a>
+          <a class="pill" href="feedback.html" style="background: #df8f3b; color: white">Feedback</a>
+          <a class="pill" href="hygiene.html" id="navHygiene">Hygiene</a>
+          <a class="pill account" href="account.html">
+            Account
+            <span class="notif" id="notifCount" hidden></span>
+          </a>
+        </nav>
 
-      <nav class="nav" aria-label="Primary navigation">
-        <a class="pill" href="home.html">Home</a>
-        <a class="pill" href="promotions.html">Promotions</a>
-        <a class="pill" href="orders.html">Orders</a>
-        <a class="pill active" href="feedback.html">Feedback</a>
-        <a class="pill" href="hygiene.html">Hygiene</a>
-        <a class="pill account" href="account.html">
-          Account
-          <span class="notif" id="notifCount" hidden></span>
+        <!-- ✅ Hamburger button (mobile only via CSS) -->
+        <button
+          id="menuBtn"
+          class="menuBtn"
+          type="button"
+          aria-label="Open menu"
+          aria-expanded="false"
+        >
+          ☰
+        </button>
+      </div>
+
+      <div id="navBackdrop" class="navBackdrop"></div>
+      <nav id="navMobile" class="navMobile" aria-label="Mobile navigation">
+        <a class="mLink active" href="home.html" >Home</a>
+        <a class="mLink" href="promotions.html" id="mNavPromotions"
+          >Promotions</a
+        >
+        <a class="mLink" href="orders.html">Orders</a>
+        <a class="mLink" href="feedback.html"  style="background: #df8f3b; color: white">Feedback</a>
+        <a class="mLink" href="hygiene.html" id="mNavHygiene">Hygiene</a>
+        <a class="mLink" href="account.html">
+          Account <span class="mNotif" id="mNotifCount" hidden></span>
         </a>
       </nav>
+    </header>
 
-      <button
-        id="menuBtn"
-        class="menuBtn"
-        type="button"
-        aria-label="Open menu"
-        aria-expanded="false"
-      >
-        ☰
-      </button>
-    </div>
-
-    <div id="navBackdrop" class="navBackdrop"></div>
-    <nav id="navMobile" class="navMobile" aria-label="Mobile navigation">
-      <a class="mLink" href="home.html">Home</a>
-      <a class="mLink" href="promotions.html">Promotions</a>
-      <a class="mLink" href="orders.html">Orders</a>
-      <a class="mLink active" href="feedback.html">Feedback</a>
-      <a class="mLink" href="hygiene.html">Hygiene</a>
-      <a class="mLink" href="account.html">
-        Account
-      </a>
-    </nav>
-  </header>
-
-  <main class="review-container">
-    <div class="review-card">
-      <div class="form-group">
-        <select id="stall-select">
-          <option value="" disabled selected>Stall Name</option>
-          <option value="western-food">Fat Buddies Western Food</option>
-          <option value="chicken-rice">Tiong Bahru Chicken Rice</option>
-          <option value="muslim-food">Al-Azhar</option>
-          <option value="nasi-lemak">Ahmed Nasi Lemak</option>
-        </select>
-      </div>
-
-      <h2 id="selected-stall-text">Stall Name</h2>
-
-      <div class="rating-section">
-        <div class="stars" id="star-container">
-          <span class="star" data-value="1">★</span>
-          <span class="star" data-value="2">★</span>
-          <span class="star" data-value="3">★</span>
-          <span class="star" data-value="4">★</span>
-          <span class="star" data-value="5">★</span>
+    <main class="review-container">
+      <div class="review-card">
+        <div class="form-group">
+          <select id="stall-select">
+            <option value="" disabled selected>Stall Name</option>
+            <option value="western-food">Fat Buddies Western Food</option>
+            <option value="chicken-rice">Tiong Bahru Chicken Rice</option>
+            <option value="muslim-food">Al-Azhar</option>
+            <option value="nasi-lemak">Ahmed Nasi Lemak</option>
+          </select>
         </div>
-        <p class="rating-text">Tap a star to rate</p>
+
+        <h2 id="selected-stall-text">Stall Name</h2>
+
+        <div class="rating-section">
+          <div class="stars" id="star-container">
+            <span class="star" data-value="1">★</span>
+            <span class="star" data-value="2">★</span>
+            <span class="star" data-value="3">★</span>
+            <span class="star" data-value="4">★</span>
+            <span class="star" data-value="5">★</span>
+          </div>
+          <p class="rating-text">Tap a star to rate</p>
+        </div>
+
+        <textarea
+          id="review-text"
+          placeholder="Tell us what you liked or what could be improved..."
+          class="review-input"
+        ></textarea>
+
+        <div id="error-msg" class="error-text" style="display: none">
+          Please enter something
+        </div>
+
+        <button id="submit-btn" class="submit-btn" onclick="submitReview()">
+          Submit Feedback
+        </button>
+
+        <div id="success-msg" class="success-message" style="display: none">
+          <img src="images/tick.png" alt="Success" class="check-img" />
+          <span>Thank you for your feedback</span>
+        </div>
       </div>
+    </main>
 
-      <textarea 
-        id="review-text" 
-        placeholder="Tell us what you liked or what could be improved..."
-        class="review-input"
-      ></textarea>
-      
-      <div id="error-msg" class="error-text" style="display: none;">
-        Please enter something
-      </div>
-
-      <button id="submit-btn" class="submit-btn" onclick="submitReview()">Submit Feedback</button>
-      
-      <div id="success-msg" class="success-message" style="display: none;">
-        <img src="images/tick.png" alt="Success" class="check-img">
-        <span>Thank you for your feedback</span>
-      </div>
-
-    </div>
-  </main>
-
-  <script src="review.js"></script>
-</body>
+    <script src="review.js"></script>
+    <script type="module" src="menu.js"></script>
+  </body>
 </html>

@@ -109,6 +109,18 @@ const stalls = [
     desc: "Hearty Western favourites served hot in flavour, from juicy grilled meats to comforting sides.",
     img: "images/stalls/fatbuddies.png",
   },
+  {
+    id: "kopi-fellas",
+    name: "Kopi Fellas",
+    cuisine: "Beverages",
+    grade: "A",
+    prepMin: 1,
+    prepMax: 3,
+    popular: true,
+    location: "Maxwell Food Centre",
+    desc: "Traditional kopi and teh brewed the old-school way, serving local favourites like Kopi O, Kopi C, Teh Peng, and Yuan Yang.",
+    img: "images/stalls/kopifellas.jpg",
+  },
 ];
 
 const els = {

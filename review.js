@@ -17,16 +17,16 @@ function submitReview() {
 
   // CHECK: Has the user selected a stall?
   if (!stall.value) {
-    error.innerText = "Please select a stall"; 
+    error.innerText = "Please select a stall";
     error.style.display = "block";
-    return; 
+    return;
   }
 
   // CHECK: Is the review text empty?
   if (input.value.trim() === "") {
-    error.innerText = "Please enter your review"; 
+    error.innerText = "Please enter your review";
     error.style.display = "block";
-    return; 
+    return;
   }
 
   // IF ALL GOOD: Proceed
@@ -35,7 +35,7 @@ function submitReview() {
   msg.style.display = "flex";
 
   // REDIRECT: Wait 3 seconds, then go to Home
-  setTimeout(function() {
+  setTimeout(function () {
     window.location.href = "feedback.html";
   }, 1000);
 }
@@ -45,62 +45,23 @@ function submitReview() {
 ========================================= */
 if (document.getElementById("star-container")) {
   const stars = document.querySelectorAll(".star");
-  
-  stars.forEach(star => {
-    star.addEventListener("click", function() {
+
+  stars.forEach((star) => {
+    star.addEventListener("click", function () {
       const value = parseInt(this.getAttribute("data-value"));
-      stars.forEach(s => s.classList.remove("active"));
+      stars.forEach((s) => s.classList.remove("active"));
       for (let i = 0; i < value; i++) {
         stars[i].classList.add("active");
       }
     });
   });
-  
+
   const dropdown = document.getElementById("stall-select");
   const stallHeader = document.getElementById("selected-stall-text");
-  
+
   if (dropdown && stallHeader) {
-    dropdown.addEventListener("change", function() {
+    dropdown.addEventListener("change", function () {
       stallHeader.innerText = this.options[this.selectedIndex].text;
     });
   }
 }
-
-/* =========================================
-   4. MOBILE HAMBURGER MENU (From Team's Code)
-   This makes the mobile menu open/close
-========================================= */
-document.addEventListener("DOMContentLoaded", () => {
-  const menuBtn = document.getElementById("menuBtn");
-  const navMobile = document.getElementById("navMobile");
-  const navBackdrop = document.getElementById("navBackdrop");
-
-  // Safety check
-  if (!menuBtn || !navMobile || !navBackdrop) return;
-
-  function openMenu() {
-    navMobile.classList.add("open");
-    navBackdrop.classList.add("open");
-    document.body.classList.add("menuOpen");
-    menuBtn.setAttribute("aria-expanded", "true");
-  }
-
-  function closeMenu() {
-    navMobile.classList.remove("open");
-    navBackdrop.classList.remove("open");
-    document.body.classList.remove("menuOpen");
-    menuBtn.setAttribute("aria-expanded", "false");
-  }
-
-  menuBtn.addEventListener("click", () => {
-    const isOpen = navMobile.classList.contains("open");
-    isOpen ? closeMenu() : openMenu();
-  });
-
-  navBackdrop.addEventListener("click", closeMenu);
-
-  // Close menu when clicking a link inside it
-  navMobile.querySelectorAll("a").forEach((link) => {
-    link.addEventListener("click", closeMenu);
-  });
-});

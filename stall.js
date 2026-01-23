@@ -111,6 +111,21 @@ const stalls = [
     desc: "Hearty Western favourites served hot in flavour, from juicy grilled meats to comforting sides.",
     img: "images/stalls/fatbuddies.png",
   },
+  {
+    id: "kopi-fellas",
+    name: "Kopi Fellas",
+    cuisine: "Beverages",
+    grade: "A",
+    prepMin: 1,
+    prepMax: 3,
+    popular: true,
+    openTime: "8:00 AM",
+    closeTime: "5:30 PM",
+    unit: "#01-07",
+    location: "Ayer Rajah Crescent",
+    desc: "Traditional kopi and teh brewed the old-school way, serving local favourites like Kopi O, Kopi C, Teh Peng, and Yuan Yang.",
+    img: "images/kopifellas-hero.jpg",
+  },
 ];
 
 // =========================

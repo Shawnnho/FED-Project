@@ -6,7 +6,6 @@
     <title>Hawker Point — Stall Information</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
-
   <body>
     <!-- ================= HEADER ================= -->
     <header class="topbar">
@@ -16,12 +15,19 @@
         </a>
 
         <nav class="nav" aria-label="Primary navigation">
-          <a class="pill" href="home.html">Home</a>
-          <a class="pill" href="promotions.html">Promotions</a>
+          <a
+            class="pill active"
+            href="home.html"
+            style="background: #df8f3b; color: white"
+            >Home</a
+          >
+          <a class="pill" href="promotions.html" id="navPromotions"
+            >Promotions</a
+          >
           <a class="pill" href="orders.html">Orders</a>
           <a class="pill" href="feedback.html">Feedback</a>
-          <a class="pill" href="hygiene.html">Hygiene</a>
-          <a class="pill account" href="account.html">Account</a>
+          <a class="pill" href="hygiene.html" id="navHygiene">Hygiene</a>
+          <a class="pill" href="account.html">Account</a>
         </nav>
 
         <button
@@ -37,7 +43,12 @@
 
       <div id="navBackdrop" class="navBackdrop"></div>
       <nav id="navMobile" class="navMobile" aria-label="Mobile navigation">
-        <a class="mLink" href="home.html">Home</a>
+        <a
+          class="mLink"
+          href="home.html"
+          style="background: #df8f3b; color: white"
+          >Home</a
+        >
         <a class="mLink" href="promotions.html">Promotions</a>
         <a class="mLink" href="orders.html">Orders</a>
         <a class="mLink" href="feedback.html">Feedback</a>
@@ -107,7 +118,18 @@
       </div>
     </main>
 
+    <script src="nav-active.js?v=2"></script>
+    <script>
+      // Stall page should highlight Home
+      document
+        .querySelectorAll('.nav a[href="home.html"]')
+        .forEach((a) => a.classList.add("active"));
+      document
+        .querySelectorAll('#navMobile a[href="home.html"]')
+        .forEach((a) => a.classList.add("active"));
+    </script>
+
     <script type="module" src="stall.js"></script>
-    <script src="menu.js" defer></script>
+    <script type="module" src="menu.js"></script>
   </body>
 </html>

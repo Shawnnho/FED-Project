@@ -32,13 +32,25 @@ let claimedCodes = new Set();
 let claimedDailyIds = new Set();
 
 onAuthStateChanged(auth, async (u) => {
-  currentUser = u;
-
-  if (u) {
-    await loadClaimedCodes(u.uid);
-  } else {
-    claimedCodes = new Set();
+  // ❌ Not logged in = guest → block promotions
+  if (!u) {
+    window.location.href = "index.html"; // or home.html
+    return;
   }
+
+  // 🔎 Check role from Firestore
+  const snap = await getDoc(doc(db, "users", u.uid));
+  const role = snap.exists() ? snap.data().role : "customer";
+
+  // ❌ Logged in but role = guest → block
+  if (role === "guest") {
+    window.location.href = "home.html"; // safer redirect
+    return;
+  }
+
+  // ✅ Allowed user
+  currentUser = u;
+  await loadClaimedCodes(u.uid);
 
   render(); // refresh UI so buttons update
 });
