@@ -2301,3 +2301,209 @@ select,
   margin-left: 0;
   margin-right: auto;
 }
+
+/* =========================================
+   PROMOTIONS PAGE (matches your Home UI)
+   Paste at BOTTOM of styles.css
+========================================= */
+
+.page.home.promoPage {
+  padding-bottom: 70px; /* keep some breathing space */
+}
+
+/* promo card extras (reuse .card/.viewBtn) */
+.promoCodeRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.promoCodeBox {
+  flex: 1;
+  min-width: 170px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  border-radius: 6px;
+  font-weight: 900;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+
+  background: #fff3e6;
+  border: 2px dashed rgba(215, 144, 66, 0.7);
+  color: rgba(0, 0, 0, 0.78);
+}
+
+.copyBtn {
+  height: 38px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 6px;
+  background: #e8944c; /* your hawker orange */
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+}
+.copyBtn:hover {
+  filter: brightness(0.95);
+}
+
+/* small chips */
+.promoChips {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.promoChip {
+  font-size: 12px;
+  font-weight: 900;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: #f3e4d7; /* same vibe as .prep */
+  color: rgba(0, 0, 0, 0.75);
+}
+.promoChip.expiring {
+  background: #ffe6c7;
+}
+
+/* Redeem section */
+.promoRedeemWrap {
+  max-width: 720px;
+  margin: 18px auto 0;
+  padding: 0 14px;
+}
+
+.promoRedeemCard {
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 16px rgba(0, 0, 0, 0.06);
+  padding: 16px;
+}
+
+.promoRedeemLeft h3 {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 900;
+}
+.promoRedeemLeft p {
+  margin: 0 0 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.promoRedeemRight {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.promoRedeemInput {
+  flex: 1;
+  min-width: 200px;
+  height: 38px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  background: rgba(255, 255, 255, 0.92);
+  padding: 0 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  outline: none;
+}
+
+.promoRedeemBtn {
+  min-width: 140px;
+}
+
+.promoRedeemMsg {
+  margin: 10px 0 0;
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+/* Toast */
+.promoToast {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%) translateY(10px);
+  background: rgba(0, 0, 0, 0.82);
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 999px;
+  font-weight: 900;
+  font-size: 12px;
+  opacity: 0;
+  pointer-events: none;
+  transition: 0.18s ease;
+  z-index: 9999;
+}
+
+.promoToast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+/* ONLY Promotions page */
+.promoPage .filters {
+  display: flex;
+  justify-content: center; /* center horizontally */
+  align-items: center;
+}
+/* Account — Vouchers button align like your other buttons */
+#viewVouchersBtn {
+  margin: 0 0px 14px auto;
+  display: block;
+  width: fit-content;
+}
+/* Disabled Apply button */
+.btn[disabled],
+.copyBtn[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+  filter: grayscale(0.3);
+}
+/* ===== VOUCHER POPUP ONLY (no clash with Edit Profile modal) ===== */
+.hpVoucherModal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  z-index: 9999;
+}
+.hpVoucherModal.isOpen {
+  display: block;
+}
+
+.hpVoucherBackdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+/* ✅ centered card */
+.hpVoucherCard {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+
+  width: min(920px, calc(100% - 28px));
+  max-height: min(78vh, calc(100vh - 40px));
+  overflow: auto;
+
+  background: #fff;
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+}
+
+.hpVoucherHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}

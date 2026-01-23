@@ -145,6 +145,21 @@
           Save Preference
         </button>
       </section>
+      <!-- ✅ Vouchers Summary -->
+      <section class="accCard">
+        <div class="accCardTitle">Vouchers</div>
+
+        <div class="summaryGrid" style="align-items: center">
+          <div>
+            <b>Redeemed Vouchers:</b>
+            <span id="redeemedVoucherCount">0</span>
+          </div>
+
+          <button id="viewVouchersBtn" class="btn small primary">
+            View My Vouchers
+          </button>
+        </div>
+      </section>
 
       <!-- ✅ Order History Summary (dynamic later) -->
       <section class="accCard">
@@ -183,6 +198,33 @@
       </section>
       <p id="accStatus" class="status" aria-live="polite"></p>
     </main>
+
+    <!-- ✅ Vouchers Popup -->
+    <div id="voucherModal" class="hpVoucherModal" aria-hidden="true">
+      <div class="hpVoucherBackdrop" data-close></div>
+
+      <div
+        class="hpVoucherCard"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="voucherModalTitle"
+      >
+        <div class="hpVoucherHeader">
+          <h3 id="voucherModalTitle" style="margin: 0">My Vouchers</h3>
+          <button id="closeVoucherModal" class="btn small" type="button">
+            Close
+          </button>
+        </div>
+
+        <p
+          id="voucherModalSub"
+          style="margin: 10px 0 0; font-weight: 800; opacity: 0.75"
+        >
+          Loading…
+        </p>
+        <div id="voucherModalList" style="margin-top: 12px"></div>
+      </div>
+    </div>
 
     <script type="module" src="account.js"></script>
     <script src="menu.js" defer></script>

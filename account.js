@@ -25,6 +25,11 @@ import {
   getDoc,
   setDoc,
   serverTimestamp,
+  collection,
+  getDocs,
+  query,
+  where,
+  updateDoc,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* ✅ Use SAME config as signup/login */
@@ -56,6 +61,9 @@ const logoutBtn = document.getElementById("logoutBtn");
 const deactivateBtn = document.getElementById("deactivateBtn");
 const accStatus = document.getElementById("accStatus");
 
+const redeemedVoucherCount = document.getElementById("redeemedVoucherCount");
+const viewVouchersBtn = document.getElementById("viewVouchersBtn");
+
 // optional badges
 const notifCount = document.getElementById("notifCount");
 const mNotifCount = document.getElementById("mNotifCount");
@@ -64,6 +72,11 @@ const mNotifCount = document.getElementById("mNotifCount");
 const prefCuisineEls = Array.from(document.querySelectorAll(".prefCuisine"));
 const prefNotifEls = Array.from(document.querySelectorAll(".prefNotif"));
 const savePrefBtn = document.getElementById("savePrefBtn");
+
+const voucherModal = document.getElementById("voucherModal");
+const voucherModalList = document.getElementById("voucherModalList");
+const voucherModalSub = document.getElementById("voucherModalSub");
+const closeVoucherModal = document.getElementById("closeVoucherModal");
 
 /* =========================
    Helpers
@@ -218,6 +231,108 @@ function openModal({ title, bodyHtml, primaryText = "Save", onPrimary }) {
   return { overlay, close };
 }
 
+async function updateRedeemedCount(uid) {
+  if (!redeemedVoucherCount) return;
+
+  const q = query(
+    collection(db, "users", uid, "vouchers"),
+    where("used", "==", true),
+  );
+
+  const snap = await getDocs(q);
+  redeemedVoucherCount.textContent = snap.size;
+}
+
+function openVoucherModal() {
+  if (!voucherModal) return;
+  voucherModal.classList.add("isOpen");
+  voucherModal.setAttribute("aria-hidden", "false");
+}
+
+function closeVoucherModalFn() {
+  if (!voucherModal) return;
+  voucherModal.classList.remove("isOpen");
+  voucherModal.setAttribute("aria-hidden", "true");
+}
+
+function tsToMillis(ts) {
+  if (!ts) return 0;
+  if (typeof ts.toMillis === "function") return ts.toMillis();
+  if (typeof ts === "number") return ts;
+  return 0;
+}
+
+function isExpiredVoucher(v) {
+  const exp = tsToMillis(v.expiresAt);
+  return exp > 0 && Date.now() > exp;
+}
+
+function expiryText(v) {
+  const exp = tsToMillis(v.expiresAt);
+  if (!exp) return "No expiry";
+  const days = Math.ceil((exp - Date.now()) / (24 * 60 * 60 * 1000));
+  if (days <= 0) return "Expired";
+  if (days === 1) return "Expires in 1 day";
+  return `Expires in ${days} days`;
+}
+
+async function loadUserVouchers(uid) {
+  const snap = await getDocs(collection(db, "users", uid, "vouchers"));
+  return snap.docs.map((d) => ({ ...d.data(), docId: d.id }));
+}
+
+async function markVoucherUsed(uid, docId) {
+  await updateDoc(doc(db, "users", uid, "vouchers", docId), {
+    used: true,
+    usedAt: serverTimestamp(),
+  });
+}
+
+function renderVoucherModal(vouchers) {
+  if (!voucherModalList) return;
+
+  if (!vouchers.length) {
+    voucherModalList.innerHTML = `
+      <div class="emptyState">
+        <h2 class="emptyTitle">No vouchers claimed</h2>
+        <p style="margin:8px 0 0; font-weight:800; opacity:.75;">Go to Promotions to claim vouchers.</p>
+      </div>
+    `;
+    return;
+  }
+
+  voucherModalList.innerHTML = vouchers
+    .map((v) => {
+      const disabled = v.used === true || isExpiredVoucher(v);
+      const status =
+        v.used === true
+          ? "✅ Used"
+          : isExpiredVoucher(v)
+            ? "❌ Expired"
+            : "✅ Active";
+
+      return `
+      <div class="hpVoucherRow">
+        <div class="hpVoucherLeft">
+          <div class="code">${v.code}</div>
+          <div class="meta">${status} • ${expiryText(v)}</div>
+        </div>
+
+        <div class="hpVoucherRight">
+          <button
+            class="btn small primary"
+            data-apply-voucher="${v.docId}"
+            data-code="${v.code}"
+            ${disabled ? "disabled" : ""}>
+            ${disabled ? (v.used ? "Used" : "Expired") : "Apply"}
+          </button>
+        </div>
+      </div>
+    `;
+    })
+    .join("");
+}
+
 /* =========================
    Auth gate + wiring
 ========================= */
@@ -244,6 +359,74 @@ onAuthStateChanged(auth, async (user) => {
 
       return;
     }
+    // =========================
+    // ✅ VOUCHERS (Popup + Firestore)
+    // =========================
+    await updateRedeemedCount(user.uid);
+
+    // Open voucher popup
+    viewVouchersBtn?.addEventListener("click", async () => {
+      openVoucherModal();
+
+      voucherModalSub.textContent = "Loading…";
+      voucherModalList.innerHTML = "";
+
+      try {
+        const vouchers = await loadUserVouchers(user.uid);
+
+        const active = vouchers.filter(
+          (v) => v.used !== true && !isExpiredVoucher(v),
+        ).length;
+        const used = vouchers.filter((v) => v.used === true).length;
+
+        voucherModalSub.textContent = `Active: ${active} • Used: ${used} • Total: ${vouchers.length}`;
+
+        renderVoucherModal(vouchers);
+      } catch (err) {
+        console.error("loadUserVouchers failed:", err);
+        voucherModalSub.textContent =
+          "❌ Failed to load vouchers (check Firestore rules).";
+        voucherModalList.innerHTML = `
+      <div class="emptyState">
+        <h2 class="emptyTitle">Unable to load vouchers</h2>
+        <p style="margin:8px 0 0; font-weight:800; opacity:.75;">
+          Open DevTools Console to see the error.
+        </p>
+      </div>
+    `;
+      }
+    });
+
+    // Close popup (button)
+    closeVoucherModal?.addEventListener("click", closeVoucherModalFn);
+
+    // Close popup (backdrop click)
+    voucherModal?.addEventListener("click", (e) => {
+      if (e.target.matches("[data-close]")) {
+        closeVoucherModalFn();
+      }
+    });
+
+    // Apply voucher inside popup
+    voucherModalList?.addEventListener("click", async (e) => {
+      const btn = e.target.closest("[data-apply-voucher]");
+      if (!btn || btn.disabled) return;
+
+      const docId = btn.dataset.applyVoucher;
+      const code = btn.dataset.code;
+
+      // Save for checkout
+      localStorage.setItem("hawkerpoint_applied_promo", code);
+      localStorage.setItem("hawkerpoint_applied_voucher_docid", docId);
+
+      // Mark used in Firestore
+      await markVoucherUsed(user.uid, docId);
+
+      // Refresh UI
+      const vouchers = await loadUserVouchers(user.uid);
+      renderVoucherModal(vouchers);
+      await updateRedeemedCount(user.uid);
+    });
 
     // UI populate
     accName.textContent = data?.name || user.displayName || "—";
