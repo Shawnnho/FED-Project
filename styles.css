@@ -609,6 +609,31 @@ body.guest .mNotif {
   font-size: 12px;
   font-weight: 900;
 }
+.menuLikes {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.likeBtn {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 0;
+  opacity: 0.55;
+}
+
+.likeBtn.active {
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+.likeCount {
+  font-weight: 600;
+}
+
 
 /* Prevent page scroll when menu open */
 body.menuOpen {
@@ -1954,470 +1979,494 @@ body.guest .searchWrap {
   margin-right: auto;
 }
 
-
 /* =========================================
-   MENU PAGE BASE
+   MENU PAGE — matches your screenshots
+   Paste at BOTTOM of styles.css
 ========================================= */
 
 .page.menuPage {
+  display: block;
   min-height: 100vh;
-  background: #fbf3e6;
-  padding-bottom: 30px;
+  background: #fbf3e6; /* same palette as your app */
+  padding: 18px 0 110px; /* bottom space for cart bar */
 }
 
-/* Main centered column (overall width) */
+/* Centres the whole menu area like your screenshot */
 .menuShell {
-  max-width: 620px;          /* 🔥 makes whole layout bigger */
+  width: min(760px, 92vw);
   margin: 0 auto;
-  padding: 18px 16px 0;
 }
 
-/* =========================================
-   TOP AREA (image, grade, search)
-========================================= */
-
+/* ---- TOP SECTION (non-scroll feel) ---- */
 .menuTop {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  padding-top: 8px;
 }
 
+/* Stall logo (the big centered logo) */
 #stallIcon {
-  width: 170px;
-  height: 170px;
+  width: 150px;
+  height: 110px;
   object-fit: contain;
+  display: block;
+  margin-top: 6px;
 }
 
+/* Hygiene pill */
 .hpGradePill {
-  padding: 10px 16px;
-  background: #bff0b9;
-  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  padding: 10px 18px;
+  border-radius: 10px;
+
   font-weight: 900;
   font-size: 14px;
-  border: 1px solid rgba(0,0,0,0.2);
+
+  background: #bfe6b9; /* green-ish */
+  color: #143b14;
+  border: 1px solid rgba(0, 0, 0, 0.18);
 }
 
+/* Search bar */
 .menuSearchBar {
   width: 100%;
+  max-width: 640px;
+
   height: 44px;
   border-radius: 999px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(0, 0, 0, 0.22);
+
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 0 16px;
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.25);
+  padding: 0 14px;
+}
+
+.menuSearchBar span {
+  opacity: 0.75;
 }
 
 .menuSearchBar input {
+  width: 100%;
   border: none;
   outline: none;
-  width: 100%;
+  background: transparent;
+
   font-size: 14px;
   font-weight: 700;
 }
 
-/* Section title */
+/* "Menu — Ahmad Nasi Lemak" line */
 .menuSectionTitle {
   width: 100%;
-  margin-top: 8px;
-  padding-top: 12px;
-  font-size: 14px;
+  max-width: 640px;
+  margin-top: 4px;
+  padding: 10px 2px 12px;
+
   font-weight: 900;
-  color: rgba(0,0,0,0.75);
-  position: relative;
+  font-size: 15px;
+  color: #222;
+
+  border-bottom: 2px solid rgba(0, 0, 0, 0.25);
 }
 
-.menuSectionTitle::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: rgba(0,0,0,0.25);
-}
-
-/* =========================================
-   🔥 MENU ITEMS SURROUNDING BOX 🔥
-========================================= */
-
+/* ---- LIST AREA ---- */
 .menuList {
-  margin-top: 14px;
-
-  /* THIS is the box you asked for */
-  background: #fff7ec;
-  border-radius: 22px;
-  padding: 24px 18px 26px;
-
-  box-shadow:
-    0 14px 28px rgba(0,0,0,0.12),
-    inset 0 0 0 2px rgba(0,0,0,0.05);
-
+  margin-top: 10px;
   display: flex;
   flex-direction: column;
-  gap: 22px;
-
-  /* space for cart bar */
-  padding-bottom: 120px;
+  gap: 14px;
 }
 
-/* =========================================
-   MENU ITEM CARDS (inside the box)
-========================================= */
-
+/* ✅ BIGGER MENU ITEM CARD (this is what you asked) */
 .menuCard {
-  background: #fff;
-  border: 2px solid #ff3b30;
-  border-radius: 18px;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
 
   display: grid;
-  grid-template-columns: 200px 1fr 64px;
+  grid-template-columns: 210px 1fr 70px; /* bigger image + add btn */
   align-items: center;
-  gap: 18px;
 
-  padding: 18px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 2px solid #ff2a2a; /* red outline */
+  border-radius: 14px;
+
+  padding: 12px 14px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
 }
 
-/* Image */
+/* image box */
 .menuImgWrap {
-  width: 200px;
-  height: 120px;
-  border-radius: 16px;
+  width: 100%;
+  height: 92px; /* bigger */
+  border-radius: 12px;
   overflow: hidden;
+  background: #fff;
 }
 
 .menuImgWrap img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 
-/* Text */
+/* info column */
 .menuInfo {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  padding-left: 14px;
+  display: grid;
+  gap: 6px;
 }
 
+/* item name */
 .menuName {
-  font-size: 18px;
+  margin: 0;
+  font-size: 16px;
   font-weight: 900;
+  color: #111;
 }
 
+/* price */
 .menuPrice {
-  font-size: 15px;
+  margin: 0;
+  font-size: 13px;
   font-weight: 900;
-  color: rgba(0,0,0,0.7);
+  color: #333;
 }
 
+/* likes row */
 .menuLikes {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
   font-weight: 900;
-  color: rgba(0,0,0,0.6);
+  font-size: 13px;
 }
 
-.menuLikes .heart {
-  color: #e11d48;
-  font-size: 16px;
-}
-
-/* + button */
-.menuAddBtn {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background: #f5b18b;
+/* heart button */
+.likeBtn {
+  width: 22px;
+  height: 22px;
   border: none;
-  font-size: 28px;
-  font-weight: 900;
+  background: transparent;
   cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0;
+  color: #e27878;
 }
 
-/* =========================================
-   CART BAR
-========================================= */
+.likeBtn.active {
+  color: #e11d48;
+  transform: scale(1.06);
+}
 
+/* plus button on right */
+.menuAddBtn {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+
+  border: none;
+  cursor: pointer;
+
+  background: #f0b08a;
+  color: #111;
+
+  font-size: 26px;
+  font-weight: 900;
+
+  display: grid;
+  place-items: center;
+}
+
+.menuAddBtn:hover {
+  filter: brightness(0.95);
+}
+
+/* ---- STICKY CART BAR ---- */
 .cartBar {
-  position: sticky;
-  bottom: 12px;
-  margin-top: -90px;
+  position: fixed;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
 
-  background: #ff3b30;
+  width: min(640px, 92vw);
+  height: 62px;
+
+  background: #ff2a2a;
   color: #fff;
-  border-radius: 18px;
-  padding: 18px 20px;
+
+  border-radius: 10px;
 
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  font-weight: 900;
 
-  box-shadow: 0 18px 32px rgba(0,0,0,0.25);
+  padding: 0 18px;
+  font-weight: 900;
+  font-size: 16px;
+
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.22);
 }
 
-/* =========================================
-   MOBILE
-========================================= */
-
+/* ---- MOBILE TUNING ---- */
 @media (max-width: 520px) {
-  .menuShell {
-    max-width: 100%;
-    padding: 14px 12px 0;
-  }
-
-  .menuList {
-    padding: 18px 14px 110px;
-    border-radius: 18px;
+  #stallIcon {
+    width: 140px;
+    height: 100px;
   }
 
   .menuCard {
-    grid-template-columns: 140px 1fr 50px;
-    padding: 14px;
-    gap: 12px;
+    grid-template-columns: 150px 1fr 62px;
+    padding: 10px 12px;
   }
 
   .menuImgWrap {
-    width: 140px;
-    height: 90px;
+    height: 78px;
   }
 
   .menuName {
-    font-size: 16px;
+    font-size: 15px;
   }
 
   .menuAddBtn {
-    width: 44px;
-    height: 44px;
-    font-size: 22px;
-  }
-}
-
-.likeBtn {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  font-size: 18px;
-  color: #e11d48;
-
-}
-
-  .likeBtn.active{
-    transform: scale(1.1);
-    filter: drop-shadow(0 0 4px rgba(225, 29,72,0.6))
+    width: 40px;
+    height: 40px;
+    font-size: 24px;
   }
 
-  /* =========================================
-   ITEM DETAIL PAGE (Food Detail)
+  .cartBar {
+    height: 58px;
+    font-size: 15px;
+    bottom: 16px;
+  }
+}
+/* =========================================
+   ITEM PAGE — matches screenshot
+   Paste at bottom of styles.css
 ========================================= */
 
 .page.itemPage {
   min-height: 100vh;
   background: #fbf3e6;
-  padding: 14px 0 26px;
+  display: grid;
+  place-items: start center;
+  padding: 18px 12px 28px;
 }
 
 .itemShell {
-  width: min(520px, 94vw);
-  margin: 0 auto;
+  width: min(520px, 92vw);
   background: transparent;
   position: relative;
 }
 
-/* Close */
+/* close button (top-left X) */
 .itemClose {
   position: absolute;
-  left: 6px;
-  top: -4px;
+  top: -6px;
+  left: -6px;
+
+  width: 34px;
+  height: 34px;
   border: none;
   background: transparent;
-  font-size: 28px;
-  font-weight: 900;
   cursor: pointer;
+
+  font-size: 22px;
+  font-weight: 900;
   color: #111;
 }
 
-/* Hero */
+/* hero image like screenshot */
 .itemHero {
   width: 100%;
-  height: 210px;
-  border-radius: 12px;
-  overflow: hidden;
   background: #fff;
-  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 0;
+  overflow: hidden;
+  border: 1px solid rgba(0,0,0,0.12);
 }
 
 .itemHero img {
   width: 100%;
-  height: 100%;
+  height: 170px;
   object-fit: cover;
   display: block;
 }
 
-/* Top row */
+/* name left, price right */
 .itemTopRow {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 14px;
-  align-items: start;
-  margin-top: 12px;
+  gap: 12px;
+  align-items: end;
+  margin-top: 10px;
 }
 
 .itemName {
   margin: 0;
-  font-size: 26px;
+  font-size: 22px;
   font-weight: 900;
   color: #111;
 }
 
 .itemPriceBox {
   text-align: right;
+  min-width: 92px;
 }
 
 .itemPrice {
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 900;
   color: #111;
+  line-height: 1;
 }
 
 .itemPriceSub {
-  font-size: 11px;
+  margin-top: 2px;
+  font-size: 10px;
   font-weight: 800;
-  color: rgba(0, 0, 0, 0.55);
+  color: rgba(0,0,0,0.55);
 }
 
-/* Description */
+/* description paragraph */
 .itemDesc {
-  margin: 10px 0 10px;
-  font-size: 12px;
+  margin: 10px 0 8px;
+  font-size: 11px;
   font-weight: 700;
-  color: rgba(0, 0, 0, 0.65);
+  color: rgba(0,0,0,0.75);
   text-align: center;
-  max-width: 420px;
-  margin-left: auto;
-  margin-right: auto;
+  line-height: 1.35;
+  padding: 0 10px;
 }
 
-/* Divider */
+/* dividers */
 .itemDivider {
   border: 0;
-  border-top: 1px solid rgba(0, 0, 0, 0.22);
-  margin: 14px 0;
+  height: 1px;
+  background: rgba(0,0,0,0.25);
+  margin: 10px 0;
 }
 
-/* Section title */
+/* section headings */
 .itemSectionTitle {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 900;
-  color: rgba(0, 0, 0, 0.7);
-  margin-bottom: 8px;
+  color: #111;
+  margin: 8px 0 6px;
 }
 
-/* Add-ons list */
+/* addons list */
 .addonsList {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .addonRow {
   display: grid;
-  grid-template-columns: 22px 1fr auto;
-  gap: 10px;
+  grid-template-columns: 18px 1fr auto;
   align-items: center;
-  font-size: 12px;
+  gap: 10px;
+
+  font-size: 11px;
   font-weight: 800;
-  color: rgba(0, 0, 0, 0.7);
+  color: rgba(0,0,0,0.75);
 }
 
 .addonRow input {
-  width: 16px;
-  height: 16px;
-  accent-color: #ff3b30;
+  width: 14px;
+  height: 14px;
+  accent-color: #e11d48;
 }
 
 .addonPrice {
   font-weight: 900;
-  color: rgba(0, 0, 0, 0.75);
+  color: rgba(0,0,0,0.65);
+  font-size: 10px;
 }
 
-/* Side note */
+/* side note input */
 .sideNote {
   width: 100%;
-  border-radius: 12px;
-  padding: 12px 12px;
-  border: 1px solid rgba(0, 0, 0, 0.18);
-  font-weight: 700;
-  font-size: 13px;
-  outline: none;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,0.15);
+  padding: 10px 12px;
   resize: none;
-  background: rgba(255, 255, 255, 0.95);
+  outline: none;
+
+  background: rgba(255,255,255,0.96);
+  font-size: 12px;
+  font-weight: 700;
 }
 
-.sideNote:focus {
-  border-color: rgba(255, 59, 48, 0.6);
-  box-shadow: 0 0 0 3px rgba(255, 59, 48, 0.15);
-}
-
-/* Qty row */
+/* qty row */
 .qtyRow {
+  margin-top: 14px;
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: 64px 1fr 64px;
   align-items: center;
-  gap: 16px;
-  margin: 18px 0 16px;
+  justify-items: center;
+  gap: 12px;
 }
 
 .qtyBtn {
-  height: 52px;
+  width: 44px;
+  height: 44px;
   border-radius: 999px;
   border: none;
-  font-size: 26px;
-  font-weight: 900;
   cursor: pointer;
-  background: #f5b18b;
+
+  font-size: 22px;
+  font-weight: 900;
+
+  background: #f0b08a;
   color: #111;
-  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.12);
 }
 
 .qtyBtn.primary {
-  background: #ff3b30;
+  background: #e11d48;
   color: #fff;
 }
 
 .qtyVal {
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 900;
-  text-align: center;
-  min-width: 24px;
+  color: #111;
 }
 
-/* Add to cart */
+/* main CTA */
 .addCartBtn {
+  margin-top: 16px;
   width: 100%;
-  height: 54px;
+  height: 46px;
   border: none;
-  border-radius: 12px;
-  background: #ff3b30;
+  border-radius: 10px;
+
+  background: #e11d48; /* red like screenshot */
   color: #fff;
+
+  font-size: 14px;
   font-weight: 900;
-  font-size: 16px;
+
   cursor: pointer;
-  box-shadow: 0 16px 28px rgba(0, 0, 0, 0.16);
+  box-shadow: 0 10px 18px rgba(0,0,0,0.14);
 }
 
 .addCartBtn:active {
   transform: translateY(1px);
 }
 
-/* Mobile tweak */
-@media (max-width: 520px) {
-  .itemHero {
-    height: 190px;
-  }
-  .itemName {
-    font-size: 24px;
-  }
+/* small screens */
+@media (max-width: 420px) {
+  .itemHero img { height: 155px; }
+  .itemName { font-size: 20px; }
+  .addCartBtn { height: 44px; }
 }

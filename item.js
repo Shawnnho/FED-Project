@@ -1,110 +1,109 @@
 /*************************************************
  * item.js
  * - Reads ?stall=...&item=...
- * - Looks up item + addons
- * - Updates price based on addons + quantity
- * - Adds to localStorage cart
+ * - Shows layout + updates total with addons + qty
+ * - Adds to localStorage hp_cart
+ * - Back goes to menu.html?id=...
  *************************************************/
-
-function money(n) {
-  return `$${n.toFixed(2)}`;
-}
 
 function slugify(str) {
   return String(str)
     .toLowerCase()
     .trim()
-    .replace(/['"]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "");
 }
 
-/* ===== DATA: must match your menu page items ===== */
+function money(n) {
+  return `$${Number(n || 0).toFixed(2)}`;
+}
+
+function readCart() {
+  try {
+    return JSON.parse(localStorage.getItem("hp_cart") || "[]");
+  } catch {
+    return [];
+  }
+}
+
+function writeCart(cart) {
+  localStorage.setItem("hp_cart", JSON.stringify(cart));
+}
+
+/* ===== MENU DATA (must match stallmenu.js items) ===== */
 const menuByStall = {
   "ahmad-nasi-lemak": [
     {
-      id: slugify("Nasi Lemak"),
       name: "Nasi Lemak",
-      basePrice: 7.0,
+      price: 7.0,
       img: "images/stalls/nasilemak.jpg",
       desc:
         "Fragrant coconut rice served with sambal, crispy anchovies, peanuts, egg, and cucumber. Simple, satisfying, and a local favourite.",
       addons: [
         { id: "more-rice", label: "More Rice", price: 0.5 },
         { id: "more-chicken", label: "More Chicken", price: 2.0 },
-        { id: "extra-egg-ikan-bilis", label: "Extra Egg and Ikan Bilis", price: 1.0 },
+        { id: "extra-egg", label: "Extra Egg and Ikan Bilis", price: 1.0 },
       ],
     },
     {
-      id: slugify("Fried Noodles"),
       name: "Fried Noodles",
-      basePrice: 6.7,
+      price: 6.7,
       img: "images/fried noodles.png",
-      desc: "Wok-fried noodles with savoury seasoning, vegetables, and a satisfying bite.",
+      desc: "Wok-fried noodles with savoury seasoning and vegetables.",
       addons: [
-        { id: "extra-chilli", label: "Extra Chilli", price: 0.3 },
         { id: "add-egg", label: "Add Egg", price: 1.0 },
+        { id: "extra-chilli", label: "Extra Chilli", price: 0.3 },
       ],
     },
     {
-      id: slugify("Satay (1 Dozen)"),
       name: "Satay (1 Dozen)",
-      basePrice: 10.5,
+      price: 10.5,
       img: "images/Satay 1D.png",
-      desc: "Skewers grilled to perfection, served with rich peanut sauce and cucumber-onion relish.",
-      addons: [
-        { id: "extra-sauce", label: "Extra Peanut Sauce", price: 0.5 },
-        { id: "more-satay", label: "Add 6 More Sticks", price: 4.5 },
-      ],
+      desc: "Skewers grilled to perfection, served with peanut sauce.",
+      addons: [{ id: "extra-sauce", label: "Extra Peanut Sauce", price: 0.5 }],
     },
     {
-      id: slugify("Assam Laksa"),
       name: "Assam Laksa",
-      basePrice: 8.0,
+      price: 8.0,
       img: "images/Asaam Laks.png",
-      desc: "Tangy, spicy, fish-based broth with noodles and fresh toppings.",
-      addons: [
-        { id: "more-noodles", label: "More Noodles", price: 0.8 },
-        { id: "extra-fish", label: "Extra Fish", price: 2.0 },
-      ],
+      desc: "Tangy, spicy broth with noodles and fresh toppings.",
+      addons: [{ id: "more-noodles", label: "More Noodles", price: 0.8 }],
     },
     {
-      id: slugify("Roti Canai"),
       name: "Roti Canai",
-      basePrice: 5.0,
+      price: 5.0,
       img: "images/Roti canai.png",
       desc: "Crispy, flaky roti served with fragrant curry.",
-      addons: [
-        { id: "add-curry", label: "Extra Curry", price: 0.6 },
-        { id: "add-egg", label: "Add Egg", price: 1.0 },
-      ],
+      addons: [{ id: "extra-curry", label: "Extra Curry", price: 0.6 }],
     },
     {
-      id: slugify("Chendul"),
       name: "Chendul",
-      basePrice: 4.0,
+      price: 4.0,
       img: "images/Chendul.png",
-      desc: "Classic icy dessert with gula melaka, coconut milk, and green jelly.",
-      addons: [
-        { id: "more-gula", label: "More Gula Melaka", price: 0.4 },
-        { id: "more-coconut", label: "More Coconut Milk", price: 0.4 },
-      ],
+      desc: "Classic icy dessert with gula melaka and coconut milk.",
+      addons: [{ id: "more-gula", label: "More Gula Melaka", price: 0.4 }],
     },
   ],
+
+  // add other stalls later (same structure)
 };
 
-/* ===== READ URL PARAMS ===== */
+/* ===== READ URL ===== */
 const params = new URLSearchParams(window.location.search);
-const stallId = params.get("stall");
-const itemId = params.get("item");
+const stallId = params.get("stall") || "ahmad-nasi-lemak";
+const itemSlug = params.get("item");
 
-if (!stallId || !itemId || !menuByStall[stallId]) {
-  window.location.href = "menu.html";
+if (!itemSlug || !menuByStall[stallId]) {
+  window.location.href = `menu.html?id=${encodeURIComponent(stallId)}`;
 }
 
-const item = (menuByStall[stallId] || []).find((x) => x.id === itemId);
-if (!item) window.location.href = `menu.html?id=${encodeURIComponent(stallId)}`;
+const item = (menuByStall[stallId] || []).find(
+  (x) => slugify(x.name) === itemSlug,
+);
+
+if (!item) {
+  window.location.href = `menu.html?id=${encodeURIComponent(stallId)}`;
+}
 
 /* ===== DOM ===== */
 const closeBtn = document.getElementById("closeBtn");
@@ -113,31 +112,33 @@ const itemName = document.getElementById("itemName");
 const itemBasePrice = document.getElementById("itemBasePrice");
 const itemDesc = document.getElementById("itemDesc");
 const addonsList = document.getElementById("addonsList");
-const sideNote = document.getElementById("sideNote");
+const sideNoteEl = document.getElementById("sideNote");
 const qtyMinus = document.getElementById("qtyMinus");
 const qtyPlus = document.getElementById("qtyPlus");
 const qtyVal = document.getElementById("qtyVal");
 const addToCartBtn = document.getElementById("addToCartBtn");
 
-/* ===== STATE ===== */
-let qty = 1;
-const selectedAddons = new Set();
-
 /* ===== INIT UI ===== */
 itemImg.src = item.img;
 itemImg.alt = item.name;
 itemName.textContent = item.name;
-itemBasePrice.textContent = money(item.basePrice);
+itemBasePrice.textContent = money(item.price);
 itemDesc.textContent = item.desc || "";
 
-/* Build addons */
+/* ===== STATE ===== */
+let qty = 1;
+const selectedAddons = new Set();
+
+/* ===== ADDONS UI + EVENTS ===== */
 addonsList.innerHTML = "";
+
 (item.addons || []).forEach((a) => {
   const row = document.createElement("label");
   row.classList.add("addonRow");
 
   const cb = document.createElement("input");
   cb.type = "checkbox";
+  cb.value = a.id;
 
   const text = document.createElement("span");
   text.textContent = a.label;
@@ -163,24 +164,28 @@ addonsList.innerHTML = "";
 function addonsTotal() {
   let sum = 0;
   (item.addons || []).forEach((a) => {
-    if (selectedAddons.has(a.id)) sum += a.price;
+    if (selectedAddons.has(a.id)) sum += Number(a.price || 0);
   });
   return sum;
 }
 
+function unitPrice() {
+  return Number(item.price || 0) + addonsTotal();
+}
+
 function updateTotal() {
-  const perItem = item.basePrice + addonsTotal();
-  const total = perItem * qty;
+  const total = unitPrice() * qty;
   addToCartBtn.textContent = `Add to Cart (${money(total)})`;
 }
 
 updateTotal();
 
-/* ===== EVENTS ===== */
+/* ===== NAV ===== */
 closeBtn.addEventListener("click", () => {
-  window.location.href = `menbu.html?id=${encodeURIComponent(stallId)}`;
+  window.location.href = `menu.html?id=${encodeURIComponent(stallId)}`;
 });
 
+/* ===== QTY ===== */
 qtyMinus.addEventListener("click", () => {
   qty = Math.max(1, qty - 1);
   qtyVal.textContent = qty;
@@ -193,28 +198,32 @@ qtyPlus.addEventListener("click", () => {
   updateTotal();
 });
 
+/* ===== ADD TO CART ===== */
 addToCartBtn.addEventListener("click", () => {
-  const perItem = item.basePrice + addonsTotal();
+  const perItem = unitPrice();
   const total = perItem * qty;
+
+  // store addon objects (label + price) so you can display later easily
+  const chosenAddons = (item.addons || [])
+    .filter((a) => selectedAddons.has(a.id))
+    .map((a) => ({ id: a.id, label: a.label, price: a.price }));
 
   const cartItem = {
     stallId,
-    itemId: item.id,
+    itemId: slugify(item.name),
     name: item.name,
     img: item.img,
     qty,
-    note: sideNote.value.trim(),
-    addons: Array.from(selectedAddons),
+    note: (sideNoteEl?.value || "").trim(),
+    addons: chosenAddons,
     unitPrice: perItem,
     totalPrice: total,
   };
 
-  // Store into localStorage cart
-  const cart = JSON.parse(localStorage.getItem("hp_cart") || "[]");
+  const cart = readCart();
   cart.push(cartItem);
-  localStorage.setItem("hp_cart", JSON.stringify(cart));
+  writeCart(cart);
 
-// go back to that stall’s menu page
-window.location.href = `menu.html?id=${encodeURIComponent(stallId)}`;
-
+  // go back to menu page (cart bar should update there)
+  window.location.href = `menu.html?id=${encodeURIComponent(stallId)}`;
 });
