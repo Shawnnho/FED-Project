@@ -106,11 +106,44 @@
           ></textarea>
         </div>
 
+        <div class="form-group">
+          <label>Upload Photo (optional)</label>
+
+          <input
+            type="file"
+            id="comp-img"
+            accept="image/*"
+            class="std-input full-width"
+          />
+
+          <img
+            id="comp-img-preview"
+            alt="Uploaded photo preview"
+            style="
+              display: none;
+              margin-top: 12px;
+              width: 100%;
+              max-height: 220px;
+              object-fit: cover;
+              border-radius: 14px;
+            "
+          />
+
+          <p style="margin: 8px 0 0; opacity: 0.75; font-weight: 700">
+            JPG/PNG only, max 5MB
+          </p>
+        </div>
+
         <div id="error-msg" class="error-text" style="display: none">
           Please fill in all fields
         </div>
 
-        <button id="submit-btn" class="submit-btn" onclick="submitComplaint()">
+        <button
+          id="submit-btn"
+          type="button"
+          class="submit-btn"
+          onclick="submitComplaint()"
+        >
           Submit a Complaint
         </button>
 
