@@ -723,19 +723,101 @@ onAuthStateChanged(auth, async (user) => {
     });
 
     // Deactivate
-    deactivateBtn?.addEventListener("click", async () => {
-      const sure = confirm(
-        "Deactivate account? (This will mark your account as deactivated.)",
+    deactivateBtn?.addEventListener("click", () => {
+      // Only allow for email/password accounts
+      const isPasswordUser = user.providerData.some(
+        (p) => p.providerId === "password",
       );
-      if (!sure) return;
+      if (!isPasswordUser) {
+        setStatus("❌ Deactivation requires an Email/Password account.", false);
+        return;
+      }
 
-      await setDoc(
-        doc(db, "users", user.uid),
-        { deactivated: true, deactivatedAt: serverTimestamp() },
-        { merge: true },
-      );
+      const { overlay, close } = openModal({
+        title: "Deactivate Account",
+        primaryText: "Deactivate",
+        bodyHtml: `
+      <p style="margin:0 0 10px; font-weight:800;">
+        This will disable your account and log you out.
+      </p>
+      <p style="margin:0 0 14px; opacity:.85;">
+        For security, please enter your password to confirm.
+      </p>
 
-      setStatus("✅ Account marked as deactivated.");
+      <div class="hpModalRow">
+        <label class="hpModalLabel">Password</label>
+        <input id="mDeactPw" class="hpModalInput" type="password" placeholder="Enter password" />
+      </div>
+
+      <div class="hpModalErr" style="color:#b00020;font-weight:700;"></div>
+    `,
+        onPrimary: async ({ close }) => {
+          const pwEl = overlay.querySelector("#mDeactPw");
+          const errEl = overlay.querySelector(".hpModalErr");
+
+          const password = (pwEl?.value || "").trim();
+          if (!password) {
+            errEl.textContent = "Password is required.";
+            return;
+          }
+
+          try {
+            // ✅ Re-authenticate
+            const cred = EmailAuthProvider.credential(user.email, password);
+            await reauthenticateWithCredential(user, cred);
+
+            // ✅ Mark deactivated in Firestore
+            await setDoc(
+              doc(db, "users", user.uid),
+              { deactivated: true, deactivatedAt: serverTimestamp() },
+              { merge: true },
+            );
+
+            setStatus("✅ Account deactivated. Logging you out…");
+
+            // ✅ Log out and redirect
+            setTimeout(async () => {
+              try {
+                await signOut(auth);
+              } finally {
+                window.location.href = "index.html";
+              }
+            }, 900);
+
+            close();
+          } catch (e) {
+            console.error(e);
+
+            // Friendly errors
+            if (
+              e.code === "auth/wrong-password" ||
+              e.code === "auth/invalid-credential"
+            ) {
+              errEl.textContent = "Incorrect password.";
+              return;
+            }
+            if (e.code === "auth/too-many-requests") {
+              errEl.textContent = "Too many attempts. Try again later.";
+              return;
+            }
+            if (e.code === "auth/requires-recent-login") {
+              errEl.textContent = "Please log out and log in again, then try.";
+              return;
+            }
+
+            errEl.textContent =
+              `${e.code || ""} ${e.message || ""}`.trim() ||
+              "Failed to deactivate.";
+          }
+        },
+      });
+
+      // Enter key submits
+      overlay.querySelector("#mDeactPw")?.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          overlay.querySelector('[data-action="primary"]')?.click();
+        }
+      });
     });
   } catch (err) {
     console.error(err);
