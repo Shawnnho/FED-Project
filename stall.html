@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Hawker Point — Stall Information</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body>
+    <!-- ================= HEADER ================= -->
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="home.html" aria-label="Hawker Point Home">
+          <img src="images/logo.png" alt="Hawker Point" class="brand-logo" />
+        </a>
+
+        <nav class="nav" aria-label="Primary navigation">
+          <a class="pill" href="home.html">Home</a>
+          <a class="pill" href="stalls.html">Stalls</a>
+          <a class="pill" href="orders.html">Orders</a>
+          <a class="pill" href="feedback.html">Feedback</a>
+          <a class="pill" href="hygiene.html">Hygiene</a>
+          <a class="pill account" href="account.html">Account</a>
+        </nav>
+
+        <button
+          id="menuBtn"
+          class="menuBtn"
+          type="button"
+          aria-label="Open menu"
+          aria-expanded="false"
+        >
+          ☰
+        </button>
+      </div>
+
+      <div id="navBackdrop" class="navBackdrop"></div>
+      <nav id="navMobile" class="navMobile" aria-label="Mobile navigation">
+        <a class="mLink" href="home.html">Home</a>
+        <a class="mLink" href="stalls.html">Stalls</a>
+        <a class="mLink" href="orders.html">Orders</a>
+        <a class="mLink" href="feedback.html">Feedback</a>
+        <a class="mLink" href="hygiene.html">Hygiene</a>
+        <a class="mLink" href="account.html">Account</a>
+      </nav>
+    </header>
+
+    <!-- ================= HERO ================= -->
+    <section class="heroWrap">
+      <img id="stallHero" class="heroImg" src="" alt="Stall hero image" />
+    </section>
+
+    <!-- ================= CONTENT ================= -->
+    <main class="page stallPage">
+      <div class="titleRow">
+        <h1 id="stallName" class="stallTitle"></h1>
+
+        <div class="favWrap">
+          <button
+            id="favBtn"
+            class="favBtn"
+            type="button"
+            aria-label="Add to favourite"
+          >
+            ❤
+          </button>
+          <div class="favText">Add to Favourite</div>
+        </div>
+      </div>
+
+      <div class="badgeRow">
+        <span id="stallCuisine" class="badge cuisine"></span>
+        <span id="stallGrade" class="badge grade"></span>
+      </div>
+
+      <div id="stallMeta" class="metaLine"></div>
+
+      <div class="descBox">
+        <p id="stallDesc"></p>
+      </div>
+
+      <div class="btnRow">
+        <a id="menuLink" class="bigBtn primary" href="#">
+          <img src="images/restaurant.png" alt="" class="btnIcon" />
+          View Menu
+        </a>
+
+        <a id="hygBtn" class="bigBtn" href="hygiene.html">
+          <img src="images/clipboard2.png" alt="" class="btnIcon" />
+          View Hygiene History
+        </a>
+      </div>
+
+      <h2 id="stallLocation" class="hoursTitle"></h2>
+
+      <div class="btnRow small">
+        <a id="callBtn" class="smallBtn" href="#">
+          <img src="images/phone-call.png" alt="" class="btnIcon" />
+          Call
+        </a>
+
+        <a id="dirBtn" class="smallBtn" href="#" target="_blank" rel="noopener">
+          <img src="images/location-pin.png" alt="" class="btnIcon" />
+          Directions
+        </a>
+      </div>
+    </main>
+
+    <script type="module" src="stall.js"></script>
+    <script src="menu.js" defer></script>
+  </body>
+</html>

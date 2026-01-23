@@ -26,6 +26,13 @@ function applyGuestModeUI() {
   });
 }
 
+document.querySelectorAll(".viewBtn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const id = btn.dataset.id;
+    window.location.href = `stall.html?id=${id}`;
+  });
+});
+
 applyGuestModeUI();
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll('a[href="account.html"]').forEach((link) => {
@@ -74,7 +81,7 @@ const stalls = [
     prepMin: 2,
     prepMax: 5,
     popular: false,
-    location: "Maxwell",
+    location: "Maxwell Food Centre",
     desc: "Fragrant coconut rice served with spicy sambal, crispy anchovies, peanuts, egg, and cucumber.",
     img: "images/stalls/nasilemak.jpg",
   },
@@ -98,7 +105,7 @@ const stalls = [
     prepMin: 5,
     prepMax: 10,
     popular: false,
-    location: "Maxwell",
+    location: "Maxwell Food Centre",
     desc: "Hearty Western favourites served hot in flavour, from juicy grilled meats to comforting sides.",
     img: "images/stalls/fatbuddies.png",
   },
