@@ -96,7 +96,7 @@ const promos = [
     type: "cash",
     redemptionsLeft: 395,
     popular: true,
-    img: "images/promo_1.png",
+    img: "images/5dollar.jpg",
     expiresAt: Date.now() + 6 * DAY,
   },
   {
@@ -108,7 +108,7 @@ const promos = [
     type: "percent",
     redemptionsLeft: null,
     popular: false,
-    img: "images/promo_2.png",
+    img: "images/10off.png",
     expiresAt: Date.now() + 20 * DAY,
   },
   {
@@ -120,7 +120,7 @@ const promos = [
     type: "percent",
     redemptionsLeft: null,
     popular: false,
-    img: "images/promo_3.png",
+    img: "images/firstorder.jpg",
     expiresAt: Date.now() + 30 * DAY,
   },
   {
@@ -132,7 +132,7 @@ const promos = [
     type: "freebie",
     redemptionsLeft: 120,
     popular: false,
-    img: "images/promo_4.png",
+    img: "images/freedrinks.png",
     expiresAt: Date.now() + 3 * DAY,
   },
   {
@@ -144,7 +144,7 @@ const promos = [
     type: "cash",
     redemptionsLeft: 220,
     popular: true,
-    img: "images/promo_5.png",
+    img: "images/chickenricepromo.jpg",
     expiresAt: Date.now() + 10 * DAY,
   },
   {
@@ -156,7 +156,7 @@ const promos = [
     type: "percent",
     redemptionsLeft: 180,
     popular: false,
-    img: "images/promo_6.png",
+    img: "images/12percentoff.png",
     expiresAt: Date.now() + 12 * DAY,
   },
   {
@@ -168,7 +168,7 @@ const promos = [
     type: "cash",
     redemptionsLeft: 300,
     popular: false,
-    img: "images/promo_7.png",
+    img: "images/2$off.png",
     expiresAt: Date.now() + 14 * DAY,
   },
   {
@@ -180,7 +180,7 @@ const promos = [
     type: "freebie",
     redemptionsLeft: 150,
     popular: true,
-    img: "images/promo_8.png",
+    img: "images/sambal.jpg",
     expiresAt: Date.now() + 5 * DAY,
   },
   {
@@ -192,7 +192,7 @@ const promos = [
     type: "percent",
     redemptionsLeft: null,
     popular: false,
-    img: "images/promo_9.png",
+    img: "images/lunchspecial.png",
     expiresAt: Date.now() + 9 * DAY,
   },
   {
@@ -204,7 +204,7 @@ const promos = [
     type: "cash",
     redemptionsLeft: 500,
     popular: true,
-    img: "images/promo_10.png",
+    img: "images/4off.png",
     expiresAt: Date.now() + 25 * DAY,
   },
   {
@@ -216,7 +216,7 @@ const promos = [
     type: "freebie",
     redemptionsLeft: 90,
     popular: false,
-    img: "images/promo_11.png",
+    img: "images/freetea.jpg",
     expiresAt: Date.now() + 7 * DAY,
   },
   {
@@ -228,7 +228,7 @@ const promos = [
     type: "percent",
     redemptionsLeft: null,
     popular: false,
-    img: "images/promo_12.png",
+    img: "images/weekend.jpg",
     expiresAt: Date.now() + 18 * DAY,
   },
   {
@@ -240,7 +240,7 @@ const promos = [
     type: "cash",
     redemptionsLeft: 140,
     popular: true,
-    img: "images/promo_13.png",
+    img: "images/6$off.png",
     expiresAt: Date.now() + 8 * DAY,
   },
 ];
