@@ -931,6 +931,86 @@ body.menuOpen {
   object-fit: contain;
 }
 
+.ratingRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 6px 0 14px;
+  font-weight: 900;
+}
+.starBar {
+  position: relative;
+  font-size: 20px;
+  letter-spacing: 2px;
+  line-height: 1;
+}
+.starBase {
+  color: #ddd;
+}
+.starFill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0%;
+  overflow: hidden;
+  color: #ffc107;
+  white-space: nowrap;
+}
+
+/* === Inline rating beside Grade (like your screenshot) === */
+.gradeRatingWrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap; /* so it won’t break on small screens */
+}
+
+.ratingNum {
+  font-size: 20px;
+  font-weight: 900;
+  color: #111;
+}
+
+/* Star bar (filled overlay) */
+.starBar.inlineStars {
+  position: relative;
+  font-size: 20px;
+  letter-spacing: 2px;
+  line-height: 1;
+  transform: translateY(1px); /* tiny baseline alignment */
+}
+
+.starBase {
+  color: #ddd;
+}
+
+.starFill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0%;
+  overflow: hidden;
+  color: #ffc107;
+  white-space: nowrap;
+}
+
+.ratingCount {
+  font-size: 20px;
+  font-weight: 900;
+  color: #111;
+}
+
+.seeReview {
+  font-size: 20px;
+  font-weight: 900;
+  color: #111;
+  text-decoration: none;
+}
+
+.seeReview:hover {
+  text-decoration: underline;
+}
+
 /* Mobile */
 @media (max-width: 720px) {
   .filters {
@@ -1547,6 +1627,29 @@ body.guest .searchWrap {
   color: #fff;
 }
 
+.hpAvatarStack {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.hpAvatarPreview {
+  width: 86px;
+  height: 86px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  flex: 0 0 86px;
+}
+
+.hpAvatarControls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 /* =========================
    Account status popup
 ========================= */
@@ -1803,6 +1906,182 @@ select {
 
 .buttons:hover {
   background: #e08e4d;
+}
+
+/* =========================
+   FEEDBACK PAGE: REVIEWS CAROUSEL
+========================= */
+.fbReviews {
+  flex-basis: 100%;
+  width: 100%;
+  max-width: 1100px;
+  margin: 10px auto 0;
+  padding: 18px 10px 8px;
+}
+
+.fbReviewsHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.fbReviewsTitle {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.fbReviewsControls {
+  display: flex;
+  gap: 10px;
+}
+
+.fbNavBtn {
+  width: 44px;
+  height: 40px;
+  border-radius: 10px;
+  border: 2px solid rgba(0, 0, 0, 0.15);
+  background: #fff;
+  font-size: 22px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.fbTrack {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 6px 2px 14px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.fbTrack::-webkit-scrollbar {
+  height: 10px;
+}
+.fbTrack::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: 999px;
+}
+
+.fbCard {
+  flex: 0 0 auto;
+  width: min(360px, 86vw);
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 14px;
+  padding: 14px 14px 12px;
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.06);
+  scroll-snap-align: start;
+}
+
+.fbCardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.fbStallName {
+  font-weight: 900;
+  font-size: 14px;
+}
+
+.fbMeta {
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(0, 0, 0, 0.55);
+  margin-top: 2px;
+}
+
+.fbStars {
+  display: inline-flex;
+  gap: 2px;
+  font-size: 16px;
+  letter-spacing: 2px;
+  line-height: 1;
+}
+
+.fbStars .star {
+  position: relative;
+  color: #ddd;
+}
+.fbStars .star.full {
+  color: #ffc107;
+}
+
+.fbStars .star.half {
+  color: #ddd;
+}
+
+.fbStars .star.half::before {
+  content: "★";
+  position: absolute;
+  left: 0;
+  width: 50%;
+  overflow: hidden;
+  color: #ffc107;
+}
+
+.fbStars .base {
+  color: #ddd;
+}
+.fbStars .fill {
+  color: #ffc107;
+}
+
+.fbText {
+  margin: 10px 0 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.72);
+  line-height: 1.35;
+}
+
+.fbEmpty {
+  margin: 6px 0 0;
+  font-weight: 800;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.fbReviewImg {
+  width: 100%;
+  max-height: 240px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin: 8px 0;
+}
+
+/* Feedback Preview Image */
+.imgPreviewWrap {
+  margin-top: 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.imgPreview {
+  width: 220px;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: #fff;
+}
+
+.removeImgBtn {
+  border: 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  font-weight: 700;
+}
+.removeImgBtn:hover {
+  transform: translateY(-1px);
 }
 
 /* =========================================

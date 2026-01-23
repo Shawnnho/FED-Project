@@ -82,7 +82,21 @@
 
       <div class="badgeRow">
         <span id="stallCuisine" class="badge cuisine"></span>
-        <span id="stallGrade" class="badge grade"></span>
+
+        <div class="gradeRatingWrap">
+          <span id="stallGrade" class="badge grade"></span>
+
+          <span id="avgText" class="ratingNum">0.0</span>
+
+          <div class="starBar inlineStars" aria-label="Average rating">
+            <div id="starFill" class="starFill">★★★★★</div>
+            <div class="starBase">★★★★★</div>
+          </div>
+
+          <span id="countText" class="ratingCount">(0)</span>
+
+          <a class="seeReview" href="feedback.html">See review</a>
+        </div>
       </div>
 
       <div id="stallMeta" class="metaLine"></div>

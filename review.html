@@ -61,10 +61,11 @@
         <div class="form-group">
           <select id="stall-select">
             <option value="" disabled selected>Stall Name</option>
-            <option value="western-food">Fat Buddies Western Food</option>
-            <option value="chicken-rice">Tiong Bahru Chicken Rice</option>
-            <option value="muslim-food">Al-Azhar</option>
-            <option value="nasi-lemak">Ahmed Nasi Lemak</option>
+            <option value="fat-buddies">Fat Buddies Western Food</option>
+  <option value="tiong-bahru">Tiong Bahru Chicken Rice</option>
+  <option value="al-azhar">Al-Azhar Restaurant</option>
+  <option value="ahmad-nasi-lemak">Ahmad Nasi Lemak</option>
+  <option value="kopi-fellas">KopiFellas</option>
           </select>
         </div>
 
@@ -91,6 +92,22 @@
           Please enter something
         </div>
 
+        <div class="image-upload">
+  <label for="review-image">Add a photo (optional)</label>
+  <input
+    type="file"
+    id="review-image"
+    accept="image/*"
+  />
+</div>
+
+<div id="imgPreviewWrap" class="imgPreviewWrap" style="display:none;">
+  <img id="imgPreview" class="imgPreview" alt="Selected photo preview" />
+  <button type="button" id="removeImgBtn" class="removeImgBtn">Remove</button>
+</div>
+
+<p class="hint">JPG / PNG • max 5MB</p>
+
         <button id="submit-btn" class="submit-btn" onclick="submitReview()">
           Submit Feedback
         </button>
@@ -109,7 +126,8 @@
   </p>
 </footer>
 
-    <script src="review.js"></script>
+   <script type="module" src="review.js"></script>
+
     <script type="module" src="menu.js"></script>
   </body>
 </html>

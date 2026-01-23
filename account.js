@@ -6,6 +6,13 @@
  * - ✅ Preferences (load + save)
  *************************************************/
 
+import {
+  getStorage,
+  ref as sRef,
+  uploadBytes,
+  getDownloadURL,
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getAuth,
@@ -45,6 +52,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
 /* =========================
    DOM
@@ -445,10 +453,11 @@ onAuthStateChanged(auth, async (user) => {
     const favs = Array.isArray(data?.favourites) ? data.favourites : [];
     if (savedStoresEl) savedStoresEl.textContent = favs.length;
 
-    // avatar
+    // avatar (account-based)
     if (accAvatar) {
-      const savedAvatar = localStorage.getItem("hp_avatar");
-      accAvatar.src = savedAvatar || "images/defaultprofile.png";
+      const avatarUrl =
+        data?.avatarUrl || user.photoURL || "images/defaultprofile.png";
+      accAvatar.src = avatarUrl;
     }
 
     if (data?.deactivated) {
@@ -512,19 +521,23 @@ onAuthStateChanged(auth, async (user) => {
         primaryText: "Save",
         bodyHtml: `
       <div class="hpModalRow">
-        <label class="hpModalLabel">Profile Picture</label>
+  <div class="hpModalLabel">Profile Picture</div>
 
-        <div style="display:flex;gap:12px;align-items:center;">
-          <img
-            id="mAvatarPreview"
-            src="${localStorage.getItem("hp_avatar") || accAvatar.src}"
-            style="width:64px;height:64px;border-radius:50%;object-fit:cover;"
-          />
-          <input id="mAvatar" type="file" accept="image/*" />
-        </div>
+  <div class="hpAvatarStack">
+    <img
+      id="mAvatarPreview"
+      class="hpAvatarPreview"
+      src="${accAvatar?.src || "images/defaultprofile.png"}"
+      alt="Profile picture preview"
+    />
 
-        <div class="hpModalHint">Saved only on this device.</div>
-      </div>
+    <div class="hpAvatarControls">
+      <input id="mAvatar" type="file" accept="image/*" />
+      <div class="hpModalHint">Saved to your account.</div>
+    </div>
+  </div>
+</div>
+
 
       <div class="hpModalRow">
         <label class="hpModalLabel">Name</label>
@@ -546,12 +559,41 @@ onAuthStateChanged(auth, async (user) => {
 
       <div class="hpModalErr" style="color:#b00020;font-weight:700;"></div>
     `,
+
         onPrimary: async ({ overlay, close }) => {
           const newName = overlay.querySelector("#mName").value.trim();
           const newEmail = overlay.querySelector("#mEmail").value.trim();
           const newPhone = overlay.querySelector("#mPhone").value.trim();
-          const avatarFile = overlay.querySelector("#mAvatar").files?.[0];
           const err = overlay.querySelector(".hpModalErr");
+
+          const avatarFile = overlay.querySelector("#mAvatar")?.files?.[0];
+
+          let avatarUrlToSave = null;
+
+          if (avatarFile) {
+            // optional size limit: 5MB
+            if (avatarFile.size > 5 * 1024 * 1024) {
+              err.textContent = "Image too large (max 5MB).";
+              return;
+            }
+
+            const ext = (
+              avatarFile.name.split(".").pop() || "jpg"
+            ).toLowerCase();
+            const avatarRef = sRef(
+              storage,
+              `avatars/${user.uid}/avatar.${ext}`,
+            );
+
+            await uploadBytes(avatarRef, avatarFile, {
+              contentType: avatarFile.type || "image/jpeg",
+            });
+
+            avatarUrlToSave = await getDownloadURL(avatarRef);
+
+            // update UI immediately
+            if (accAvatar) accAvatar.src = avatarUrlToSave;
+          }
 
           if (!newName) {
             err.textContent = "Name cannot be empty.";
@@ -592,16 +634,10 @@ onAuthStateChanged(auth, async (user) => {
             return;
           }
 
-          if (avatarFile) {
-            const reader = new FileReader();
-            reader.onload = () => {
-              localStorage.setItem("hp_avatar", reader.result);
-              accAvatar.src = reader.result;
-            };
-            reader.readAsDataURL(avatarFile);
-          }
-
-          await updateProfile(user, { displayName: newName });
+          await updateProfile(user, {
+            displayName: newName,
+            ...(avatarUrlToSave ? { photoURL: avatarUrlToSave } : {}),
+          });
 
           await setDoc(
             doc(db, "users", user.uid),
@@ -610,6 +646,9 @@ onAuthStateChanged(auth, async (user) => {
               phone: newPhone,
               email: newEmail || user.email || "",
               updatedAt: serverTimestamp(),
+
+              // ✅ ONLY save avatar if user uploaded one
+              ...(avatarUrlToSave ? { avatarUrl: avatarUrlToSave } : {}),
             },
             { merge: true },
           );
@@ -625,11 +664,16 @@ onAuthStateChanged(auth, async (user) => {
       const fileInput = overlay.querySelector("#mAvatar");
       const previewImg = overlay.querySelector("#mAvatarPreview");
 
-      fileInput.addEventListener("change", () => {
-        const file = fileInput.files?.[0];
-        if (!file) return;
-        previewImg.src = URL.createObjectURL(file);
-      });
+      if (fileInput && previewImg) {
+        fileInput.addEventListener("change", () => {
+          const file = fileInput.files?.[0];
+          if (!file) return;
+
+          const url = URL.createObjectURL(file);
+          previewImg.src = url;
+          previewImg.onload = () => URL.revokeObjectURL(url);
+        });
+      }
     });
 
     // Change password (email reset)

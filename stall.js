@@ -16,6 +16,7 @@ import {
   setDoc,
   arrayUnion,
   arrayRemove,
+  onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* ✅ SAME config as your other pages */
@@ -171,6 +172,24 @@ gradeEl.classList.add(
 );
 
 descEl.textContent = stall.desc;
+
+// =========================
+// ⭐ LIVE RATING FROM FIRESTORE
+// =========================
+const stallRef = doc(db, "stalls", stall.id);
+
+onSnapshot(stallRef, (snap) => {
+  const d = snap.exists() ? snap.data() : {};
+  const total = Number(d.ratingTotal || 0);
+  const count = Number(d.ratingCount || 0);
+  const avg = count ? total / count : 0;
+
+  if (avgText) avgText.textContent = avg.toFixed(1);
+  if (countText) countText.textContent = `(${count})`;
+
+  const pct = Math.max(0, Math.min(100, (avg / 5) * 100));
+  if (starFill) starFill.style.width = pct + "%";
+});
 
 // Top meta line
 metaEl.textContent = `Open: ${stall.openTime} - ${stall.closeTime} > Unit ${stall.unit}`;
