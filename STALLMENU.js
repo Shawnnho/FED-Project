@@ -15,9 +15,9 @@ menuBtn?.addEventListener("click", () =>
 );
 navBackdrop?.addEventListener("click", () => toggleMenu(false));
 
-// =========================
+
 // Stall + menu data
-// =========================
+
 const stalls = [
   {
     id: "ahmad-nasi-lemak",
@@ -50,39 +50,56 @@ const menuByStall = {
   ],
 };
 
-// =========================
+
 // Get stall id from URL
-// =========================
+
 const params = new URLSearchParams(window.location.search);
 const stallId = params.get("id") || "ahmad-nasi-lemak";
 
 const stall = stalls.find((s) => s.id === stallId);
 const items = menuByStall[stallId] || [];
 
-// =========================
+
 // Fill top UI
-// =========================
+
 document.getElementById("menuTitle").textContent = `Menu — ${stall.name}`;
 document.getElementById("stallIcon").src = stall.icon;
 document.getElementById("gradePill").textContent = `✓ Hygiene Grade: ${stall.grade}`;
 
-// =========================
+
 // Cart state
-// =========================
-let cartCount = 0;
-let cartTotal = 0;
 
 const cartCountEl = document.getElementById("cartCount");
 const cartTotalEl = document.getElementById("cartTotal");
 
-function updateCart() {
-  cartCountEl.textContent = cartCount;
-  cartTotalEl.textContent = cartTotal.toFixed(2);
+function readCart() {
+  try {
+    return JSON.parse(localStorage.getItem("hp_cart") || "[]");
+  } catch {
+    return [];
+  }
 }
 
-// =========================
+function updateCartFromStorage() {
+  const cart = readCart();
+
+  // total items = sum of qty
+  let count = 0;
+  let total = 0;
+
+  for (const it of cart) {
+    count += Number(it.qty || 1);
+    total += Number(it.totalPrice || 0);
+  }
+
+  cartCountEl.textContent = count;
+  cartTotalEl.textContent = total.toFixed(2);
+}
+
+
+
 // Render menu
-// =========================
+
 const listEl = document.getElementById("menuList");
 const searchEl = document.getElementById("menuQ");
 
@@ -160,10 +177,10 @@ function renderMenu(filter = "") {
 
     // Cart logic
     addBtn.addEventListener("click", () => {
-      cartCount++;
-      cartTotal += item.price;
-      updateCart();
-    });
+  const itemId = slugify(item.name);
+  window.location.href =
+    `item.html?stall=${encodeURIComponent(stallId)}&item=${encodeURIComponent(itemId)}`;
+});
 
     // ===== Like / Unlike toggle =====
     let liked = false;
@@ -190,8 +207,17 @@ function renderMenu(filter = "") {
     listEl.appendChild(card);
   });
 }
+function slugify(str) {
+  return str
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^\w-]/g, "");
+}
+
+
 
 
 renderMenu();
 searchEl.addEventListener("input", (e) => renderMenu(e.target.value));
-updateCart();
+updateCartFromStorage();
+window.addEventListener("pageshow", updateCartFromStorage);

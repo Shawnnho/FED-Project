@@ -2209,3 +2209,215 @@ body.guest .searchWrap {
     transform: scale(1.1);
     filter: drop-shadow(0 0 4px rgba(225, 29,72,0.6))
   }
+
+  /* =========================================
+   ITEM DETAIL PAGE (Food Detail)
+========================================= */
+
+.page.itemPage {
+  min-height: 100vh;
+  background: #fbf3e6;
+  padding: 14px 0 26px;
+}
+
+.itemShell {
+  width: min(520px, 94vw);
+  margin: 0 auto;
+  background: transparent;
+  position: relative;
+}
+
+/* Close */
+.itemClose {
+  position: absolute;
+  left: 6px;
+  top: -4px;
+  border: none;
+  background: transparent;
+  font-size: 28px;
+  font-weight: 900;
+  cursor: pointer;
+  color: #111;
+}
+
+/* Hero */
+.itemHero {
+  width: 100%;
+  height: 210px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.itemHero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Top row */
+.itemTopRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 14px;
+  align-items: start;
+  margin-top: 12px;
+}
+
+.itemName {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 900;
+  color: #111;
+}
+
+.itemPriceBox {
+  text-align: right;
+}
+
+.itemPrice {
+  font-size: 22px;
+  font-weight: 900;
+  color: #111;
+}
+
+.itemPriceSub {
+  font-size: 11px;
+  font-weight: 800;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+/* Description */
+.itemDesc {
+  margin: 10px 0 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.65);
+  text-align: center;
+  max-width: 420px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Divider */
+.itemDivider {
+  border: 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.22);
+  margin: 14px 0;
+}
+
+/* Section title */
+.itemSectionTitle {
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(0, 0, 0, 0.7);
+  margin-bottom: 8px;
+}
+
+/* Add-ons list */
+.addonsList {
+  display: grid;
+  gap: 10px;
+}
+
+.addonRow {
+  display: grid;
+  grid-template-columns: 22px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.addonRow input {
+  width: 16px;
+  height: 16px;
+  accent-color: #ff3b30;
+}
+
+.addonPrice {
+  font-weight: 900;
+  color: rgba(0, 0, 0, 0.75);
+}
+
+/* Side note */
+.sideNote {
+  width: 100%;
+  border-radius: 12px;
+  padding: 12px 12px;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  font-weight: 700;
+  font-size: 13px;
+  outline: none;
+  resize: none;
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.sideNote:focus {
+  border-color: rgba(255, 59, 48, 0.6);
+  box-shadow: 0 0 0 3px rgba(255, 59, 48, 0.15);
+}
+
+/* Qty row */
+.qtyRow {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 16px;
+  margin: 18px 0 16px;
+}
+
+.qtyBtn {
+  height: 52px;
+  border-radius: 999px;
+  border: none;
+  font-size: 26px;
+  font-weight: 900;
+  cursor: pointer;
+  background: #f5b18b;
+  color: #111;
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.12);
+}
+
+.qtyBtn.primary {
+  background: #ff3b30;
+  color: #fff;
+}
+
+.qtyVal {
+  font-size: 18px;
+  font-weight: 900;
+  text-align: center;
+  min-width: 24px;
+}
+
+/* Add to cart */
+.addCartBtn {
+  width: 100%;
+  height: 54px;
+  border: none;
+  border-radius: 12px;
+  background: #ff3b30;
+  color: #fff;
+  font-weight: 900;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 16px 28px rgba(0, 0, 0, 0.16);
+}
+
+.addCartBtn:active {
+  transform: translateY(1px);
+}
+
+/* Mobile tweak */
+@media (max-width: 520px) {
+  .itemHero {
+    height: 190px;
+  }
+  .itemName {
+    font-size: 24px;
+  }
+}
