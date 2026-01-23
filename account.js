@@ -561,11 +561,26 @@ onAuthStateChanged(auth, async (user) => {
     `,
 
         onPrimary: async ({ overlay, close }) => {
-          const newName = overlay.querySelector("#mName").value.trim();
-          const newEmail = overlay.querySelector("#mEmail").value.trim();
-          const newPhone = overlay.querySelector("#mPhone").value.trim();
+          const nameEl = overlay.querySelector("#mName");
+          const emailEl = overlay.querySelector("#mEmail");
+          const phoneEl = overlay.querySelector("#mPhone");
           const err = overlay.querySelector(".hpModalErr");
 
+          if (!nameEl || !emailEl || !phoneEl) {
+            console.log("Missing modal inputs:", {
+              nameElExists: !!nameEl,
+              emailElExists: !!emailEl,
+              phoneElExists: !!phoneEl,
+            });
+            if (err)
+              err.textContent =
+                "Modal inputs missing (check IDs in modal HTML).";
+            return;
+          }
+
+          const newName = nameEl.value.trim();
+          const newEmail = emailEl.value.trim();
+          const newPhone = phoneEl.value.trim();
           const avatarFile = overlay.querySelector("#mAvatar")?.files?.[0];
 
           let avatarUrlToSave = null;
