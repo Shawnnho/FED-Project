@@ -2008,12 +2008,14 @@ body.guest .searchWrap {
 
 /* Stall logo (the big centered logo) */
 #stallIcon {
-  width: 150px;
-  height: 110px;
-  object-fit: contain;
+  width: 500px;
+  height: 180px;
+  object-fit: cover;   
+  border-radius: 20px; 
   display: block;
   margin-top: 6px;
 }
+
 
 /* Hygiene pill */
 .hpGradePill {
