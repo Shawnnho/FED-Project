@@ -3,8 +3,12 @@
  * - Loads menu for stall via menu.html?id=...
  * - Renders menu list in your screenshot style
  * - Clicking "+" navigates to item.html
+ * - Cart badge uses account-based cart via cart.js
  *************************************************/
 
+import { getCartForUI } from "./cart.js";
+
+/* ===== HAMBURGER ===== */
 const menuBtn = document.getElementById("menuBtn");
 const navMobile = document.getElementById("navMobile");
 const navBackdrop = document.getElementById("navBackdrop");
@@ -20,6 +24,7 @@ menuBtn?.addEventListener("click", () =>
 );
 navBackdrop?.addEventListener("click", () => toggleMenu(false));
 
+/* ===== HELPERS ===== */
 function slugify(str) {
   return String(str)
     .toLowerCase()
@@ -258,74 +263,51 @@ document.getElementById("stallIcon").src = stall.icon;
 document.getElementById("gradePill").textContent =
   `✓ Hygiene Grade: ${stall.grade}`;
 
-/* ===== CART (badge display — safe even if footer removed) ===== */
-/* ===== CART (badge display) ===== */
-const CART_KEY = "hp_cart";
-
-function readCart() {
+/* ===== CART BADGE (account-based via cart.js) ===== */
+async function updateCartDisplay() {
   try {
-    return JSON.parse(localStorage.getItem(CART_KEY) || "[]");
-  } catch {
-    return [];
+    const cart = await getCartForUI();
+
+    let count = 0;
+    let total = 0;
+
+    for (const it of cart) {
+      const qty = Number(it.qty ?? it.quantity ?? 1);
+      count += Number.isFinite(qty) ? qty : 1;
+
+      const line = Number(it.totalPrice);
+      total += Number.isFinite(line) ? line : 0;
+    }
+
+    // Desktop badge
+    const el = document.getElementById("cartCount");
+    if (el) {
+      el.textContent = String(count);
+      el.classList.toggle("isZero", count <= 0);
+    }
+
+    // Mobile badge
+    const elM = document.getElementById("cartCountMobile");
+    if (elM) {
+      elM.textContent = String(count);
+      elM.classList.toggle("isZero", count <= 0);
+    }
+
+    // Optional total
+    const totalEl = document.getElementById("cartTotal");
+    if (totalEl) totalEl.textContent = total.toFixed(2);
+  } catch (err) {
+    // If cart.js throws, we don't kill the menu page
+    console.warn("Cart badge update failed:", err);
   }
 }
 
-function updateCartDisplay() {
-  const cart = readCart();
-
-  let count = 0;
-  let total = 0;
-
-  for (const it of cart) {
-    const qty = Number(it.qty ?? it.quantity ?? 1);
-    count += Number.isFinite(qty) ? qty : 1;
-
-    const line = Number(it.totalPrice);
-    total += Number.isFinite(line) ? line : 0;
-  }
-
-  // Desktop badge
-  const el = document.getElementById("cartCount");
-  if (el) {
-    el.textContent = String(count);
-    el.classList.toggle("isZero", count <= 0);
-  }
-
-  // Mobile badge
-  const elM = document.getElementById("cartCountMobile");
-  if (elM) {
-    elM.textContent = String(count);
-    elM.classList.toggle("isZero", count <= 0);
-  }
-
-  // OPTIONAL (won’t crash if footer/cart total removed)
-  const totalEl = document.getElementById("cartTotal");
-  if (totalEl) totalEl.textContent = total.toFixed(2);
-}
-
-updateCartDisplay();
+document.addEventListener("DOMContentLoaded", updateCartDisplay);
 window.addEventListener("pageshow", updateCartDisplay);
-window.addEventListener("storage", (e) => {
-  if (e.key === CART_KEY) updateCartDisplay();
-});
 
 /* ===== RENDER MENU ===== */
 const listEl = document.getElementById("menuList");
 const searchEl = document.getElementById("menuQ");
-
-function setCartBadge(count) {
-  const el = document.getElementById("cartCount");
-  if (el) {
-    el.textContent = String(count);
-    el.classList.toggle("isZero", count <= 0);
-  }
-
-  const elM = document.getElementById("cartCountMobile");
-  if (elM) {
-    elM.textContent = String(count);
-    elM.classList.toggle("isZero", count <= 0);
-  }
-}
 
 function renderMenu(filter = "") {
   listEl.innerHTML = "";
@@ -360,31 +342,22 @@ function renderMenu(filter = "") {
     const likesRow = document.createElement("div");
     likesRow.classList.add("menuLikes");
 
-    // unique key per stall + item
     const likeKey = `hp_like_${stall.id}_${slugify(item.name)}`;
-
-    // load liked state
     let liked = localStorage.getItem(likeKey) === "1";
 
-    // build heart button
     const heartBtn = document.createElement("button");
     heartBtn.type = "button";
     heartBtn.classList.add("likeBtn");
     heartBtn.setAttribute("aria-label", liked ? "Unlike" : "Like");
     heartBtn.textContent = "♥";
 
-    // count
     const likeCount = document.createElement("span");
     likeCount.classList.add("likeCount");
 
-    // if liked before, display +1
-    const shownLikes = item.likes + (liked ? 1 : 0);
-    likeCount.textContent = shownLikes;
+    likeCount.textContent = item.likes + (liked ? 1 : 0);
 
-    // set UI state
     if (liked) heartBtn.classList.add("active");
 
-    // click toggle
     heartBtn.addEventListener("click", () => {
       liked = !liked;
 

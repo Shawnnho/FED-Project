@@ -1,14 +1,21 @@
 // cart-badge.js — works on every page
-const CART_KEY = "hp_cart";
 
-function readCart() {
-  try {
-    const cart = JSON.parse(localStorage.getItem(CART_KEY) || "[]");
-    return Array.isArray(cart) ? cart : [];
-  } catch {
-    return [];
+import { getCartForUI } from "./cart.js";
+
+export async function updateCartBadges() {
+  const cart = await getCartForUI();
+
+  let count = 0;
+  for (const it of cart) {
+    count += Number(it.qty ?? 1);
   }
+
+  document.getElementById("cartCount")?.textContent = count;
+  document.getElementById("cartCountMobile")?.textContent = count;
 }
+
+document.addEventListener("DOMContentLoaded", updateCartBadges);
+window.addEventListener("pageshow", updateCartBadges);
 
 function calcCount(cart) {
   let count = 0;

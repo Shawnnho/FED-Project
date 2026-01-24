@@ -1,6 +1,46 @@
-const CART_KEY = "hp_cart";
+/*************************************************
+ * cart.js — Hawker Point (Account-based Cart)
+ * - Logged in: Firestore carts/{uid}.items
+ * - Guest: localStorage hp_cart
+ * - Renders cart page + updates badges
+ *************************************************/
 
-function readCart() {
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  serverTimestamp,
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+/* ✅ SAME config as your other files */
+const firebaseConfig = {
+  apiKey: "AIzaSyC-NTWADB-t1OGl7NbdyMVXjpVjnqjpTXg",
+  authDomain: "fedproject-8d254.firebaseapp.com",
+  projectId: "fedproject-8d254",
+  storageBucket: "fedproject-8d254.firebasestorage.app",
+  messagingSenderId: "477538553634",
+  appId: "1:477538553634:web:a14b93bbd93d33b9281f7b",
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const CART_KEY = "hp_cart";
+let currentUser = null;
+
+const cartDocRef = (uid) => doc(db, "carts", uid);
+
+/* ------------------------------
+   LocalStorage helpers (guest)
+--------------------------------*/
+function readLocalCart() {
   try {
     const cart = JSON.parse(localStorage.getItem(CART_KEY) || "[]");
     return Array.isArray(cart) ? cart : [];
@@ -8,11 +48,47 @@ function readCart() {
     return [];
   }
 }
-
-function saveCart(cart) {
-  localStorage.setItem(CART_KEY, JSON.stringify(cart));
+function writeLocalCart(cart) {
+  localStorage.setItem(CART_KEY, JSON.stringify(cart || []));
+}
+function clearLocalCart() {
+  localStorage.removeItem(CART_KEY);
 }
 
+/* ------------------------------
+   Firestore helpers (account)
+--------------------------------*/
+async function readCloudCart(uid) {
+  const snap = await getDoc(cartDocRef(uid));
+  return snap.exists() ? snap.data().items || [] : [];
+}
+async function writeCloudCart(uid, cart) {
+  await setDoc(
+    cartDocRef(uid),
+    { items: cart, updatedAt: serverTimestamp() },
+    { merge: true },
+  );
+}
+
+/* ------------------------------
+   Unified cart IO
+--------------------------------*/
+async function readCart() {
+  if (!currentUser) return readLocalCart();
+  return await readCloudCart(currentUser.uid);
+}
+
+async function saveCart(cart) {
+  if (!currentUser) {
+    writeLocalCart(cart);
+    return;
+  }
+  await writeCloudCart(currentUser.uid, cart);
+}
+
+/* ------------------------------
+   UI helpers
+--------------------------------*/
 function money(n) {
   return (Number(n) || 0).toFixed(2);
 }
@@ -36,19 +112,55 @@ function updateBadges(count) {
   }
 }
 
-function render() {
+/* ------------------------------
+   Merge helper: guest -> account
+--------------------------------*/
+function mergeCarts(existing = [], incoming = []) {
+  // Merge by: stallId + itemId + addons + required + note (so different options stay separate)
+  const key = (x) =>
+    `${x.stallId || ""}|${x.itemId || x.id || x.name || ""}|` +
+    `${JSON.stringify(x.addons || [])}|${JSON.stringify(x.required || [])}|${(x.note || "").trim()}`;
+
+  const map = new Map();
+
+  for (const x of existing) map.set(key(x), { ...x });
+  for (const x of incoming) {
+    const k = key(x);
+    if (!map.has(k)) {
+      map.set(k, { ...x });
+    } else {
+      const cur = map.get(k);
+      const addQty = Number(x.qty ?? 1) || 1;
+      cur.qty = (Number(cur.qty ?? 1) || 1) + addQty;
+
+      // Recompute totalPrice if unitPrice exists
+      const unit =
+        Number(cur.unitPrice ?? cur.basePrice ?? cur.price ?? 0) || 0;
+      cur.totalPrice = unit * (Number(cur.qty ?? 1) || 1);
+
+      map.set(k, cur);
+    }
+  }
+
+  return Array.from(map.values());
+}
+
+/* ------------------------------
+   Render cart page
+--------------------------------*/
+async function render() {
   const list = document.getElementById("cartList");
   const empty = document.getElementById("cartEmpty");
   const summary = document.getElementById("cartSummary");
   const subText = document.getElementById("cartSub");
 
-  const cart = readCart();
+  const cart = await readCart();
   const count = calcCount(cart);
 
   updateBadges(count);
   if (subText) subText.textContent = `${count} item${count === 1 ? "" : "s"}`;
 
-  if (!list) return;
+  if (!list) return; // not on cart page
 
   list.innerHTML = "";
 
@@ -73,7 +185,6 @@ function render() {
     const addons = Array.isArray(it.addons) ? it.addons : [];
     const required = Array.isArray(it.required) ? it.required : [];
 
-    // if totalPrice is missing, derive from unitPrice * qty
     const unitPrice =
       Number(it.unitPrice ?? it.basePrice ?? it.price ?? 0) || 0;
     const line = Number(it.totalPrice) || unitPrice * qty;
@@ -106,7 +217,13 @@ function render() {
                   .join(", ")}</div>`
               : ""
           }
-          ${required.length ? `<div class="cartMetaLine"><strong>Options:</strong> ${required.map((r) => `${r.groupTitle}: ${r.optionLabel}`).join(", ")}</div>` : ""}
+          ${
+            required.length
+              ? `<div class="cartMetaLine"><strong>Options:</strong> ${required
+                  .map((r) => `${r.groupTitle}: ${r.optionLabel}`)
+                  .join(", ")}</div>`
+              : ""
+          }
           ${note ? `<div class="cartMetaLine"><strong>Note:</strong> ${note}</div>` : ""}
         </div>
       </div>
@@ -121,44 +238,41 @@ function render() {
     list.appendChild(card);
   });
 
-  // Update totals
-  const delivery = 0; // you can change later
+  const delivery = 0;
   document.getElementById("sumSubtotal").textContent = money(subtotal);
   document.getElementById("sumDelivery").textContent = money(delivery);
   document.getElementById("sumTotal").textContent = money(subtotal + delivery);
 }
 
-document.addEventListener("click", (e) => {
+/* ------------------------------
+   Qty buttons (cart page)
+--------------------------------*/
+document.addEventListener("click", async (e) => {
   const btn = e.target.closest("[data-act]");
   if (!btn) return;
 
   const act = btn.getAttribute("data-act");
   const i = Number(btn.getAttribute("data-i"));
-  const cart = readCart();
+
+  const cart = await readCart();
   if (!cart[i]) return;
 
   const qty = Number(cart[i].qty ?? cart[i].quantity ?? 1) || 1;
 
-  if (act === "plus") {
-    cart[i].qty = qty + 1;
-  }
+  if (act === "plus") cart[i].qty = qty + 1;
 
   if (act === "minus") {
-    if (qty <= 1) {
-      // remove item if quantity hits 0
-      cart.splice(i, 1);
-    } else {
-      cart[i].qty = qty - 1;
-    }
+    if (qty <= 1) cart.splice(i, 1);
+    else cart[i].qty = qty - 1;
   }
 
-  // Recompute totalPrice if you want it stored
-  const unitPrice =
+  // Recompute totalPrice if unitPrice exists
+  const unit =
     Number(cart[i]?.unitPrice ?? cart[i]?.basePrice ?? cart[i]?.price ?? 0) ||
     0;
-  if (cart[i]) cart[i].totalPrice = unitPrice * cart[i].qty;
+  if (cart[i]) cart[i].totalPrice = unit * (Number(cart[i].qty ?? 1) || 1);
 
-  saveCart(cart);
+  await saveCart(cart);
   render();
 });
 
@@ -166,6 +280,36 @@ document.getElementById("checkoutBtn")?.addEventListener("click", () => {
   alert("Checkout next step (connect to your payment page).");
 });
 
+/* ------------------------------
+   Auth state: migrate + rerender
+--------------------------------*/
+onAuthStateChanged(auth, async (u) => {
+  currentUser = u;
+
+  // ✅ migrate guest localStorage cart into account cart once
+  if (u) {
+    const local = readLocalCart();
+    if (local.length) {
+      const cloud = await readCloudCart(u.uid);
+      const merged = mergeCarts(cloud, local);
+      await writeCloudCart(u.uid, merged);
+      clearLocalCart();
+    }
+  }
+
+  render();
+});
+
+/* ------------------------------
+   Lifecycle hooks
+--------------------------------*/
 document.addEventListener("DOMContentLoaded", render);
 window.addEventListener("pageshow", render);
 window.addEventListener("storage", (e) => e.key === CART_KEY && render());
+
+/* ------------------------------
+   For other pages (badge/menu)
+--------------------------------*/
+export async function getCartForUI() {
+  return await readCart();
+}
