@@ -71,6 +71,7 @@ function render() {
     const img = it.img ?? it.image ?? "images/defaultFood.png";
     const note = it.note ?? it.sideNote ?? "";
     const addons = Array.isArray(it.addons) ? it.addons : [];
+    const required = Array.isArray(it.required) ? it.required : [];
 
     // if totalPrice is missing, derive from unitPrice * qty
     const unitPrice =
@@ -92,7 +93,20 @@ function render() {
         <div class="menuPrice">$${money(line)}</div>
 
         <div class="cartMeta">
-          ${addons.length ? `<div class="cartMetaLine"><strong>Add-ons:</strong> ${addons.map((a) => a.name ?? a).join(", ")}</div>` : ""}
+          ${
+            addons.length
+              ? `<div class="cartMetaLine"><strong>Add-ons:</strong> ${addons
+                  .map((a) => {
+                    const label = a.label ?? a.name ?? "";
+                    const price = Number(a.price);
+                    return Number.isFinite(price) && price > 0
+                      ? `${label} (+$${price.toFixed(2)})`
+                      : label;
+                  })
+                  .join(", ")}</div>`
+              : ""
+          }
+          ${required.length ? `<div class="cartMetaLine"><strong>Options:</strong> ${required.map((r) => `${r.groupTitle}: ${r.optionLabel}`).join(", ")}</div>` : ""}
           ${note ? `<div class="cartMetaLine"><strong>Note:</strong> ${note}</div>` : ""}
         </div>
       </div>
@@ -101,7 +115,6 @@ function render() {
         <button class="cartQtyBtn" data-act="plus" data-i="${idx}" type="button">+</button>
         <div class="cartQtyNum">${qty}</div>
         <button class="cartQtyBtn" data-act="minus" data-i="${idx}" type="button">−</button>
-        <button class="cartRemoveBtn" data-act="rm" data-i="${idx}" type="button">Remove</button>
       </div>
     `;
 
@@ -126,9 +139,18 @@ document.addEventListener("click", (e) => {
 
   const qty = Number(cart[i].qty ?? cart[i].quantity ?? 1) || 1;
 
-  if (act === "plus") cart[i].qty = qty + 1;
-  if (act === "minus") cart[i].qty = Math.max(1, qty - 1);
-  if (act === "rm") cart.splice(i, 1);
+  if (act === "plus") {
+    cart[i].qty = qty + 1;
+  }
+
+  if (act === "minus") {
+    if (qty <= 1) {
+      // remove item if quantity hits 0
+      cart.splice(i, 1);
+    } else {
+      cart[i].qty = qty - 1;
+    }
+  }
 
   // Recompute totalPrice if you want it stored
   const unitPrice =
