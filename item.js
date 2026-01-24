@@ -655,7 +655,7 @@ qtyPlus.addEventListener("click", () => {
 /* ===== ADD TO CART ===== */
 addToCartBtn.addEventListener("click", () => {
   if (!allRequiredChosen()) {
-    alert("Please select all required options before adding to cart.");
+    showDToast("Please select all required options before adding to cart.");
     return;
   }
 

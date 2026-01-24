@@ -230,7 +230,7 @@ onAuthStateChanged(auth, async (user) => {
     setFavUI(false);
     favBtn.addEventListener("click", () => {
       alert("Please login to use favourites.");
-      window.location.href = "index.html";
+      window.location.href = "signin.html";
     });
     return;
   }

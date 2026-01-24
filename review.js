@@ -146,7 +146,7 @@ if (imgInput && imgPreviewWrap && imgPreview) {
     if (!file.type.startsWith("image/")) {
       imgPreviewWrap.style.display = "none";
       imgPreview.src = "";
-      alert("Please choose an image file.");
+      showDToast("Please choose an image file.");
       imgInput.value = "";
       return;
     }

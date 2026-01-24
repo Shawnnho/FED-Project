@@ -31,29 +31,7 @@ let currentUser = null;
 let claimedCodes = new Set();
 let claimedDailyIds = new Set();
 
-onAuthStateChanged(auth, async (u) => {
-  // ❌ Not logged in = guest → block promotions
-  if (!u) {
-    window.location.href = "index.html"; // or home.html
-    return;
-  }
 
-  // 🔎 Check role from Firestore
-  const snap = await getDoc(doc(db, "users", u.uid));
-  const role = snap.exists() ? snap.data().role : "customer";
-
-  // ❌ Logged in but role = guest → block
-  if (role === "guest") {
-    window.location.href = "home.html"; // safer redirect
-    return;
-  }
-
-  // ✅ Allowed user
-  currentUser = u;
-  await loadClaimedCodes(u.uid);
-
-  render(); // refresh UI so buttons update
-});
 
 function todayKey() {
   const d = new Date();
@@ -86,7 +64,7 @@ async function loadClaimedCodes(uid) {
 
 // ---- PROMO DATA (REAL-TIME EXPIRY) ----
 // NOTE: these expiries are demo-based (refresh resets).
-const promos = [
+export const promos = [
   {
     id: "p1",
     title: "Get $5 Off Your Next Order",
@@ -259,127 +237,161 @@ const redeemMsg = document.getElementById("redeemMsg");
 
 const toast = document.getElementById("promoToast");
 
-// ---- UI HELPERS ----
-function showToast(msg) {
-  toast.textContent = msg;
-  toast.classList.add("show");
-  clearTimeout(showToast._t);
-  showToast._t = setTimeout(() => toast.classList.remove("show"), 1400);
-}
+const IS_PROMO_PAGE = !!promoList;
 
 // ---- EXPIRY HELPERS (REAL TIME) ----
-function isExpired(p) {
+export function isExpired(p) {
   return Date.now() > p.expiresAt;
 }
 
-function daysLeft(p) {
-  const ms = p.expiresAt - Date.now();
-  return Math.ceil(ms / DAY);
-}
+if (IS_PROMO_PAGE) {
 
-function statusOf(p) {
-  const d = daysLeft(p);
-  if (d <= 0) return "expired";
-  return d <= 7 ? "expiring" : "active";
-}
 
-// ---- FILTERS ----
-function matches(p) {
-  // ✅ auto-hide expired promos
-  if (isExpired(p)) return false;
-
-  const q = (promoSearch.value || "").trim().toLowerCase();
-  const t = typeFilter.value;
-  const s = statusFilter.value;
-
-  const qOk =
-    !q ||
-    p.title.toLowerCase().includes(q) ||
-    p.desc.toLowerCase().includes(q) ||
-    p.code.toLowerCase().includes(q);
-
-  const tOk = t === "all" || p.type === t;
-  const sOk = s === "all" || statusOf(p) === s;
-
-  return qOk && tOk && sOk;
-}
-
-function sortPromos(arr) {
-  const mode = sortFilter.value;
-
-  if (mode === "expSoon") {
-    // ✅ sort by live days left
-    return [...arr].sort((a, b) => daysLeft(a) - daysLeft(b));
-  }
-
-  if (mode === "best") {
-    const score = (p) => (p.type === "percent" ? 3 : p.type === "cash" ? 2 : 1);
-    return [...arr].sort((a, b) => score(b) - score(a));
-  }
-
-  // popular default
-  return [...arr].sort((a, b) => (b.popular === true) - (a.popular === true));
-}
-
-// ---- FIRESTORE: CLAIM VOUCHER ----
-async function claimVoucher(codeRaw) {
-  if (!currentUser) {
-    showToast("Please login to claim vouchers");
+  onAuthStateChanged(auth, async (u) => {
+  // ✅ Not logged in: allow viewing promos, but disable claim
+  if (!u) {
+    currentUser = null;
+    claimedCodes = new Set();
+    claimedDailyIds = new Set();
+    render();
     return;
   }
 
-  const code = (codeRaw || "").trim().toUpperCase();
-  const promo = promos.find((p) => p.code.toUpperCase() === code);
+  // 🔎 Check role from Firestore
+  const snap = await getDoc(doc(db, "users", u.uid));
+  const role = snap.exists() ? snap.data().role : "customer";
 
-  if (!promo) return showToast("Promo not found");
-  if (isExpired(promo)) return showToast("This promo is expired");
-
-  const docId = voucherDocId(promo, code);
-  const ref = doc(db, "users", currentUser.uid, "vouchers", docId);
-
-  const snap = await getDoc(ref);
-  if (snap.exists()) return showToast("Already claimed");
-
-  await setDoc(ref, {
-    code,
-    claimedAt: serverTimestamp(),
-    expiresAt: Timestamp.fromMillis(promo.expiresAt),
-    used: false,
-    usedAt: null,
-  });
-  if (promo.claimOnce === false) {
-    claimedDailyIds.add(docId.toUpperCase());
-  } else {
-    claimedCodes.add(code.toUpperCase());
+  // ✅ Guest role: allow viewing promos, but disable claim
+  if (role === "guest") {
+    currentUser = null;
+    claimedCodes = new Set();
+    claimedDailyIds = new Set();
+    render();
+    return;
   }
 
+  // ✅ Allowed user can claim
+  currentUser = u;
+  await loadClaimedCodes(u.uid);
   render();
-  showToast(`Claimed: ${code}`);
-}
+});
+  // ---- UI HELPERS ----
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add("show");
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toast.classList.remove("show"), 1400);
+  }
 
-// ---- RENDER ----
-function renderCard(p) {
-  const d = daysLeft(p);
-  const exp = statusOf(p);
+  function daysLeft(p) {
+    const ms = p.expiresAt - Date.now();
+    return Math.ceil(ms / DAY);
+  }
 
-  const expText =
-    d <= 0
-      ? "❌ Expired"
-      : d === 1
-        ? "⏳ Expires in 1 day"
-        : `⏳ Expires in ${d} days`;
+  function statusOf(p) {
+    const d = daysLeft(p);
+    if (d <= 0) return "expired";
+    return d <= 7 ? "expiring" : "active";
+  }
 
-  const redText =
-    p.redemptionsLeft == null ? "" : `• 🎫 ${p.redemptionsLeft} left`;
-  const codeUpper = p.code.toUpperCase();
-  const dailyIdUpper = `${codeUpper}_${todayKey()}`.toUpperCase();
+  // ---- FILTERS ----
+  function matches(p) {
+    // ✅ auto-hide expired promos
+    if (isExpired(p)) return false;
 
-  const isClaimed =
-    p.claimOnce === false
-      ? claimedDailyIds.has(dailyIdUpper)
-      : claimedCodes.has(codeUpper);
+    const q = (promoSearch.value || "").trim().toLowerCase();
+    const t = typeFilter.value;
+    const s = statusFilter.value;
 
-  return `
+    const qOk =
+      !q ||
+      p.title.toLowerCase().includes(q) ||
+      p.desc.toLowerCase().includes(q) ||
+      p.code.toLowerCase().includes(q);
+
+    const tOk = t === "all" || p.type === t;
+    const sOk = s === "all" || statusOf(p) === s;
+
+    return qOk && tOk && sOk;
+  }
+
+  function sortPromos(arr) {
+    const mode = sortFilter.value;
+
+    if (mode === "expSoon") {
+      // ✅ sort by live days left
+      return [...arr].sort((a, b) => daysLeft(a) - daysLeft(b));
+    }
+
+    if (mode === "best") {
+      const score = (p) =>
+        p.type === "percent" ? 3 : p.type === "cash" ? 2 : 1;
+      return [...arr].sort((a, b) => score(b) - score(a));
+    }
+
+    // popular default
+    return [...arr].sort((a, b) => (b.popular === true) - (a.popular === true));
+  }
+
+  // ---- FIRESTORE: CLAIM VOUCHER ----
+  async function claimVoucher(codeRaw) {
+    if (!currentUser) {
+      showToast("Please login to claim vouchers");
+      return;
+    }
+
+    const code = (codeRaw || "").trim().toUpperCase();
+    const promo = promos.find((p) => p.code.toUpperCase() === code);
+
+    if (!promo) return showToast("Promo not found");
+    if (isExpired(promo)) return showToast("This promo is expired");
+
+    const docId = voucherDocId(promo, code);
+    const ref = doc(db, "users", currentUser.uid, "vouchers", docId);
+
+    const snap = await getDoc(ref);
+    if (snap.exists()) return showToast("Already claimed");
+
+    await setDoc(ref, {
+      code,
+      claimedAt: serverTimestamp(),
+      expiresAt: Timestamp.fromMillis(promo.expiresAt),
+      used: false,
+      usedAt: null,
+    });
+    if (promo.claimOnce === false) {
+      claimedDailyIds.add(docId.toUpperCase());
+    } else {
+      claimedCodes.add(code.toUpperCase());
+    }
+
+    render();
+    showToast(`Claimed: ${code}`);
+  }
+
+  // ---- RENDER ----
+  function renderCard(p) {
+    const d = daysLeft(p);
+    const exp = statusOf(p);
+
+    const expText =
+      d <= 0
+        ? "❌ Expired"
+        : d === 1
+          ? "⏳ Expires in 1 day"
+          : `⏳ Expires in ${d} days`;
+
+    const redText =
+      p.redemptionsLeft == null ? "" : `• 🎫 ${p.redemptionsLeft} left`;
+    const codeUpper = p.code.toUpperCase();
+    const dailyIdUpper = `${codeUpper}_${todayKey()}`.toUpperCase();
+
+    const isClaimed =
+      p.claimOnce === false
+        ? claimedDailyIds.has(dailyIdUpper)
+        : claimedCodes.has(codeUpper);
+
+    return `
     <article class="card">
       <div class="cardImg">
         <div class="imgFrame">
@@ -420,10 +432,10 @@ function renderCard(p) {
       </div>
     </article>
   `;
-}
+  }
 
-function renderEmpty() {
-  promoList.innerHTML = `
+  function renderEmpty() {
+    promoList.innerHTML = `
     <div class="emptyState">
       <h2 class="emptyTitle">No promo codes found</h2>
       <div class="bottomReset">
@@ -432,96 +444,97 @@ function renderEmpty() {
     </div>
   `;
 
-  document.getElementById("resetPromoBtn").onclick = () => {
-    promoSearch.value = "";
-    typeFilter.value = "all";
-    statusFilter.value = "all";
-    sortFilter.value = "popular";
-    render();
-    showToast("Filters reset");
-  };
-}
-
-function render() {
-  const filtered = sortPromos(promos.filter(matches));
-
-  promoSub.textContent =
-    `Showing ${filtered.length} promo codes • ` +
-    (sortFilter.value === "popular"
-      ? "Sorted by Popular"
-      : sortFilter.value === "expSoon"
-        ? "Sorted by Expiring"
-        : "Sorted by Best Value");
-
-  if (filtered.length === 0) return renderEmpty();
-
-  promoList.innerHTML = filtered.map(renderCard).join("");
-}
-
-// ---- ACTIONS ----
-async function copyCode(code) {
-  try {
-    await navigator.clipboard.writeText(code);
-    showToast(`Copied: ${code}`);
-  } catch {
-    const t = document.createElement("textarea");
-    t.value = code;
-    document.body.appendChild(t);
-    t.select();
-    document.execCommand("copy");
-    t.remove();
-    showToast(`Copied: ${code}`);
-  }
-}
-
-function redeem(codeRaw) {
-  const code = (codeRaw || "").trim().toUpperCase();
-  redeemMsg.textContent = "";
-
-  if (!code) {
-    redeemMsg.textContent = "Please enter a promo code.";
-    return;
+    document.getElementById("resetPromoBtn").onclick = () => {
+      promoSearch.value = "";
+      typeFilter.value = "all";
+      statusFilter.value = "all";
+      sortFilter.value = "popular";
+      render();
+      showToast("Filters reset");
+    };
   }
 
-  const promo = promos.find((p) => p.code.toUpperCase() === code);
+  function render() {
+    const filtered = sortPromos(promos.filter(matches));
 
-  if (!promo) {
-    redeemMsg.textContent = "Invalid promo code.";
-    showToast("Invalid code");
-    return;
+    promoSub.textContent =
+      `Showing ${filtered.length} promo codes • ` +
+      (sortFilter.value === "popular"
+        ? "Sorted by Popular"
+        : sortFilter.value === "expSoon"
+          ? "Sorted by Expiring"
+          : "Sorted by Best Value");
+
+    if (filtered.length === 0) return renderEmpty();
+
+    promoList.innerHTML = filtered.map(renderCard).join("");
   }
 
-  if (isExpired(promo)) {
-    redeemMsg.textContent = "This promo code has expired.";
-    showToast("Expired code");
-    return;
+  // ---- ACTIONS ----
+  async function copyCode(code) {
+    try {
+      await navigator.clipboard.writeText(code);
+      showToast(`Copied: ${code}`);
+    } catch {
+      const t = document.createElement("textarea");
+      t.value = code;
+      document.body.appendChild(t);
+      t.select();
+      document.execCommand("copy");
+      t.remove();
+      showToast(`Copied: ${code}`);
+    }
   }
 
-  // Save for checkout (your current behaviour)
-  localStorage.setItem("hawkerpoint_applied_promo", code);
-  redeemMsg.textContent = `Applied: ${code} (saved for checkout)`;
-  showToast(`Applied: ${code}`);
+  function redeem(codeRaw) {
+    const code = (codeRaw || "").trim().toUpperCase();
+    redeemMsg.textContent = "";
+
+    if (!code) {
+      redeemMsg.textContent = "Please enter a promo code.";
+      return;
+    }
+
+    const promo = promos.find((p) => p.code.toUpperCase() === code);
+
+    if (!promo) {
+      redeemMsg.textContent = "Invalid promo code.";
+      showToast("Invalid code");
+      return;
+    }
+
+    if (isExpired(promo)) {
+      redeemMsg.textContent = "This promo code has expired.";
+      showToast("Expired code");
+      return;
+    }
+
+    // Save for checkout (your current behaviour)
+    localStorage.setItem("hawkerpoint_applied_promo", code);
+    redeemMsg.textContent = `Applied: ${code} (saved for checkout)`;
+    showToast(`Applied: ${code}`);
+  }
+
+  // ---- EVENTS ----
+  promoSearch.addEventListener("input", render);
+  typeFilter.addEventListener("change", render);
+  statusFilter.addEventListener("change", render);
+  sortFilter.addEventListener("change", render);
+
+  promoList.addEventListener("click", (e) => {
+    const copyBtn = e.target.closest("[data-copy]");
+    if (copyBtn) return copyCode(copyBtn.dataset.copy);
+
+    const claimBtn = e.target.closest("[data-claim]");
+    if (claimBtn) return claimVoucher(claimBtn.dataset.claim);
+  });
+
+  redeemBtn.addEventListener("click", () => redeem(redeemInput.value));
+  redeemInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") redeem(redeemInput.value);
+  });
+
+  // ---- INITIAL + LIVE REFRESH ----
+  render();
+  setInterval(render, 30000);
 }
-
-// ---- EVENTS ----
-promoSearch.addEventListener("input", render);
-typeFilter.addEventListener("change", render);
-statusFilter.addEventListener("change", render);
-sortFilter.addEventListener("change", render);
-
-promoList.addEventListener("click", (e) => {
-  const copyBtn = e.target.closest("[data-copy]");
-  if (copyBtn) return copyCode(copyBtn.dataset.copy);
-
-  const claimBtn = e.target.closest("[data-claim]");
-  if (claimBtn) return claimVoucher(claimBtn.dataset.claim);
-});
-
-redeemBtn.addEventListener("click", () => redeem(redeemInput.value));
-redeemInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") redeem(redeemInput.value);
-});
-
-// ---- INITIAL + LIVE REFRESH ----
-render();
-setInterval(render, 30000);

@@ -1,121 +1,142 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Hawker Point — Sign In</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hawker Point — Discover</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
 
   <body>
-    <main class="page">
-      <div class="bg" aria-hidden="true"></div>
-      <div class="fadeTop" aria-hidden="true"></div>
-      <div class="fadeBottom" aria-hidden="true"></div>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="index.html" aria-label="Hawker Point Home">
+          <img src="images/logo.png" alt="Hawker Point" class="brand-logo" />
+        </a>
 
-      <section class="panel" aria-label="Sign in panel">
-        <div class="brand">
-          <img class="logo" src="images/logo.png" alt="Hawker Point logo" />
-          <p class="subtitle">Order From Singapore Hawker Center.</p>
-          <br />
+        <nav class="nav" aria-label="Primary navigation">
+          <a class="pill" href="signin.html">Log In</a>
+          <a
+            class="pill active"
+            href="signup.html"
+            style="background: #df8f3b; color: white"
+            >Sign up for free today</a
+          >
+        </nav>
+
+        <button
+          id="menuBtn"
+          class="menuBtn"
+          type="button"
+          aria-label="Open menu"
+          aria-expanded="false"
+        >
+          ☰
+        </button>
+      </div>
+
+      <div id="navBackdrop" class="navBackdrop"></div>
+      <nav id="navMobile" class="navMobile" aria-label="Mobile navigation">
+        <a
+          class="mLink active"
+          href="signup.html"
+          style="background: #df8f3b; color: white"
+          >Sign up for free today</a
+        >
+        <a class="mLink" href="signin.html">Sign in</a>
+      </nav>
+    </header>
+
+    <main class="page home discoverPage">
+      <section class="searchWrap">
+        <div class="discoverHead">
+          <h2 class="discoverTitle">Discover</h2>
+          <p class="discoverSub">Find stalls & dishes fast.</p>
         </div>
 
-        <form id="loginForm" class="form" novalidate>
+        <div class="searchBar">
+          <span class="searchIcon" aria-hidden="true">🔍</span>
           <input
-            id="emailOrPhone"
-            class="input"
-            type="text"
-            placeholder="Email or phone number"
+            id="discoverSearch"
+            type="search"
+            placeholder="Search stalls or dishes…"
+            autocomplete="off"
           />
-          <small id="emailError" class="error" aria-live="polite"></small>
+        </div>
 
-          <div class="passwordWrap">
-            <input
-              id="password"
-              class="input"
-              type="password"
-              placeholder="Enter password"
-            />
-
-            <button
-              id="togglePassword"
-              type="button"
-              class="iconBtn"
-              aria-label="Show password"
-            >
-              <img id="eyeIcon" src="images/hide.png" alt="hide password" />
-            </button>
-          </div>
-          <small id="pwError" class="error" aria-live="polite"></small>
-
-          <div class="row">
-            <label class="checkbox">
-              <input id="rememberMe" type="checkbox" />
-              Remember me
-            </label>
-            <a class="link" href="forgot-password.html">Forgot password?</a>
-          </div>
-
-          <div class="roleDivider"></div>
-
-          <div class="roles" role="group" aria-label="Select role">
-            <button
-              type="button"
-              class="role"
-              data-role="guest"
-              aria-pressed="true"
-            >
-              <div class="roleIcon">
-                <img src="images/user (1).png" alt="Guest" />
-              </div>
-              <div class="roleText">Guest</div>
-            </button>
-
-            <button
-              type="button"
-              class="role"
-              data-role="customer"
-              aria-pressed="false"
-            >
-              <div class="roleIcon">
-                <img src="images/user (1).png" alt="Customer" />
-              </div>
-              <div class="roleText">Customer</div>
-            </button>
-
-            <button
-              type="button"
-              class="role"
-              data-role="storeholder"
-              aria-pressed="false"
-            >
-              <div class="roleIcon">
-                <img src="images/chef.png" alt="Store Holder" />
-              </div>
-              <div class="roleText">Store Holder</div>
-            </button>
-          </div>
-
-          <button class="btn primary" type="submit">Sign in</button>
-
-          <div class="line"></div>
-
-          <button id="googleSignupBtn" class="btn google" type="button">
-            <img src="images/google.png" alt="Google logo" class="googleLogo" />
-            Sign in with Google
+        <div class="chipRow" id="chipRow" aria-label="Categories">
+          <button class="chipBtn active" data-cat="all" type="button">
+            All
           </button>
-
-          <p class="foot">
-            Don’t have an account?
-            <a class="link" href="signup.html" id="signUp">Sign up now</a>
-          </p>
-
-          <p id="statusMsg" class="status" aria-live="polite"></p>
-        </form>
+          <button class="chipBtn" data-cat="chinese" type="button">
+            🥢 Chinese
+          </button>
+          <button class="chipBtn" data-cat="malay" type="button">
+            🍃 Malay
+          </button>
+          <button class="chipBtn" data-cat="indian" type="button">
+            🍛 Indian
+          </button>
+          <button class="chipBtn" data-cat="western" type="button">
+            🍳 Western
+          </button>
+          <button class="chipBtn" data-cat="beverages" type="button">
+            ☕ Beverages
+          </button>
+          <button class="chipBtn" data-cat="popular" type="button">
+            🔥 Popular
+          </button>
+          <button class="chipBtn" data-cat="top" type="button">
+            ⭐ Top Rated
+          </button>
+          <button class="chipBtn" data-cat="fast" type="button">⏱️ Fast</button>
+        </div>
       </section>
+
+      <section class="listHeader">
+        <h2>🔥 Popular Today</h2>
+        <p>Curated picks</p>
+      </section>
+
+      <section class="featuredWrap" aria-label="Popular today">
+        <div class="featuredTrack" id="featuredTrack"></div>
+      </section>
+
+      <section class="listHeader" id="promotions">
+        <h2>🎁 Promotions</h2>
+        <p>Limited-time deals you don't want to miss</p>
+      </section>
+
+      <section class="featuredWrap promoWrap" aria-label="Promotions">
+        <div class="featuredTrack promoTrack" id="promoTrack"></div>
+      </section>
+
+      <section class="listHeader" id="allStalls">
+        <h2>All Stalls</h2>
+        <p>Browse everything</p>
+      </section>
+
+      <section class="emptyState" id="discoverEmpty" hidden>
+        <h3 class="emptyTitle">No stalls match your filters</h3>
+        <div class="bottomReset">
+          <button class="resetBtn" id="discoverReset" type="button">
+            Reset Filters
+          </button>
+        </div>
+      </section>
+
+      <section class="list" id="discoverList"></section>
     </main>
 
-    <!-- ✅ ONE script only -->
-    <script type="module" src="script.js"></script>
+    <footer class="site-footer">
+      <p>
+        &copy; 2026 Hawker Point. All rights reserved. This project is for
+        educational purposes only.
+      </p>
+    </footer>
+
+    <div id="dToast" class="dToast" role="status" aria-live="polite"></div>
+    <script type="module" src="menu.js"></script>
+    <script type="module" src="index.js"></script>
   </body>
 </html>

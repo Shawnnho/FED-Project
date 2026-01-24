@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
     link.addEventListener("click", (e) => {
       if (isGuest) {
         e.preventDefault();
-        window.location.href = "index.html";
+        window.location.href = "signin.html";
       }
     });
   });

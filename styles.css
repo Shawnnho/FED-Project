@@ -614,7 +614,6 @@ body.guest .mNotif {
   font-weight: 600;
 }
 
-
 /* Prevent page scroll when menu open */
 body.menuOpen {
   overflow: hidden;
@@ -3351,12 +3350,11 @@ select,
 #stallIcon {
   width: 500px;
   height: 180px;
-  object-fit: cover;   
-  border-radius: 20px; 
+  object-fit: cover;
+  border-radius: 20px;
   display: block;
   margin-top: 6px;
 }
-
 
 /* Hygiene pill */
 .hpGradePill {
@@ -3635,7 +3633,7 @@ select,
   background: #fff;
   border-radius: 0;
   overflow: hidden;
-  border: 1px solid rgba(0,0,0,0.12);
+  border: 1px solid rgba(0, 0, 0, 0.12);
 }
 
 .itemHero img {
@@ -3677,7 +3675,7 @@ select,
   margin-top: 2px;
   font-size: 10px;
   font-weight: 800;
-  color: rgba(0,0,0,0.55);
+  color: rgba(0, 0, 0, 0.55);
 }
 
 /* description paragraph */
@@ -3685,7 +3683,7 @@ select,
   margin: 10px 0 8px;
   font-size: 11px;
   font-weight: 700;
-  color: rgba(0,0,0,0.75);
+  color: rgba(0, 0, 0, 0.75);
   text-align: center;
   line-height: 1.35;
   padding: 0 10px;
@@ -3695,7 +3693,7 @@ select,
 .itemDivider {
   border: 0;
   height: 1px;
-  background: rgba(0,0,0,0.25);
+  background: rgba(0, 0, 0, 0.25);
   margin: 10px 0;
 }
 
@@ -3721,7 +3719,7 @@ select,
 
   font-size: 11px;
   font-weight: 800;
-  color: rgba(0,0,0,0.75);
+  color: rgba(0, 0, 0, 0.75);
 }
 
 .addonRow input {
@@ -3732,7 +3730,7 @@ select,
 
 .addonPrice {
   font-weight: 900;
-  color: rgba(0,0,0,0.65);
+  color: rgba(0, 0, 0, 0.65);
   font-size: 10px;
 }
 
@@ -3740,12 +3738,12 @@ select,
 .sideNote {
   width: 100%;
   border-radius: 10px;
-  border: 1px solid rgba(0,0,0,0.15);
+  border: 1px solid rgba(0, 0, 0, 0.15);
   padding: 10px 12px;
   resize: none;
   outline: none;
 
-  background: rgba(255,255,255,0.96);
+  background: rgba(255, 255, 255, 0.96);
   font-size: 12px;
   font-weight: 700;
 }
@@ -3800,7 +3798,7 @@ select,
   font-weight: 900;
 
   cursor: pointer;
-  box-shadow: 0 10px 18px rgba(0,0,0,0.14);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.14);
 }
 
 .addCartBtn:active {
@@ -3809,7 +3807,370 @@ select,
 
 /* small screens */
 @media (max-width: 420px) {
-  .itemHero img { height: 155px; }
-  .itemName { font-size: 20px; }
-  .addCartBtn { height: 44px; }
+  .itemHero img {
+    height: 155px;
+  }
+  .itemName {
+    font-size: 20px;
+  }
+  .addCartBtn {
+    height: 44px;
+  }
+}
+
+/* =========================================
+   DISCOVER PAGE  (WIDER + LESS HARDCODED)
+========================================= */
+
+.page.home.discoverPage {
+  padding-bottom: 90px;
+}
+
+/* Head text above search */
+.discoverHead {
+  text-align: center;
+  margin-top: 10px;
+  margin-bottom: 14px;
+}
+.discoverTitle {
+  margin: 10px 0 6px;
+  font-size: 28px;
+  font-weight: 900;
+}
+.discoverSub {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+/* Category chips row */
+.discoverPage .chipRow {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  padding: 10px 4px 18px;
+  -webkit-overflow-scrolling: touch;
+}
+.discoverPage .chipRow::-webkit-scrollbar {
+  height: 10px;
+}
+.discoverPage .chipRow::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: 999px;
+}
+
+.discoverPage .chipBtn {
+  flex: 0 0 auto;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 999px;
+  padding: 12px 18px; /* looser + bigger tap */
+  font-weight: 900;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.discoverPage .chipBtn.active {
+  background: #df8f3b;
+  color: #fff;
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+/* ===== Featured row (horizontal) ===== */
+/* wider container */
+.discoverPage .featuredWrap {
+  max-width: 1180px; /* ✅ wider than 720 */
+  margin: 14px auto 0;
+  padding: 0 22px; /* use more side space */
+}
+
+/* looser track */
+.discoverPage .featuredTrack {
+  display: flex;
+  gap: 18px; /* bigger gap */
+  overflow-x: auto;
+  padding: 12px 4px 22px; /* more breathing */
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.discoverPage .featuredTrack::-webkit-scrollbar {
+  height: 10px;
+}
+.discoverPage .featuredTrack::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: 999px;
+}
+
+/* bigger cards on desktop, still responsive */
+.discoverPage .featuredCard {
+  flex: 0 0 auto;
+  width: min(520px, 88vw); /* ✅ bigger on desktop */
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 16px;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  scroll-snap-align: start;
+}
+
+/* IMPORTANT: remove hardcoded backgrounds */
+/* JS should set background-image inline */
+.discoverPage .featuredImg {
+  height: 170px; /* taller = premium */
+  background: #fff;
+  background-size: cover;
+  background-position: center;
+  background-image: none; /* ✅ not hardcoded */
+}
+.discoverPage .featuredImg.alt,
+.discoverPage .featuredImg.alt2 {
+  background-image: none; /* ✅ not hardcoded */
+}
+
+.discoverPage .featuredBody {
+  padding: 16px 16px 18px;
+}
+.discoverPage .featuredBadge {
+  display: inline-flex;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: #d79042;
+  color: #fff;
+  font-weight: 900;
+  font-size: 12px;
+}
+.discoverPage .featuredName {
+  margin-top: 12px;
+  font-weight: 900;
+  font-size: 15px;
+}
+.discoverPage .featuredMeta {
+  margin-top: 6px;
+  font-weight: 800;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+/* Discover card tweaks (keep your .card base) */
+.discoverPage .dActions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.discoverPage .dFav {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 22px;
+  line-height: 1;
+  padding: 0;
+  opacity: 0.65;
+}
+.discoverPage .dFav.on {
+  opacity: 1;
+  transform: scale(1.05);
+}
+.discoverPage .dPrep.good {
+  background: #eaf7ea;
+}
+.discoverPage .dPrep.ok {
+  background: #fff4dd;
+}
+.discoverPage .dPrep.slow {
+  background: #ffe5e5;
+}
+
+/* Mobile: keep things comfy */
+@media (max-width: 520px) {
+  .discoverTitle {
+    font-size: 22px;
+  }
+  .discoverPage .chipBtn {
+    padding: 10px 14px;
+    font-size: 12px;
+  }
+  .discoverPage .featuredWrap {
+    padding: 0 14px;
+  }
+  .discoverPage .featuredCard {
+    width: min(360px, 86vw); /* keep nice on mobile */
+  }
+  .discoverPage .featuredImg {
+    height: 150px;
+  }
+}
+
+/* =========================
+   DISCOVER PROMOTIONS STRIP (PREMIUM)
+========================= */
+
+.discoverPage .promoWrap {
+  margin-top: 10px;
+}
+
+/* nicer track spacing + snap */
+.discoverPage .promoTrack {
+  gap: 18px;
+  padding: 12px 4px 22px;
+  scroll-snap-type: x mandatory;
+}
+
+/* card: more premium */
+.discoverPage .promoCard {
+  flex: 0 0 auto;
+  width: min(460px, 88vw);
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 18px;
+  box-shadow: 0 18px 30px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  scroll-snap-align: start;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+@media (hover: hover) {
+  .discoverPage .promoCard:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 22px 38px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* image: taller + gradient overlay */
+.discoverPage .promoImg {
+  height: 150px;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+.discoverPage .promoImg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0));
+}
+
+/* body spacing */
+.discoverPage .promoBody {
+  padding: 14px 16px 16px;
+}
+
+.discoverPage .promoTitle {
+  font-weight: 950;
+  font-size: 16px;
+  letter-spacing: 0.2px;
+  margin-bottom: 6px;
+}
+
+.discoverPage .promoDesc {
+  font-size: 13px;
+  line-height: 1.35;
+  color: rgba(0, 0, 0, 0.62);
+  margin-bottom: 14px;
+}
+
+/* footer */
+.discoverPage .promoFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+/* code pill: nicer + dashed */
+.discoverPage .promoCode {
+  font-weight: 950;
+  font-size: 12px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  background: rgba(223, 143, 59, 0.14);
+  border: 1px dashed rgba(223, 143, 59, 0.45);
+  padding: 7px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+/* CTA link (if you still use it anywhere) */
+.discoverPage .promoCTA {
+  font-weight: 950;
+  color: #df8f3b;
+}
+
+/* claim button: more premium */
+.discoverPage .promoClaimBtn {
+  border: 0;
+  background: #df8f3b;
+  color: #fff;
+  font-weight: 950;
+  padding: 9px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 10px 16px rgba(223, 143, 59, 0.24);
+  transition:
+    transform 120ms ease,
+    filter 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.discoverPage .promoClaimBtn:active {
+  transform: scale(0.98);
+}
+
+@media (hover: hover) {
+  .discoverPage .promoClaimBtn:hover {
+    filter: brightness(1.03);
+    box-shadow: 0 14px 20px rgba(223, 143, 59, 0.28);
+  }
+}
+
+.discoverPage .promoClaimBtn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* mobile tune */
+@media (max-width: 520px) {
+  .discoverPage .promoCard {
+    width: min(400px, 90vw);
+  }
+  .discoverPage .promoImg {
+    height: 140px;
+  }
+}
+/* =========================
+   DISCOVER TOAST (better than alert)
+========================= */
+.dToast {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%) translateY(20px);
+  max-width: min(520px, calc(100vw - 28px));
+  background: rgba(20, 20, 24, 0.92);
+  color: #fff;
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-weight: 900;
+  font-size: 13px;
+  letter-spacing: 0.2px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.22);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+  z-index: 9999;
+}
+
+.dToast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
