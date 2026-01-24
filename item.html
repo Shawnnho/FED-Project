@@ -9,11 +9,17 @@
 
   <body>
     <main class="page itemPage">
-      <div class="itemShell">
-        <button id="closeBtn" class="itemClose" type="button" aria-label="Back">
-          ✕
-        </button>
+      <!-- ✅ Close button moved OUTSIDE the card -->
+      <button
+        id="closeBtn"
+        class="itemClose floating"
+        type="button"
+        aria-label="Back"
+      >
+        ✕
+      </button>
 
+      <div class="itemShell">
         <div class="itemHero">
           <img id="itemImg" alt="Food image" />
         </div>
@@ -45,13 +51,23 @@
         ></textarea>
 
         <div class="qtyRow">
-          <button id="qtyMinus" class="qtyBtn" type="button" aria-label="Decrease">
+          <button
+            id="qtyMinus"
+            class="qtyBtn"
+            type="button"
+            aria-label="Decrease"
+          >
             −
           </button>
 
           <div id="qtyVal" class="qtyVal">1</div>
 
-          <button id="qtyPlus" class="qtyBtn primary" type="button" aria-label="Increase">
+          <button
+            id="qtyPlus"
+            class="qtyBtn primary"
+            type="button"
+            aria-label="Increase"
+          >
             +
           </button>
         </div>
