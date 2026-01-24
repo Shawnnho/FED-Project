@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Hawker Point — Stall Holder Account</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body class="stallHolder">
+    <!-- TOP BAR -->
+    <header class="topbar shTopbar">
+      <div class="topbar-inner shTopbarInner">
+        <a class="brand" href="home.html" aria-label="Hawker Point Home">
+          <img src="images/logo.png" alt="Hawker Point" class="brand-logo" />
+        </a>
+
+        <!-- dynamic -->
+        <div class="shStallTitle" id="stallName">Loading…</div>
+
+        <div class="shTopRight">
+          <button class="shUserBtn" type="button" id="userBtn">
+            <span id="ownerName">…</span>
+            <span class="shMuted">(<span id="role">…</span>)</span>
+            <span class="shCaret">▾</span>
+          </button>
+
+          <button id="logoutBtn" class="pill shLogout" type="button">
+            Logout
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="shPage">
+      <div class="shLayout">
+        <!-- SIDEBAR -->
+        <aside class="shSide">
+          <a class="shNav active" href="stall-account.html">Account</a>
+
+          <a class="shNav" href="stall-orders.html">
+            Order <span class="shBadge" id="orderCount">0</span>
+          </a>
+
+          <a class="shNav" href="stall-menu.html">Menu</a>
+
+          <a class="shNav" href="stall-reviews.html">
+            Review <span class="shBadge" id="reviewCount">0</span>
+          </a>
+
+          <a class="shNav" href="stall-analytics.html">
+            Analytics <span class="shBadge" id="analyticsCount">0</span>
+          </a>
+
+          <a class="shNav" href="stall-hygiene.html">
+            Hygiene <span class="shBadge" id="hygieneCount">0</span>
+          </a>
+
+          <div class="shSideDivider"></div>
+
+          <a class="shNav" href="stall-staff.html">Manage Staff</a>
+        </aside>
+
+        <!-- CONTENT -->
+        <section class="shContent">
+          <div class="shHead">
+            <h1>Account Settings</h1>
+            <p>Manage your stall holder account</p>
+          </div>
+
+          <!-- Profile Information -->
+          <div class="accCard">
+            <div class="accCardTitle">Profile Information</div>
+
+            <div class="shProfileGrid">
+              <img
+                id="avatar"
+                class="accAvatar"
+                src="images/defaultprofile.png"
+                alt="Profile"
+              />
+
+              <div class="shProfileInfo">
+                <div class="shName" id="profileName">—</div>
+
+                <div class="shMetaRows">
+                  <div>
+                    <span class="k">Role:</span>
+                    <span id="role2">—</span>
+                  </div>
+
+                  <div>
+                    <span class="k">Email:</span>
+                    <span id="email">—</span>
+                  </div>
+                </div>
+
+                <div class="shPhone" id="phone">—</div>
+              </div>
+
+              <div class="shBtns">
+                <button
+                  id="editProfileBtn"
+                  class="btn small primary"
+                  type="button"
+                >
+                  Edit Profile
+                </button>
+
+                <button id="changePwBtn" class="btn small ghost" type="button">
+                  Change Password
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stall Information -->
+          <div class="accCard">
+            <div class="accCardTitle">Stall Information</div>
+
+            <div class="shFormRows">
+              <div class="shRow">
+                <span class="k">Stall Name:</span>
+                <span id="stallName2">—</span>
+              </div>
+
+              <div class="shRow">
+                <span class="k">Unit Number:</span>
+                <span id="unitNo">—</span>
+              </div>
+
+              <div class="shRow">
+                <span class="k">Cuisine Type:</span>
+                <span id="cuisine">—</span>
+              </div>
+
+              <div class="shRow">
+                <span class="k">Hygiene Grade:</span>
+                <span id="hygieneGrade" class="shGrade">—</span>
+              </div>
+
+              <div class="shRow">
+                <span class="k">Operating Hours:</span>
+                <span id="operatingHours">—</span>
+              </div>
+
+              <div class="shRowEnd">
+                <button
+                  id="editStallBtn"
+                  class="btn small primary"
+                  type="button"
+                >
+                  Edit Stall Details
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Notification Preference -->
+          <div class="accCard">
+            <div class="accCardTitle">Notification Preference</div>
+
+            <div class="shPrefs">
+              <label class="shCheck">
+                <input id="prefNewOrders" type="checkbox" />
+                <span>New Orders</span>
+              </label>
+
+              <label class="shCheck">
+                <input id="prefOrderUpdates" type="checkbox" />
+                <span>Order Status Updates</span>
+              </label>
+
+              <label class="shCheck">
+                <input id="prefNewReview" type="checkbox" />
+                <span>New Review</span>
+              </label>
+
+              <label class="shCheck">
+                <input id="prefHygiene" type="checkbox" />
+                <span>Hygiene Inspection</span>
+              </label>
+
+              <div class="shPrefsEnd">
+                <button
+                  id="savePrefsBtn"
+                  class="btn small primary"
+                  type="button"
+                >
+                  Save Preference
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Staff -->
+          <div class="accCard">
+            <div class="accCardTitle">Staff Management</div>
+
+            <div class="shStaff">
+              <div>
+                <span class="k">Staff Accounts Linked:</span>
+                <span id="staffCount">—</span>
+              </div>
+
+              <button
+                type="button"
+                class="btn small primary"
+                id="manageStaffBtn"
+              >
+                Manage Staff
+              </button>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="accCard accDanger">
+            <div class="accCardTitle">Account Actions</div>
+
+            <div class="actionsRow">
+              <button id="logoutBtn2" class="btn small ghost" type="button">
+                Logout
+              </button>
+              <button
+                id="deactivateBtn"
+                class="btn small dangerBtn"
+                type="button"
+              >
+                Deactivate Account
+              </button>
+            </div>
+
+            <p class="shDangerNote">
+              (Optional) You can wire deactivate later. For now, keep it as UI
+              only.
+            </p>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <script type="module" src="stall-account.js"></script>
+  </body>
+</html>
