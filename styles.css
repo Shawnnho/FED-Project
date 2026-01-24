@@ -4174,3 +4174,213 @@ select,
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }
+
+/* =========================================
+   CART PAGE — Reuse menuPage / menuCard UI
+========================================= */
+
+.page.cartPage {
+  display: block;
+  min-height: 100vh;
+  background: #fbf3e6;
+  padding: 18px 0 110px; /* space for sticky cartBar */
+}
+
+/* small subtext under title */
+.cartSub {
+  width: 100%;
+  max-width: 640px;
+  margin: 4px auto 0;
+  font-weight: 800;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 13px;
+}
+
+/* top buttons row */
+.cartTopBtns {
+  width: 100%;
+  max-width: 640px;
+  margin: 10px auto 0;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.cartDangerBtn {
+  background: #ff2a2a !important;
+  color: #fff !important;
+}
+
+/* cart item tweaks (still uses your .menuCard base) */
+.cartCard {
+  max-width: 640px;
+}
+
+/* right column: qty controls */
+.cartQtyWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-direction: column;
+}
+
+.cartQtyBtn {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  background: #f0b08a;
+  color: #111;
+  font-size: 24px;
+  font-weight: 900;
+  display: grid;
+  place-items: center;
+}
+
+.cartQtyBtn:hover {
+  filter: brightness(0.95);
+}
+
+.cartQtyNum {
+  font-weight: 900;
+  font-size: 16px;
+  background: rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  padding: 6px 10px;
+  min-width: 38px;
+  text-align: center;
+}
+
+.cartRemoveBtn {
+  border: none;
+  cursor: pointer;
+  font-weight: 900;
+  font-size: 12px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(255, 42, 42, 0.12);
+  color: #ff2a2a;
+}
+
+.cartMeta {
+  margin-top: 4px;
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.cartMetaLine strong {
+  color: rgba(0, 0, 0, 0.8);
+}
+
+/* summary */
+.cartSummary {
+  width: min(640px, 92vw);
+  margin: 14px auto 0;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.cartSumRow {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 900;
+  padding: 10px 4px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+.cartSumRow:last-child {
+  border-bottom: none;
+}
+
+.cartSumTotal {
+  font-size: 18px;
+}
+
+.cartCheckoutBtn {
+  width: 100%;
+  height: 52px;
+  margin-top: 12px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 900;
+  font-size: 16px;
+  background: #df8f3b;
+  color: #fff;
+}
+.cartCheckoutBtn:hover {
+  filter: brightness(0.96);
+}
+
+/* empty */
+.cartEmpty {
+  width: min(640px, 92vw);
+  margin: 18px auto 0;
+  text-align: center;
+  padding: 26px 16px;
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 14px;
+}
+.cartEmptyIcon {
+  font-size: 42px;
+}
+.cartEmptyTitle {
+  font-weight: 900;
+  font-size: 18px;
+  margin-top: 6px;
+}
+.cartEmptyDesc {
+  font-weight: 800;
+  color: rgba(0, 0, 0, 0.6);
+  margin: 6px 0 14px;
+}
+
+/* mobile: keep your menuCard grid but slightly tighter */
+@media (max-width: 520px) {
+  .cartQtyBtn {
+    width: 40px;
+    height: 40px;
+    font-size: 22px;
+  }
+}
+/* Cart pill badge like your screenshot */
+.cartPill {
+  position: relative;
+  padding-right: 34px; /* space so badge doesn't overlap text */
+}
+
+.cartBadge {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 10px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #e53935; /* red */
+  color: #fff;
+  font-weight: 900;
+  font-size: 16px;
+  line-height: 1;
+
+  border-radius: 999px;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18);
+}
+
+/* Hide badge when 0 */
+.cartBadge.isZero {
+  display: none !important;
+}

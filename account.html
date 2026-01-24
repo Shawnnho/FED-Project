@@ -21,6 +21,10 @@
           <a class="pill" href="orders.html">Orders</a>
           <a class="pill" href="feedback.html">Feedback</a>
           <a class="pill" href="hygiene.html">Hygiene</a>
+          <a class="pill cartPill" href="cart.html">
+            Cart <span id="cartCount" class="cartBadge isZero">0</span>
+          </a>
+
           <a class="pill account" href="account.html">
             Account
             <span class="notif" id="notifCount" hidden></span>
@@ -46,6 +50,11 @@
         <a class="mLink" href="orders.html">Orders</a>
         <a class="mLink" href="feedback.html">Feedback</a>
         <a class="mLink" href="hygiene.html">Hygiene</a>
+        <a class="mLink" href="cart.html">
+  Cart <span id="cartCountMobile" class="cartBadge isZero">0</span>
+</a>
+
+
         <a class="mLink active" href="account.html">
           Account <span class="mNotif" id="mNotifCount" hidden></span>
         </a>
@@ -232,6 +241,8 @@
         educational purposes only.
       </p>
     </footer>
+
+    <script type="module" src="cart-badge.js"></script>
 
     <script type="module" src="account.js"></script>
     <script type="module" src="menu.js"></script>

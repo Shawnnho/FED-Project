@@ -99,17 +99,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
-      // Not logged in = guest
       setRestrictedLinksVisible(false);
       return;
     }
 
     const role = await getRole(user.uid);
-
-    if (role === "guest") {
-      setRestrictedLinksVisible(false);
-    } else {
-      setRestrictedLinksVisible(true);
-    }
+    setRestrictedLinksVisible(role !== "guest");
   });
 });

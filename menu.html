@@ -24,6 +24,12 @@
           <a class="pill" href="orders.html">Orders</a>
           <a class="pill" href="feedback.html">Feedback</a>
           <a class="pill" href="hygiene.html">Hygiene</a>
+
+          <a class="pill cartPill" href="cart.html">
+  Cart <span id="cartCount" class="cartBadge isZero">0</span>
+</a>
+
+
           <a class="pill account" href="account.html">Account</a>
         </nav>
 
@@ -45,6 +51,12 @@
         <a class="mLink" href="orders.html">Orders</a>
         <a class="mLink" href="feedback.html">Feedback</a>
         <a class="mLink" href="hygiene.html">Hygiene</a>
+
+        <a class="mLink" href="cart.html">
+  Cart <span id="cartCountMobile" class="cartBadge isZero">0</span>
+</a>
+
+
         <a class="mLink" href="account.html">Account</a>
       </nav>
     </header>
@@ -75,21 +87,19 @@
           class="menuList"
           aria-label="Menu items"
         ></section>
-
-        <footer class="cartBar" aria-label="Cart summary">
-          <div>Cart : <span id="cartCount">0</span> Item</div>
-          <div>$<span id="cartTotal">0.00</span></div>
-        </footer>
       </div>
-      
     </main>
-    <footer class="site-footer">
-          <p>
-            &copy; 2026 Hawker Point. All rights reserved. This project is for
-            educational purposes only.
-          </p>
-        </footer>
 
+    <footer class="site-footer">
+      <p>
+        &copy; 2026 Hawker Point. All rights reserved. This project is for
+        educational purposes only.
+      </p>
+    </footer>
+
+    <script type="module" src="menu.js"></script>
+
+    <!-- Your menu rendering -->
     <script src="stallmenu.js" defer></script>
   </body>
 </html>

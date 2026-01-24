@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Hawker Point — Orders</title>
+    <title>Hawker Point — Cart</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
 
@@ -17,12 +17,10 @@
         <!-- Desktop nav (same as your current) -->
         <nav class="nav" aria-label="Primary navigation">
           <a class="pill active" href="home.html">Home</a>
-          <a class="pill" href="promotions.html" id="navPromotions"
-            >Promotions</a
-          >
+          <a class="pill" href="promotions.html">Promotions</a>
           <a class="pill" href="orders.html">Orders</a>
           <a class="pill" href="feedback.html">Feedback</a>
-          <a class="pill" href="hygiene.html" id="navHygiene">Hygiene</a>
+          <a class="pill" href="hygiene.html">Hygiene</a>
           <a class="pill cartPill" href="cart.html">
             Cart <span id="cartCount" class="cartBadge isZero">0</span>
           </a>
@@ -48,33 +46,56 @@
       <div id="navBackdrop" class="navBackdrop"></div>
       <nav id="navMobile" class="navMobile" aria-label="Mobile navigation">
         <a class="mLink" href="home.html">Home</a>
-        <a class="mLink" href="promotions.html" id="mNavPromotions"
-          >Promotions</a
-        >
+        <a class="mLink" href="promotions.html">Promotions</a>
         <a class="mLink" href="orders.html">Orders</a>
         <a class="mLink" href="feedback.html">Feedback</a>
-        <a class="mLink" href="hygiene.html" id="mNavHygiene">Hygiene</a>
+        <a class="mLink" href="hygiene.html">Hygiene</a>
         <a class="mLink" href="cart.html">
           Cart <span id="cartCountMobile" class="cartBadge isZero">0</span>
         </a>
 
-        <a class="mLink" href="account.html">
+        <a class="mLink active" href="account.html">
           Account <span class="mNotif" id="mNotifCount" hidden></span>
         </a>
       </nav>
     </header>
 
-    <main></main>
+    <main class="page cartPage">
+      <div class="listHeader">
+        <h2>Your Cart</h2>
+        <p class="cartSub" id="cartSub">0 items</p>
+      </div>
 
-    <footer class="site-footer">
-      <p>
-        &copy; 2026 Hawker Point. All rights reserved. This project is for
-        educational purposes only.
-      </p>
-    </footer>
+      <section class="list" id="cartList"></section>
 
-    <script type="module" src="cart-badge.js"></script>
+      <section class="cartSummary" id="cartSummary">
+        <div class="cartSumRow">
+          <span>Subtotal</span>
+          <span>$<span id="sumSubtotal">0.00</span></span>
+        </div>
+        <div class="cartSumRow">
+          <span>Delivery</span>
+          <span>$<span id="sumDelivery">0.00</span></span>
+        </div>
+        <div class="cartSumRow cartSumTotal">
+          <span>Total</span>
+          <span>$<span id="sumTotal">0.00</span></span>
+        </div>
+
+        <button id="checkoutBtn" class="cartCheckoutBtn" type="button">
+          Checkout
+        </button>
+      </section>
+
+      <section class="cartEmpty" id="cartEmpty" hidden>
+        <div class="cartEmptyIcon">🛒</div>
+        <div class="cartEmptyTitle">Your cart is empty</div>
+        <div class="cartEmptyDesc">Add some items from a stall menu.</div>
+        <a class="resetBtn" href="home.html">Browse stalls</a>
+      </section>
+    </main>
+
     <script type="module" src="menu.js"></script>
-    <script src="home.js"></script>
+    <script type="module" src="cart.js"></script>
   </body>
 </html>

@@ -27,6 +27,10 @@
             >Feedback</a
           >
           <a class="pill" href="hygiene.html" id="navHygiene">Hygiene</a>
+          <a class="pill cartPill" href="cart.html">
+            Cart <span id="cartCount" class="cartBadge isZero">0</span>
+          </a>
+
           <a class="pill account" href="account.html">Account</a>
         </nav>
 
@@ -55,6 +59,10 @@
           >Feedback</a
         >
         <a class="mLink" href="hygiene.html" id="mNavHygiene">Hygiene</a>
+        <a class="mLink" href="cart.html">
+          Cart <span id="cartCountMobile" class="cartBadge isZero">0</span>
+        </a>
+
         <a class="mLink" href="account.html">
           Account <span class="mNotif" id="mNotifCount" hidden></span>
         </a>
@@ -131,6 +139,7 @@
       />
     </div>
 
+    <script type="module" src="cart-badge.js"></script>
     <script type="module" src="feedback_history.js"></script>
     <script type="module" src="menu.js"></script>
   </body>
