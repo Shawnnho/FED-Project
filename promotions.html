@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Hawker Point — Promotions</title>
+
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- ================= HEADER ================= -->
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="home.html" aria-label="Hawker Point Home">
+          <img src="images/logo.png" alt="Hawker Point" class="brand-logo" />
+        </a>
+
+        <nav class="nav" aria-label="Primary navigation">
+          <a class="pill" href="home.html">Home</a>
+          <a class="pill" href="promotions.html">Promotions</a>
+          <a class="pill" href="orders.html">Orders</a>
+          <a class="pill" href="feedback.html">Feedback</a>
+          <a class="pill" href="hygiene.html">Hygiene</a>
+          <a class="pill account" href="account.html">Account</a>
+        </nav>
+
+        <button
+          id="menuBtn"
+          class="menuBtn"
+          type="button"
+          aria-label="Open menu"
+          aria-expanded="false"
+        >
+          ☰
+        </button>
+      </div>
+
+      <div id="navBackdrop" class="navBackdrop"></div>
+      <nav id="navMobile" class="navMobile" aria-label="Mobile navigation">
+        <a class="mLink" href="home.html">Home</a>
+        <a class="mLink active" href="promotions.html">Promotions</a>
+        <a class="mLink" href="orders.html">Orders</a>
+        <a class="mLink" href="feedback.html">Feedback</a>
+        <a class="mLink" href="hygiene.html">Hygiene</a>
+        <a class="mLink" href="account.html">Account</a>
+      </nav>
+    </header>
+
+    <main class="page home promoPage">
+      <!-- Search + filters (reusing your Home classes) -->
+      <section class="searchWrap">
+        <div class="searchBar">
+          <span class="searchIcon">🔎</span>
+          <input
+            id="promoSearch"
+            type="text"
+            placeholder="Search promo codes..."
+          />
+        </div>
+
+        <div class="filters">
+          <select id="typeFilter">
+            <option value="all">Type</option>
+            <option value="cash">$ Off</option>
+            <option value="percent">% Off</option>
+            <option value="freebie">Freebie</option>
+          </select>
+
+          <select id="statusFilter">
+            <option value="all">Status</option>
+            <option value="active">Active</option>
+            <option value="expiring">Expiring Soon</option>
+          </select>
+
+          <select id="sortFilter">
+            <option value="popular">Sort: Popular</option>
+            <option value="expSoon">Sort: Expiring</option>
+            <option value="best">Sort: Best Value</option>
+          </select>
+        </div>
+      </section>
+
+      <section class="listHeader">
+        <h2>Promotions & Promo Codes</h2>
+        <p id="promoSub">Showing promo codes • Sorted by Popular</p>
+      </section>
+
+      <section class="list" id="promoList"></section>
+
+      <!-- Redeem bar -->
+      <section class="promoRedeemWrap">
+        <div class="promoRedeemCard">
+          <div class="promoRedeemLeft">
+            <h3>Have a promo code?</h3>
+            <p>Enter it here — we’ll save it for checkout.</p>
+          </div>
+
+          <div class="promoRedeemRight">
+            <input
+              id="redeemInput"
+              class="promoRedeemInput"
+              placeholder="Enter promo code"
+            />
+            <button id="redeemBtn" class="viewBtn promoRedeemBtn">
+              Redeem <span class="arrow">›</span>
+            </button>
+          </div>
+
+          <p id="redeemMsg" class="promoRedeemMsg" aria-live="polite"></p>
+        </div>
+      </section>
+
+      <!-- Toast -->
+      <div id="promoToast" class="promoToast" aria-live="polite"></div>
+    </main>
+
+    <footer class="site-footer">
+      <p>
+        &copy; 2026 Hawker Point. All rights reserved. This project is for
+        educational purposes only.
+      </p>
+    </footer>
+
+    <script type="module" src="promotions.js"></script>
+    <script type="module" src="menu.js"></script>
+  </body>
+</html>

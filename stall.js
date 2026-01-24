@@ -16,6 +16,7 @@ import {
   setDoc,
   arrayUnion,
   arrayRemove,
+  onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* ✅ SAME config as your other pages */
@@ -111,22 +112,22 @@ const stalls = [
     desc: "Hearty Western favourites served hot in flavour, from juicy grilled meats to comforting sides.",
     img: "images/stalls/fatbuddies.png",
   },
+  
   {
-  id: "kopi-fellas",
-  name: "Kopi Fellas",
-  cuisine: "Beverages",
-  grade: "A",
-  prepMin: 1,
-  prepMax: 3,
-  popular: true,
-  openTime: "6:30 AM",
-  closeTime: "6:00 PM",
-  unit: "#01-45",
-  location: "Maxwell Food Centre",
-  desc: "Traditional kopi and teh brewed the old-school way, serving local favourites like Kopi O, Kopi C, Teh Peng, and Yuan Yang.",
-  img: "images/stalls/kopifellas.jpg",
+    id: "kopi-fellas",
+    name: "Kopi Fellas",
+    cuisine: "Beverages",
+    grade: "A",
+    prepMin: 1,
+    prepMax: 3,
+    popular: true,
+    openTime: "8:00 AM",
+    closeTime: "5:30 PM",
+    unit: "#01-07",
+    location: "Ayer Rajah Crescent",
+    desc: "Traditional kopi and teh brewed the old-school way, serving local favourites like Kopi O, Kopi C, Teh Peng, and Yuan Yang.",
+    img: "images/kopifellas-hero.jpg",
   },
-
 ];
 
 // =========================
@@ -172,6 +173,24 @@ gradeEl.classList.add(
 );
 
 descEl.textContent = stall.desc;
+
+// =========================
+// ⭐ LIVE RATING FROM FIRESTORE
+// =========================
+const stallRef = doc(db, "stalls", stall.id);
+
+onSnapshot(stallRef, (snap) => {
+  const d = snap.exists() ? snap.data() : {};
+  const total = Number(d.ratingTotal || 0);
+  const count = Number(d.ratingCount || 0);
+  const avg = count ? total / count : 0;
+
+  if (avgText) avgText.textContent = avg.toFixed(1);
+  if (countText) countText.textContent = `(${count})`;
+
+  const pct = Math.max(0, Math.min(100, (avg / 5) * 100));
+  if (starFill) starFill.style.width = pct + "%";
+});
 
 // Top meta line
 metaEl.textContent = `Open: ${stall.openTime} - ${stall.closeTime} > Unit ${stall.unit}`;

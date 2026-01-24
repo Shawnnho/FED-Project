@@ -1,14 +1,59 @@
 /**************************************
- * menu.js
- * Shared mobile hamburger navigation
+ * menu.js (Auth + Role based nav)
+ * - Hides Promotions/Hygiene for guests
+ * - Shows for logged-in non-guest users
  **************************************/
 
-document.addEventListener("DOMContentLoaded", () => {
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+/* ✅ SAME config as your other files */
+const firebaseConfig = {
+  apiKey: "AIzaSyC-NTWADB-t1OGl7NbdyMVXjpVjnqjpTXg",
+  authDomain: "fedproject-8d254.firebaseapp.com",
+  projectId: "fedproject-8d254",
+  storageBucket: "fedproject-8d254.firebasestorage.app",
+  messagingSenderId: "477538553634",
+  appId: "1:477538553634:web:a14b93bbd93d33b9281f7b",
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+/* Hide / show any link pointing to restricted pages (works for pills + hamburger) */
+function setRestrictedLinksVisible(visible) {
+  const selectors = ['a[href$="promotions.html"]', 'a[href$="hygiene.html"]'];
+  document.querySelectorAll(selectors.join(",")).forEach((a) => {
+    a.style.display = visible ? "" : "none";
+  });
+}
+
+/* Active link highlight */
+function markActiveLinks() {
+  const current = (
+    window.location.pathname.split("/").pop() || "home.html"
+  ).toLowerCase();
+  document.querySelectorAll(".nav a.pill, #navMobile a.mLink").forEach((a) => {
+    const href = (a.getAttribute("href") || "").split("?")[0].toLowerCase();
+    a.classList.toggle("active", href === current);
+  });
+}
+
+/* Hamburger wiring */
+function wireHamburger() {
   const menuBtn = document.getElementById("menuBtn");
   const navMobile = document.getElementById("navMobile");
   const navBackdrop = document.getElementById("navBackdrop");
 
-  // safety check (prevents errors on pages without the menu)
   if (!menuBtn || !navMobile || !navBackdrop) return;
 
   function openMenu() {
@@ -26,26 +71,45 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   menuBtn.addEventListener("click", () => {
-    const isOpen = navMobile.classList.contains("open");
-    isOpen ? closeMenu() : openMenu();
+    navMobile.classList.contains("open") ? closeMenu() : openMenu();
   });
 
   navBackdrop.addEventListener("click", closeMenu);
+  navMobile
+    .querySelectorAll("a")
+    .forEach((link) => link.addEventListener("click", closeMenu));
+  document.addEventListener(
+    "keydown",
+    (e) => e.key === "Escape" && closeMenu(),
+  );
+}
 
-  // close menu when clicking a link
-  navMobile.querySelectorAll("a").forEach((link) => {
-    link.addEventListener("click", closeMenu);
+async function getRole(uid) {
+  try {
+    const snap = await getDoc(doc(db, "users", uid));
+    return snap.exists() ? snap.data().role || "customer" : "customer";
+  } catch {
+    return "customer";
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  wireHamburger();
+  markActiveLinks();
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      // Not logged in = guest
+      setRestrictedLinksVisible(false);
+      return;
+    }
+
+    const role = await getRole(user.uid);
+
+    if (role === "guest") {
+      setRestrictedLinksVisible(false);
+    } else {
+      setRestrictedLinksVisible(true);
+    }
   });
-
-  // ESC key closes menu
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closeMenu();
-  });
-});
-// Auto set ACTIVE link based on current filename
-const current = window.location.pathname.split("/").pop() || "home.html";
-
-document.querySelectorAll(".nav a.pill, #navMobile a.mLink").forEach((a) => {
-  const href = (a.getAttribute("href") || "").split("?")[0];
-  a.classList.toggle("active", href === current);
 });

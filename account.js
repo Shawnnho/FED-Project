@@ -6,6 +6,13 @@
  * - ✅ Preferences (load + save)
  *************************************************/
 
+import {
+  getStorage,
+  ref as sRef,
+  uploadBytes,
+  getDownloadURL,
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getAuth,
@@ -25,6 +32,11 @@ import {
   getDoc,
   setDoc,
   serverTimestamp,
+  collection,
+  getDocs,
+  query,
+  where,
+  updateDoc,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* ✅ Use SAME config as signup/login */
@@ -40,6 +52,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
 /* =========================
    DOM
@@ -56,6 +69,9 @@ const logoutBtn = document.getElementById("logoutBtn");
 const deactivateBtn = document.getElementById("deactivateBtn");
 const accStatus = document.getElementById("accStatus");
 
+const redeemedVoucherCount = document.getElementById("redeemedVoucherCount");
+const viewVouchersBtn = document.getElementById("viewVouchersBtn");
+
 // optional badges
 const notifCount = document.getElementById("notifCount");
 const mNotifCount = document.getElementById("mNotifCount");
@@ -64,6 +80,11 @@ const mNotifCount = document.getElementById("mNotifCount");
 const prefCuisineEls = Array.from(document.querySelectorAll(".prefCuisine"));
 const prefNotifEls = Array.from(document.querySelectorAll(".prefNotif"));
 const savePrefBtn = document.getElementById("savePrefBtn");
+
+const voucherModal = document.getElementById("voucherModal");
+const voucherModalList = document.getElementById("voucherModalList");
+const voucherModalSub = document.getElementById("voucherModalSub");
+const closeVoucherModal = document.getElementById("closeVoucherModal");
 
 /* =========================
    Helpers
@@ -218,6 +239,108 @@ function openModal({ title, bodyHtml, primaryText = "Save", onPrimary }) {
   return { overlay, close };
 }
 
+async function updateRedeemedCount(uid) {
+  if (!redeemedVoucherCount) return;
+
+  const q = query(
+    collection(db, "users", uid, "vouchers"),
+    where("used", "==", true),
+  );
+
+  const snap = await getDocs(q);
+  redeemedVoucherCount.textContent = snap.size;
+}
+
+function openVoucherModal() {
+  if (!voucherModal) return;
+  voucherModal.classList.add("isOpen");
+  voucherModal.setAttribute("aria-hidden", "false");
+}
+
+function closeVoucherModalFn() {
+  if (!voucherModal) return;
+  voucherModal.classList.remove("isOpen");
+  voucherModal.setAttribute("aria-hidden", "true");
+}
+
+function tsToMillis(ts) {
+  if (!ts) return 0;
+  if (typeof ts.toMillis === "function") return ts.toMillis();
+  if (typeof ts === "number") return ts;
+  return 0;
+}
+
+function isExpiredVoucher(v) {
+  const exp = tsToMillis(v.expiresAt);
+  return exp > 0 && Date.now() > exp;
+}
+
+function expiryText(v) {
+  const exp = tsToMillis(v.expiresAt);
+  if (!exp) return "No expiry";
+  const days = Math.ceil((exp - Date.now()) / (24 * 60 * 60 * 1000));
+  if (days <= 0) return "Expired";
+  if (days === 1) return "Expires in 1 day";
+  return `Expires in ${days} days`;
+}
+
+async function loadUserVouchers(uid) {
+  const snap = await getDocs(collection(db, "users", uid, "vouchers"));
+  return snap.docs.map((d) => ({ ...d.data(), docId: d.id }));
+}
+
+async function markVoucherUsed(uid, docId) {
+  await updateDoc(doc(db, "users", uid, "vouchers", docId), {
+    used: true,
+    usedAt: serverTimestamp(),
+  });
+}
+
+function renderVoucherModal(vouchers) {
+  if (!voucherModalList) return;
+
+  if (!vouchers.length) {
+    voucherModalList.innerHTML = `
+      <div class="emptyState">
+        <h2 class="emptyTitle">No vouchers claimed</h2>
+        <p style="margin:8px 0 0; font-weight:800; opacity:.75;">Go to Promotions to claim vouchers.</p>
+      </div>
+    `;
+    return;
+  }
+
+  voucherModalList.innerHTML = vouchers
+    .map((v) => {
+      const disabled = v.used === true || isExpiredVoucher(v);
+      const status =
+        v.used === true
+          ? "✅ Used"
+          : isExpiredVoucher(v)
+            ? "❌ Expired"
+            : "✅ Active";
+
+      return `
+      <div class="hpVoucherRow">
+        <div class="hpVoucherLeft">
+          <div class="code">${v.code}</div>
+          <div class="meta">${status} • ${expiryText(v)}</div>
+        </div>
+
+        <div class="hpVoucherRight">
+          <button
+            class="btn small primary"
+            data-apply-voucher="${v.docId}"
+            data-code="${v.code}"
+            ${disabled ? "disabled" : ""}>
+            ${disabled ? (v.used ? "Used" : "Expired") : "Apply"}
+          </button>
+        </div>
+      </div>
+    `;
+    })
+    .join("");
+}
+
 /* =========================
    Auth gate + wiring
 ========================= */
@@ -244,6 +367,74 @@ onAuthStateChanged(auth, async (user) => {
 
       return;
     }
+    // =========================
+    // ✅ VOUCHERS (Popup + Firestore)
+    // =========================
+    await updateRedeemedCount(user.uid);
+
+    // Open voucher popup
+    viewVouchersBtn?.addEventListener("click", async () => {
+      openVoucherModal();
+
+      voucherModalSub.textContent = "Loading…";
+      voucherModalList.innerHTML = "";
+
+      try {
+        const vouchers = await loadUserVouchers(user.uid);
+
+        const active = vouchers.filter(
+          (v) => v.used !== true && !isExpiredVoucher(v),
+        ).length;
+        const used = vouchers.filter((v) => v.used === true).length;
+
+        voucherModalSub.textContent = `Active: ${active} • Used: ${used} • Total: ${vouchers.length}`;
+
+        renderVoucherModal(vouchers);
+      } catch (err) {
+        console.error("loadUserVouchers failed:", err);
+        voucherModalSub.textContent =
+          "❌ Failed to load vouchers (check Firestore rules).";
+        voucherModalList.innerHTML = `
+      <div class="emptyState">
+        <h2 class="emptyTitle">Unable to load vouchers</h2>
+        <p style="margin:8px 0 0; font-weight:800; opacity:.75;">
+          Open DevTools Console to see the error.
+        </p>
+      </div>
+    `;
+      }
+    });
+
+    // Close popup (button)
+    closeVoucherModal?.addEventListener("click", closeVoucherModalFn);
+
+    // Close popup (backdrop click)
+    voucherModal?.addEventListener("click", (e) => {
+      if (e.target.matches("[data-close]")) {
+        closeVoucherModalFn();
+      }
+    });
+
+    // Apply voucher inside popup
+    voucherModalList?.addEventListener("click", async (e) => {
+      const btn = e.target.closest("[data-apply-voucher]");
+      if (!btn || btn.disabled) return;
+
+      const docId = btn.dataset.applyVoucher;
+      const code = btn.dataset.code;
+
+      // Save for checkout
+      localStorage.setItem("hawkerpoint_applied_promo", code);
+      localStorage.setItem("hawkerpoint_applied_voucher_docid", docId);
+
+      // Mark used in Firestore
+      await markVoucherUsed(user.uid, docId);
+
+      // Refresh UI
+      const vouchers = await loadUserVouchers(user.uid);
+      renderVoucherModal(vouchers);
+      await updateRedeemedCount(user.uid);
+    });
 
     // UI populate
     accName.textContent = data?.name || user.displayName || "—";
@@ -262,10 +453,11 @@ onAuthStateChanged(auth, async (user) => {
     const favs = Array.isArray(data?.favourites) ? data.favourites : [];
     if (savedStoresEl) savedStoresEl.textContent = favs.length;
 
-    // avatar
+    // avatar (account-based)
     if (accAvatar) {
-      const savedAvatar = localStorage.getItem("hp_avatar");
-      accAvatar.src = savedAvatar || "images/defaultprofile.png";
+      const avatarUrl =
+        data?.avatarUrl || user.photoURL || "images/defaultprofile.png";
+      accAvatar.src = avatarUrl;
     }
 
     if (data?.deactivated) {
@@ -329,19 +521,23 @@ onAuthStateChanged(auth, async (user) => {
         primaryText: "Save",
         bodyHtml: `
       <div class="hpModalRow">
-        <label class="hpModalLabel">Profile Picture</label>
+  <div class="hpModalLabel">Profile Picture</div>
 
-        <div style="display:flex;gap:12px;align-items:center;">
-          <img
-            id="mAvatarPreview"
-            src="${localStorage.getItem("hp_avatar") || accAvatar.src}"
-            style="width:64px;height:64px;border-radius:50%;object-fit:cover;"
-          />
-          <input id="mAvatar" type="file" accept="image/*" />
-        </div>
+  <div class="hpAvatarStack">
+    <img
+      id="mAvatarPreview"
+      class="hpAvatarPreview"
+      src="${accAvatar?.src || "images/defaultprofile.png"}"
+      alt="Profile picture preview"
+    />
 
-        <div class="hpModalHint">Saved only on this device.</div>
-      </div>
+    <div class="hpAvatarControls">
+      <input id="mAvatar" type="file" accept="image/*" />
+      <div class="hpModalHint">Saved to your account.</div>
+    </div>
+  </div>
+</div>
+
 
       <div class="hpModalRow">
         <label class="hpModalLabel">Name</label>
@@ -363,12 +559,56 @@ onAuthStateChanged(auth, async (user) => {
 
       <div class="hpModalErr" style="color:#b00020;font-weight:700;"></div>
     `,
+
         onPrimary: async ({ overlay, close }) => {
-          const newName = overlay.querySelector("#mName").value.trim();
-          const newEmail = overlay.querySelector("#mEmail").value.trim();
-          const newPhone = overlay.querySelector("#mPhone").value.trim();
-          const avatarFile = overlay.querySelector("#mAvatar").files?.[0];
+          const nameEl = overlay.querySelector("#mName");
+          const emailEl = overlay.querySelector("#mEmail");
+          const phoneEl = overlay.querySelector("#mPhone");
           const err = overlay.querySelector(".hpModalErr");
+
+          if (!nameEl || !emailEl || !phoneEl) {
+            console.log("Missing modal inputs:", {
+              nameElExists: !!nameEl,
+              emailElExists: !!emailEl,
+              phoneElExists: !!phoneEl,
+            });
+            if (err)
+              err.textContent =
+                "Modal inputs missing (check IDs in modal HTML).";
+            return;
+          }
+
+          const newName = nameEl.value.trim();
+          const newEmail = emailEl.value.trim();
+          const newPhone = phoneEl.value.trim();
+          const avatarFile = overlay.querySelector("#mAvatar")?.files?.[0];
+
+          let avatarUrlToSave = null;
+
+          if (avatarFile) {
+            // optional size limit: 5MB
+            if (avatarFile.size > 5 * 1024 * 1024) {
+              err.textContent = "Image too large (max 5MB).";
+              return;
+            }
+
+            const ext = (
+              avatarFile.name.split(".").pop() || "jpg"
+            ).toLowerCase();
+            const avatarRef = sRef(
+              storage,
+              `avatars/${user.uid}/avatar.${ext}`,
+            );
+
+            await uploadBytes(avatarRef, avatarFile, {
+              contentType: avatarFile.type || "image/jpeg",
+            });
+
+            avatarUrlToSave = await getDownloadURL(avatarRef);
+
+            // update UI immediately
+            if (accAvatar) accAvatar.src = avatarUrlToSave;
+          }
 
           if (!newName) {
             err.textContent = "Name cannot be empty.";
@@ -409,16 +649,10 @@ onAuthStateChanged(auth, async (user) => {
             return;
           }
 
-          if (avatarFile) {
-            const reader = new FileReader();
-            reader.onload = () => {
-              localStorage.setItem("hp_avatar", reader.result);
-              accAvatar.src = reader.result;
-            };
-            reader.readAsDataURL(avatarFile);
-          }
-
-          await updateProfile(user, { displayName: newName });
+          await updateProfile(user, {
+            displayName: newName,
+            ...(avatarUrlToSave ? { photoURL: avatarUrlToSave } : {}),
+          });
 
           await setDoc(
             doc(db, "users", user.uid),
@@ -427,6 +661,9 @@ onAuthStateChanged(auth, async (user) => {
               phone: newPhone,
               email: newEmail || user.email || "",
               updatedAt: serverTimestamp(),
+
+              // ✅ ONLY save avatar if user uploaded one
+              ...(avatarUrlToSave ? { avatarUrl: avatarUrlToSave } : {}),
             },
             { merge: true },
           );
@@ -442,11 +679,16 @@ onAuthStateChanged(auth, async (user) => {
       const fileInput = overlay.querySelector("#mAvatar");
       const previewImg = overlay.querySelector("#mAvatarPreview");
 
-      fileInput.addEventListener("change", () => {
-        const file = fileInput.files?.[0];
-        if (!file) return;
-        previewImg.src = URL.createObjectURL(file);
-      });
+      if (fileInput && previewImg) {
+        fileInput.addEventListener("change", () => {
+          const file = fileInput.files?.[0];
+          if (!file) return;
+
+          const url = URL.createObjectURL(file);
+          previewImg.src = url;
+          previewImg.onload = () => URL.revokeObjectURL(url);
+        });
+      }
     });
 
     // Change password (email reset)
@@ -481,19 +723,101 @@ onAuthStateChanged(auth, async (user) => {
     });
 
     // Deactivate
-    deactivateBtn?.addEventListener("click", async () => {
-      const sure = confirm(
-        "Deactivate account? (This will mark your account as deactivated.)",
+    deactivateBtn?.addEventListener("click", () => {
+      // Only allow for email/password accounts
+      const isPasswordUser = user.providerData.some(
+        (p) => p.providerId === "password",
       );
-      if (!sure) return;
+      if (!isPasswordUser) {
+        setStatus("❌ Deactivation requires an Email/Password account.", false);
+        return;
+      }
 
-      await setDoc(
-        doc(db, "users", user.uid),
-        { deactivated: true, deactivatedAt: serverTimestamp() },
-        { merge: true },
-      );
+      const { overlay, close } = openModal({
+        title: "Deactivate Account",
+        primaryText: "Deactivate",
+        bodyHtml: `
+      <p style="margin:0 0 10px; font-weight:800;">
+        This will disable your account and log you out.
+      </p>
+      <p style="margin:0 0 14px; opacity:.85;">
+        For security, please enter your password to confirm.
+      </p>
 
-      setStatus("✅ Account marked as deactivated.");
+      <div class="hpModalRow">
+        <label class="hpModalLabel">Password</label>
+        <input id="mDeactPw" class="hpModalInput" type="password" placeholder="Enter password" />
+      </div>
+
+      <div class="hpModalErr" style="color:#b00020;font-weight:700;"></div>
+    `,
+        onPrimary: async ({ close }) => {
+          const pwEl = overlay.querySelector("#mDeactPw");
+          const errEl = overlay.querySelector(".hpModalErr");
+
+          const password = (pwEl?.value || "").trim();
+          if (!password) {
+            errEl.textContent = "Password is required.";
+            return;
+          }
+
+          try {
+            // ✅ Re-authenticate
+            const cred = EmailAuthProvider.credential(user.email, password);
+            await reauthenticateWithCredential(user, cred);
+
+            // ✅ Mark deactivated in Firestore
+            await setDoc(
+              doc(db, "users", user.uid),
+              { deactivated: true, deactivatedAt: serverTimestamp() },
+              { merge: true },
+            );
+
+            setStatus("✅ Account deactivated. Logging you out…");
+
+            // ✅ Log out and redirect
+            setTimeout(async () => {
+              try {
+                await signOut(auth);
+              } finally {
+                window.location.href = "index.html";
+              }
+            }, 900);
+
+            close();
+          } catch (e) {
+            console.error(e);
+
+            // Friendly errors
+            if (
+              e.code === "auth/wrong-password" ||
+              e.code === "auth/invalid-credential"
+            ) {
+              errEl.textContent = "Incorrect password.";
+              return;
+            }
+            if (e.code === "auth/too-many-requests") {
+              errEl.textContent = "Too many attempts. Try again later.";
+              return;
+            }
+            if (e.code === "auth/requires-recent-login") {
+              errEl.textContent = "Please log out and log in again, then try.";
+              return;
+            }
+
+            errEl.textContent =
+              `${e.code || ""} ${e.message || ""}`.trim() ||
+              "Failed to deactivate.";
+          }
+        },
+      });
+
+      // Enter key submits
+      overlay.querySelector("#mDeactPw")?.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          overlay.querySelector('[data-action="primary"]')?.click();
+        }
+      });
     });
   } catch (err) {
     console.error(err);

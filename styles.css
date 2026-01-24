@@ -113,7 +113,7 @@ body {
 .form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
   align-items: stretch;
 }
 
@@ -188,13 +188,6 @@ body {
   text-decoration: underline;
 }
 
-.error {
-  margin-top: -8px;
-  min-height: 14px;
-  font-size: 12px;
-  color: #dc2626;
-}
-
 .roleDivider {
   width: 100%;
   height: 3px; /* thickness */
@@ -244,12 +237,6 @@ body {
   justify-content: center;
 }
 
-.roleIcon img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
 .roleText {
   font-size: 12px;
   font-weight: 900;
@@ -291,8 +278,9 @@ body {
 }
 
 .googleLogo {
-  width: 30px;
-  height: 30px;
+  width: 18px;
+  height: 18px;
+  background: #fff;
   padding: 3px;
   border-radius: 4px;
 }
@@ -358,14 +346,6 @@ body {
   height: 36px;
   object-fit: contain;
   display: block;
-}
-
-.googleLogo {
-  width: 18px;
-  height: 18px;
-  background: #fff;
-  padding: 3px;
-  border-radius: 4px;
 }
 
 /* ===============================
@@ -976,6 +956,86 @@ body.menuOpen {
   object-fit: contain;
 }
 
+.ratingRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 6px 0 14px;
+  font-weight: 900;
+}
+.starBar {
+  position: relative;
+  font-size: 20px;
+  letter-spacing: 2px;
+  line-height: 1;
+}
+.starBase {
+  color: #ddd;
+}
+.starFill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0%;
+  overflow: hidden;
+  color: #ffc107;
+  white-space: nowrap;
+}
+
+/* === Inline rating beside Grade (like your screenshot) === */
+.gradeRatingWrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap; /* so it won’t break on small screens */
+}
+
+.ratingNum {
+  font-size: 20px;
+  font-weight: 900;
+  color: #111;
+}
+
+/* Star bar (filled overlay) */
+.starBar.inlineStars {
+  position: relative;
+  font-size: 20px;
+  letter-spacing: 2px;
+  line-height: 1;
+  transform: translateY(1px); /* tiny baseline alignment */
+}
+
+.starBase {
+  color: #ddd;
+}
+
+.starFill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0%;
+  overflow: hidden;
+  color: #ffc107;
+  white-space: nowrap;
+}
+
+.ratingCount {
+  font-size: 20px;
+  font-weight: 900;
+  color: #111;
+}
+
+.seeReview {
+  font-size: 20px;
+  font-weight: 900;
+  color: #111;
+  text-decoration: none;
+}
+
+.seeReview:hover {
+  text-decoration: underline;
+}
+
 /* Mobile */
 @media (max-width: 720px) {
   .filters {
@@ -1142,14 +1202,6 @@ nav {
 /*************************************************
  * (HOME – FILTER BLOCK)
  *************************************************/
-
-/* Base empty state (you may already have this) */
-.emptyState {
-  width: 100%;
-  padding: 48px 16px;
-  text-align: center;
-}
-
 /* Guest locked variant */
 .guestLocked {
   margin-top: 40px;
@@ -1227,11 +1279,6 @@ body.guest .searchWrap {
    SIGNUP – COMPACT PREMIUM OVERRIDES
    ===================================== */
 
-/* Reduce vertical stacking from form */
-.form {
-  gap: 6px; /* was too big */
-}
-
 /* Tight but readable field spacing */
 .field {
   margin-bottom: 6px;
@@ -1239,9 +1286,11 @@ body.guest .searchWrap {
 
 /* Errors should not reserve space */
 .error {
-  margin-top: 2px;
-  min-height: 0;
+  margin-top: 2px; /* compact spacing */
+  min-height: 0; /* don’t reserve empty space */
   line-height: 1.2;
+  font-size: 12px;
+  color: #dc2626;
 }
 
 /* Stall holder card – reduce height */
@@ -1603,6 +1652,29 @@ body.guest .searchWrap {
   color: #fff;
 }
 
+.hpAvatarStack {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.hpAvatarPreview {
+  width: 86px;
+  height: 86px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  flex: 0 0 86px;
+}
+
+.hpAvatarControls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 /* =========================
    Account status popup
 ========================= */
@@ -1643,10 +1715,584 @@ body.guest .searchWrap {
 #accStatus.error {
   background: #b00020;
 }
+
+/* =========================================
+   4. REVIEW PAGE STYLES (YOUR CUSTOM WORK)
+========================================= */
+.review-container {
+  display: flex;
+  justify-content: center;
+  padding: 40px 20px;
+  width: 100%;
+}
+
+.review-card {
+  background-color: #ffe4c4;
+  width: 100%;
+  max-width: 1100px;
+  border-radius: 30px;
+  padding: 50px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  border: 1px solid #aaa;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Form Styles */
+select {
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  width: 250px;
+}
+
+.review-card h2 {
+  font-family: "Segoe UI", sans-serif;
+  font-size: 28px;
+  margin: 10px 0 0 0;
+}
+
+.stars {
+  font-size: 40px;
+  color: #ddd;
+  cursor: pointer;
+}
+.star.active {
+  color: #ffc107;
+}
+.rating-text {
+  font-size: 14px;
+  color: #666;
+  font-weight: 700;
+  margin-top: 5px;
+}
+
+.review-input {
+  width: 100%;
+  height: 200px;
+  padding: 20px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-family: Arial, sans-serif;
+  font-size: 18px;
+  resize: none;
+  margin-top: 15px;
+  outline: none;
+}
+
+.submit-btn {
+  background-color: #f4a261;
+  color: white;
+  border: none;
+  padding: 15px 40px;
+  border-radius: 50px;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  align-self: center;
+  margin-top: 20px;
+}
+
+/* Review submit button states */
+.submit-btn.isLoading {
+  opacity: 0.9;
+  position: relative;
+}
+
+/* little spinning dot */
+.submit-btn.isLoading::after {
+  content: "";
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-left: 10px;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  border-top-color: #fff;
+  animation: hpSpin 0.8s linear infinite;
+  vertical-align: middle;
+}
+
+@keyframes hpSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.submit-btn.isSuccess {
+  filter: brightness(0.98);
+}
+/* ===== Submit button success (text-only, fun) ===== */
+.submit-btn.isSuccess {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #fff;
+  border: none;
+  cursor: default;
+  letter-spacing: 0.3px;
+  animation: popIn 0.35s ease-out;
+}
+
+/* subtle text glow */
+.submit-btn.isSuccess {
+  text-shadow: 0 2px 8px rgba(255, 255, 255, 0.35);
+}
+
+/* little "pop" effect */
+@keyframes popIn {
+  0% {
+    transform: scale(0.96);
+    opacity: 0.7;
+  }
+  60% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Loading text feels active */
+.submit-btn.isLoading {
+  letter-spacing: 1px;
+  opacity: 0.9;
+}
+
+.error-text {
+  color: red;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 10px;
+  font-size: 16px;
+}
+
+/* Success Message */
+.success-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 25px;
+  color: #00c853;
+}
+
+.success-message span {
+  font-size: 30px;
+  font-weight: bold;
+  line-height: 1;
+  padding-top: 2px;
+}
+
+.check-img {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  display: block;
+}
+
+/* Review Mobile Adjustments */
+@media only screen and (max-width: 768px) {
+  .review-container {
+    padding: 20px 10px;
+  }
+  .review-card {
+    padding: 25px;
+    border-radius: 20px;
+  }
+  .review-card h2 {
+    font-size: 24px;
+  }
+  select {
+    width: 100%;
+  }
+  .review-input {
+    height: 150px;
+    font-size: 16px;
+  }
+  .submit-btn {
+    width: 100%;
+    padding: 15px 0;
+  }
+  .success-message {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+  .success-message span {
+    font-size: 24px;
+  }
+  .check-img {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* =========================================
+   4. CONTENT CARDS (Feedback Options)
+========================================= */
+.container {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  padding: 40px 20px;
+  flex-wrap: wrap;
+}
+
+.options {
+  background: #ebebeb;
+  height: 450px;
+  width: 340px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  border-radius: 35px;
+  text-align: center;
+  padding: 60px 20px 40px 20px;
+  box-shadow: none;
+}
+
+.options h3 {
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-size: 24px;
+  font-weight: 650;
+  color: #000;
+  line-height: 1.2;
+  margin-top: 25px;
+  margin-bottom: 8px;
+}
+
+.options p {
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  color: #333;
+  margin-top: 0;
+  line-height: 1.4;
+}
+
+.icon-img {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  margin-bottom: 0;
+}
+
+.buttons {
+  width: 80%;
+  background: #f4a261;
+  border: none;
+  color: white;
+  padding: 16px 0;
+  border-radius: 50px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 18px;
+  transition: 0.2s;
+  margin-top: auto;
+}
+
+.buttons:hover {
+  background: #e08e4d;
+}
+
+/* =========================
+   FEEDBACK PAGE: REVIEWS CAROUSEL
+========================= */
+.fbReviews {
+  flex-basis: 100%;
+  width: 100%;
+  max-width: 1100px;
+  margin: 10px auto 0;
+  padding: 18px 10px 8px;
+}
+
+.fbReviewsHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.fbReviewsTitle {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.fbReviewsControls {
+  display: flex;
+  gap: 10px;
+}
+
+.fbNavBtn {
+  width: 44px;
+  height: 40px;
+  border-radius: 10px;
+  border: 2px solid rgba(0, 0, 0, 0.15);
+  background: #fff;
+  font-size: 22px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.fbTrack {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 6px 2px 14px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.fbTrack::-webkit-scrollbar {
+  height: 10px;
+}
+.fbTrack::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: 999px;
+}
+
+.fbCard {
+  flex: 0 0 auto;
+  width: min(360px, 86vw);
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 14px;
+  padding: 14px 14px 12px;
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.06);
+  scroll-snap-align: start;
+}
+
+.fbCardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.fbStallName {
+  font-weight: 900;
+  font-size: 14px;
+}
+
+.fbMeta {
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(0, 0, 0, 0.55);
+  margin-top: 2px;
+}
+
+.fbStars {
+  display: inline-flex;
+  gap: 2px;
+  font-size: 16px;
+  letter-spacing: 2px;
+  line-height: 1;
+}
+
+.fbStars .star {
+  position: relative;
+  color: #ddd;
+}
+.fbStars .star.full {
+  color: #ffc107;
+}
+
+.fbStars .star.half {
+  color: #ddd;
+}
+
+.fbStars .star.half::before {
+  content: "★";
+  position: absolute;
+  left: 0;
+  width: 50%;
+  overflow: hidden;
+  color: #ffc107;
+}
+
+.fbStars .base {
+  color: #ddd;
+}
+.fbStars .fill {
+  color: #ffc107;
+}
+
+/* Feedback History stars only */
+.ratingStars {
+  color: #ffc107;
+  letter-spacing: 2px;
+}
+
+/* Feedback History stars */
+.ratingStars {
+  color: #ffc107; /* gold filled stars */
+  letter-spacing: 2px;
+}
+
+.ratingStarsEmpty {
+  color: #d6d6d6; /* grey empty stars */
+  letter-spacing: 2px;
+}
+
+.fbText {
+  margin: 10px 0 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.72);
+  line-height: 1.35;
+}
+
+.fbEmpty {
+  margin: 6px 0 0;
+  font-weight: 800;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.fbReviewImg {
+  width: 100%;
+  max-height: 240px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin: 8px 0;
+}
+
+/* Feedback Preview Image */
+.imgPreviewWrap {
+  margin-top: 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.imgPreview {
+  width: 220px;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: #fff;
+}
+
+.removeImgBtn {
+  border: 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  font-weight: 700;
+}
+.removeImgBtn:hover {
+  transform: translateY(-1px);
+}
+
+/* =========================================
+   5. COMPLAINT FORM SPECIFIC STYLES
+========================================= */
+.complaint-header {
+  text-align: center;
+  margin-bottom: 25px;
+}
+.complaint-header h2 {
+  font-size: 32px;
+  margin-bottom: 10px;
+  font-weight: 800;
+}
+.complaint-header p {
+  color: #666;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.form-group {
+  margin-bottom: 15px;
+  width: 100%;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #333;
+  font-size: 14px;
+}
+
+/* Inputs & Textareas */
+.std-input,
+select,
+.review-input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  outline: none;
+  background: white;
+  font-family: Arial, sans-serif;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.short-area {
+  height: 120px;
+  resize: none;
+}
+
+/* Name Row (Side by Side) */
+.name-row {
+  display: flex;
+  gap: 20px;
+  width: 100%;
+}
+.half {
+  flex: 1; /* Split space 50/50 */
+}
+/* Complaint Form Stack */
+.name-row {
+  flex-direction: column; /* Stack First/Last Name */
+  gap: 0;
+}
+.mobile-hide {
+  display: none;
+}
+
+/* Card Padding */
+.review-container {
+  padding: 20px 10px;
+}
+.review-card {
+  padding: 25px;
+  border-radius: 20px;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 15px 0;
+}
+
+/* Success Message */
+.success-message {
+  flex-direction: column;
+  gap: 10px;
+  text-align: center;
+}
+.success-message span {
+  font-size: 24px;
+}
+.check-img {
+  width: 40px;
+  height: 40px;
+}
 /* =========================================
    STALL PAGE — FINAL (LEFT ALIGNED)
 ========================================= */
-
 .page.stallPage {
   max-width: 1920px;
   margin-left: 70px;
@@ -1965,7 +2611,6 @@ body.guest .searchWrap {
 /* =========================================
    FORCE STALL PAGE TO IGNORE GLOBAL GRID
 ========================================= */
-
 .page.stallPage {
   display: block !important;
 }
@@ -1977,6 +2622,702 @@ body.guest .searchWrap {
   max-width: 1920px;
   margin-left: 0;
   margin-right: auto;
+}
+
+/* =========================================
+   PROMOTIONS PAGE (matches your Home UI)
+   Paste at BOTTOM of styles.css
+========================================= */
+
+.page.home.promoPage {
+  padding-bottom: 70px; /* keep some breathing space */
+}
+
+/* promo card extras (reuse .card/.viewBtn) */
+.promoCodeRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.promoCodeBox {
+  flex: 1;
+  min-width: 170px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  border-radius: 6px;
+  font-weight: 900;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+
+  background: #fff3e6;
+  border: 2px dashed rgba(215, 144, 66, 0.7);
+  color: rgba(0, 0, 0, 0.78);
+}
+
+.copyBtn {
+  height: 38px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 6px;
+  background: #e8944c; /* your hawker orange */
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+}
+.copyBtn:hover {
+  filter: brightness(0.95);
+}
+
+/* small chips */
+.promoChips {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.promoChip {
+  font-size: 12px;
+  font-weight: 900;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: #f3e4d7; /* same vibe as .prep */
+  color: rgba(0, 0, 0, 0.75);
+}
+.promoChip.expiring {
+  background: #ffe6c7;
+}
+
+/* Redeem section */
+.promoRedeemWrap {
+  max-width: 720px;
+  margin: 18px auto 0;
+  padding: 0 14px;
+}
+
+.promoRedeemCard {
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 16px rgba(0, 0, 0, 0.06);
+  padding: 16px;
+}
+
+.promoRedeemLeft h3 {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 900;
+}
+.promoRedeemLeft p {
+  margin: 0 0 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.promoRedeemRight {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.promoRedeemInput {
+  flex: 1;
+  min-width: 200px;
+  height: 38px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  background: rgba(255, 255, 255, 0.92);
+  padding: 0 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  outline: none;
+}
+
+.promoRedeemBtn {
+  min-width: 140px;
+}
+
+.promoRedeemMsg {
+  margin: 10px 0 0;
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+/* Toast */
+.promoToast {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%) translateY(10px);
+  background: rgba(0, 0, 0, 0.82);
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 999px;
+  font-weight: 900;
+  font-size: 12px;
+  opacity: 0;
+  pointer-events: none;
+  transition: 0.18s ease;
+  z-index: 9999;
+}
+
+.promoToast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+/* ONLY Promotions page */
+.promoPage .filters {
+  display: flex;
+  justify-content: center; /* center horizontally */
+  align-items: center;
+}
+/* Account — Vouchers button align like your other buttons */
+#viewVouchersBtn {
+  margin: 0 0px 14px auto;
+  display: block;
+  width: fit-content;
+}
+/* Disabled Apply button */
+.btn[disabled],
+.copyBtn[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+  filter: grayscale(0.3);
+}
+/* ===== VOUCHER POPUP ONLY (no clash with Edit Profile modal) ===== */
+.hpVoucherModal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  z-index: 9999;
+}
+.hpVoucherModal.isOpen {
+  display: block;
+}
+
+.hpVoucherBackdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+/* ✅ centered card */
+.hpVoucherCard {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+
+  width: min(920px, calc(100% - 28px));
+  max-height: min(78vh, calc(100vh - 40px));
+  overflow: auto;
+
+  background: #fff;
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+}
+
+.hpVoucherHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.site-footer {
+  margin-top: 48px;
+  padding: 18px 12px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 14px;
+  color: #7a4a1c;
+  background: #ffb254;
+  border-top: 10px solid #ff7c10;
+}
+
+/* =========================================
+   REVIEW PAGE — UX ENHANCEMENTS (A-GRADE)
+   Safe to paste at bottom
+========================================= */
+
+/* ---------- Quick Tags ---------- */
+.tagWrap {
+  margin-top: 10px;
+}
+
+.tagTitle {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.tagRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tagChip {
+  border: 1.5px solid #ccc;
+  background: #fff;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tagChip:hover {
+  background: #fff3e6;
+}
+
+.tagChip.isOn {
+  background: #f4a261;
+  color: #fff;
+  border-color: #f4a261;
+}
+
+.tagHint {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #666;
+  font-weight: 600;
+}
+
+/* ---------- Character Counter ---------- */
+.textMeta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 13px;
+  color: #666;
+  font-weight: 600;
+}
+
+/* ---------- Anonymous Toggle ---------- */
+.anonRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #333;
+}
+
+/* Toggle switch */
+.switch {
+  position: relative;
+  width: 52px;
+  height: 28px;
+}
+
+.switch input {
+  display: none;
+}
+
+.slider {
+  position: absolute;
+  inset: 0;
+  background: #ccc;
+  border-radius: 999px;
+  transition: background 0.2s ease;
+}
+
+.slider::before {
+  content: "";
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  left: 3px;
+  top: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+}
+
+.switch input:checked + .slider {
+  background: #f4a261;
+}
+
+.switch input:checked + .slider::before {
+  transform: translateX(24px);
+}
+
+/* ---------- Submit Button States ---------- */
+.submit-btn[disabled] {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.submit-btn.loading {
+  background: #e6a86b;
+}
+
+.submit-btn.success {
+  background: #4caf50;
+}
+
+/* =========================================
+   FEEDBACK HISTORY PAGE
+   (feedback_history.html)
+========================================= */
+
+/* Page container */
+.feedback-history-container {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 28px 18px;
+}
+
+/* White card wrapper */
+.feedback-history-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 26px 22px 30px;
+  border: 1px solid #e2e2e2;
+}
+
+/* Header */
+.feedback-history-header {
+  text-align: center;
+  margin-bottom: 22px;
+}
+
+.feedback-history-header h2 {
+  font-size: 32px;
+  font-weight: 900;
+  margin: 0 0 6px;
+}
+
+.feedback-history-header p {
+  font-size: 15px;
+  font-weight: 700;
+  opacity: 0.75;
+  margin: 0;
+}
+
+/* Tabs */
+.historyTabs {
+  display: flex;
+  gap: 10px;
+  margin: 18px 0 18px;
+}
+
+.historyLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.historyAvatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: #fff;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+}
+
+.historyAvatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.historyAvatarFallback {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  background: #fff3e6;
+  color: rgba(0, 0, 0, 0.75);
+}
+
+.tabBtn {
+  flex: 1;
+  background: #fff;
+  border: 2px solid #ddd;
+  border-radius: 999px;
+  padding: 10px 0;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.tabBtn.isOn {
+  background: #df8f3b;
+  color: #fff;
+  border-color: #df8f3b;
+}
+
+/* List */
+.historyList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Each feedback item */
+.historyCard {
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #ddd;
+  padding: 14px 14px 16px;
+}
+
+/* Top row */
+.historyTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 6px;
+}
+
+.historyTitle {
+  font-weight: 900;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.historyDate {
+  font-size: 13px;
+  font-weight: 800;
+  opacity: 0.65;
+  white-space: nowrap;
+}
+
+/* Badges */
+.badge {
+  font-size: 12px;
+  font-weight: 900;
+  padding: 5px 10px;
+  border-radius: 999px;
+}
+
+.badgeReview {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.badgeComplaint {
+  background: #fdecea;
+  color: #b71c1c;
+}
+
+/* Body text */
+.historyBody {
+  margin-top: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  opacity: 0.9;
+  line-height: 1.4;
+}
+
+/* Tags */
+.tagLine {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 6px 0 8px;
+}
+
+.miniTag {
+  background: #fff3e6;
+  border: 1px solid #f4a261;
+  color: #a35c00;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+/* Images */
+.historyImg {
+  margin-top: 10px;
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  border-radius: 14px;
+  border: 1px solid #eee;
+}
+
+/* Empty state */
+.historyEmpty {
+  text-align: center;
+  padding: 30px 10px 10px;
+}
+
+.historyEmpty .emptyImg {
+  width: 120px;
+  height: 120px;
+  opacity: 0.85;
+}
+
+.historyEmpty .emptyTitle {
+  font-size: 20px;
+  font-weight: 900;
+  margin-top: 10px;
+}
+
+.historyEmpty .emptySub {
+  font-size: 14px;
+  font-weight: 700;
+  opacity: 0.75;
+  margin: 6px 0 16px;
+}
+
+/* Reuse fancy button style */
+.historyEmpty .submit-btn {
+  display: inline-block;
+  text-decoration: none;
+  padding: 16px 22px;
+}
+
+.historyBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.historySort {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.historySortLabel {
+  font-weight: 900;
+  opacity: 0.75;
+}
+
+.historySortSelect {
+  height: 42px;
+  border-radius: 999px;
+  border: 2px solid #e3e3e3;
+  padding: 0 14px;
+  font-weight: 900;
+  background: #fff;
+}
+
+@media (max-width: 720px) {
+  .historyBar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .historySort {
+    justify-content: flex-end;
+  }
+  .historySortSelect {
+    width: 100%;
+  }
+}
+/* ===== Feedback History decimal stars (full/half/empty) ===== */
+.ratingWrap {
+  display: inline-flex;
+  gap: 2px;
+  vertical-align: middle;
+  letter-spacing: 0; /* prevent weird spacing */
+}
+
+/* full stars */
+.ratingFull {
+  color: #ffc107;
+}
+
+/* empty stars */
+.ratingEmpty {
+  color: #d6d6d6;
+}
+
+/* half star: grey base + gold half overlay */
+.ratingHalf {
+  color: #d6d6d6;
+  position: relative;
+  display: inline-block;
+  width: 1em;
+  line-height: 1;
+}
+
+.ratingHalf::before {
+  content: "★";
+  position: absolute;
+  left: 0;
+  width: 50%;
+  overflow: hidden;
+  color: #ffc107;
+}
+/* =========================
+   Feedback History - Image Modal
+========================= */
+.imgModal {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+}
+
+.imgModal[hidden] {
+  display: none;
+}
+
+.imgModalBackdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+}
+
+.imgModalContent {
+  position: relative;
+  max-width: 92vw;
+  max-height: 92vh;
+  object-fit: contain;
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  cursor: zoom-out;
+}
+
+.imgModalClose {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 1;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-size: 20px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+/* Make thumbnails feel clickable */
+.historyImg {
+  cursor: zoom-in;
 }
 
 /* =========================================

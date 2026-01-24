@@ -6,7 +6,6 @@
     <title>Hawker Point — Stall Information</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
-
   <body>
     <!-- ================= HEADER ================= -->
     <header class="topbar">
@@ -16,12 +15,19 @@
         </a>
 
         <nav class="nav" aria-label="Primary navigation">
-          <a class="pill" href="home.html">Home</a>
-          <a class="pill" href="stalls.html">Stalls</a>
+          <a
+            class="pill active"
+            href="home.html"
+            style="background: #df8f3b; color: white"
+            >Home</a
+          >
+          <a class="pill" href="promotions.html" id="navPromotions"
+            >Promotions</a
+          >
           <a class="pill" href="orders.html">Orders</a>
           <a class="pill" href="feedback.html">Feedback</a>
-          <a class="pill" href="hygiene.html">Hygiene</a>
-          <a class="pill account" href="account.html">Account</a>
+          <a class="pill" href="hygiene.html" id="navHygiene">Hygiene</a>
+          <a class="pill" href="account.html">Account</a>
         </nav>
 
         <button
@@ -37,8 +43,13 @@
 
       <div id="navBackdrop" class="navBackdrop"></div>
       <nav id="navMobile" class="navMobile" aria-label="Mobile navigation">
-        <a class="mLink" href="home.html">Home</a>
-        <a class="mLink" href="stalls.html">Stalls</a>
+        <a
+          class="mLink"
+          href="home.html"
+          style="background: #df8f3b; color: white"
+          >Home</a
+        >
+        <a class="mLink" href="promotions.html">Promotions</a>
         <a class="mLink" href="orders.html">Orders</a>
         <a class="mLink" href="feedback.html">Feedback</a>
         <a class="mLink" href="hygiene.html">Hygiene</a>
@@ -71,7 +82,21 @@
 
       <div class="badgeRow">
         <span id="stallCuisine" class="badge cuisine"></span>
-        <span id="stallGrade" class="badge grade"></span>
+
+        <div class="gradeRatingWrap">
+          <span id="stallGrade" class="badge grade"></span>
+
+          <span id="avgText" class="ratingNum">0.0</span>
+
+          <div class="starBar inlineStars" aria-label="Average rating">
+            <div id="starFill" class="starFill">★★★★★</div>
+            <div class="starBase">★★★★★</div>
+          </div>
+
+          <span id="countText" class="ratingCount">(0)</span>
+
+          <a class="seeReview" href="feedback.html">See review</a>
+        </div>
       </div>
 
       <div id="stallMeta" class="metaLine"></div>
@@ -107,6 +132,24 @@
       </div>
     </main>
 
+    <footer class="site-footer">
+      <p>
+        &copy; 2026 Hawker Point. All rights reserved. This project is for
+        educational purposes only.
+      </p>
+    </footer>
+
+    <script>
+      // Stall page should highlight Home
+      document
+        .querySelectorAll('.nav a[href="home.html"]')
+        .forEach((a) => a.classList.add("active"));
+      document
+        .querySelectorAll('#navMobile a[href="home.html"]')
+        .forEach((a) => a.classList.add("active"));
+    </script>
+
     <script type="module" src="stall.js"></script>
+    <script type="module" src="menu.js"></script>
   </body>
 </html>
