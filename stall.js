@@ -112,6 +112,7 @@ const stalls = [
     desc: "Hearty Western favourites served hot in flavour, from juicy grilled meats to comforting sides.",
     img: "images/stalls/fatbuddies.png",
   },
+  
   {
     id: "kopi-fellas",
     name: "Kopi Fellas",

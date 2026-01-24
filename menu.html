@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Hawker Point — Menu</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="home.html" aria-label="Back to Home">
+          <img src="images/logo.png" alt="Hawker Point logo" class="brand-logo" />
+        </a>
+
+        <nav class="nav" aria-label="Main navigation">
+          <a class="pill" href="home.html">Home</a>
+          <a class="pill active" href="stalls.html">Stalls</a>
+          <a class="pill" href="orders.html">Orders</a>
+          <a class="pill" href="feedback.html">Feedback</a>
+          <a class="pill" href="hygiene.html">Hygiene</a>
+          <a class="pill account" href="account.html">Account</a>
+        </nav>
+
+        <button id="menuBtn" class="menuBtn" type="button" aria-label="Open menu">
+          ☰
+        </button>
+      </div>
+
+      <div id="navBackdrop" class="navBackdrop"></div>
+
+      <nav id="navMobile" class="navMobile" aria-label="Mobile navigation">
+        <a class="mLink" href="home.html">Home</a>
+        <a class="mLink active" href="stalls.html">Stalls</a>
+        <a class="mLink" href="orders.html">Orders</a>
+        <a class="mLink" href="feedback.html">Feedback</a>
+        <a class="mLink" href="hygiene.html">Hygiene</a>
+        <a class="mLink" href="account.html">Account</a>
+      </nav>
+    </header>
+
+    <main class="page menuPage">
+      <div class="menuShell">
+        <section class="menuTop">
+          <div class="stallHeader">
+            <img id="stallIcon" src="" alt="Selected stall" />
+          </div>
+
+          <div id="gradePill" class="hpGradePill">✓ Hygiene Grade</div>
+
+          <div class="menuSearchBar">
+            <span aria-hidden="true">🔍</span>
+            <input id="menuQ" type="text" placeholder="What shall we deliver?" />
+          </div>
+
+          <div id="menuTitle" class="menuSectionTitle">Menu</div>
+        </section>
+
+        <section id="menuList" class="menuList" aria-label="Menu items"></section>
+
+        <footer class="cartBar" aria-label="Cart summary">
+          <div>Cart : <span id="cartCount">0</span> Item</div>
+          <div>$<span id="cartTotal">0.00</span></div>
+        </footer>
+      </div>
+    </main>
+
+    <script src="stallmenu.js" defer></script>
+  </body>
+</html>

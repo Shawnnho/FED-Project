@@ -120,7 +120,7 @@ const stalls = [
     location: "Ayer Rajah Creasent",
     desc: "Traditional kopi and teh brewed the old-school way, serving local favourites like Kopi O, Kopi C, Teh Peng, and Yuan Yang.",
     img: "images/stalls/kopifellas.jpg",
-  },
+   },
 ];
 
 const els = {
