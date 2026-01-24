@@ -1,7 +1,20 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  serverTimestamp,
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import {
+  getStorage,
+  ref as sRef,
+  uploadBytes,
+  getDownloadURL,
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 /* ✅ Firebase Config */
 const firebaseConfig = {
@@ -25,7 +38,7 @@ let currentUser = null;
 // Listen for login state
 onAuthStateChanged(auth, (user) => {
   currentUser = user; // Store user globally
-  
+
   if (user) {
     console.log("✅ Complaint Page: User detected:", user.email);
     // Auto-fill email
@@ -42,16 +55,25 @@ function setSubmitState(state) {
   const btn = document.getElementById("submit-btn");
   if (!btn) return;
 
+  btn.classList.remove("isLoading", "isSuccess");
+
   if (state === "loading") {
     btn.disabled = true;
     btn.textContent = "Submitting…";
-  } else if (state === "success") {
+    btn.classList.add("isLoading");
+    return;
+  }
+
+  if (state === "success") {
     btn.disabled = true;
     btn.textContent = "✅ Submitted";
-  } else if (state === "idle") {
-    btn.disabled = false;
-    btn.textContent = "Submit a Complaint";
+    btn.classList.add("isSuccess");
+    return;
   }
+
+  // idle
+  btn.disabled = false;
+  btn.textContent = "Submit a Complaint";
 }
 
 // Image Preview Logic
@@ -84,12 +106,16 @@ window.submitComplaint = async function () {
   const email = document.getElementById("comp-email");
   const msg = document.getElementById("comp-msg");
   const imgInput = document.getElementById("comp-img");
-
   const error = document.getElementById("error-msg");
-  const success = document.getElementById("success-msg");
 
   // 1. Validation
-  if (!stallSelect?.value || !first?.value || !last?.value || !email?.value || !msg?.value) {
+  if (
+    !stallSelect?.value ||
+    !first?.value ||
+    !last?.value ||
+    !email?.value ||
+    !msg?.value
+  ) {
     error.style.display = "block";
     error.textContent = "Please fill in all fields";
     return;
@@ -117,14 +143,15 @@ window.submitComplaint = async function () {
     const file = imgInput?.files?.[0];
 
     if (file) {
-      if (file.size > 5 * 1024 * 1024) throw new Error("Image too large (max 5MB).");
-      
+      if (file.size > 5 * 1024 * 1024)
+        throw new Error("Image too large (max 5MB).");
+
       const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
       // If guest, use 'anonymous' folder
-      const storageUid = uidToSave || "anonymous"; 
+      const storageUid = uidToSave || "anonymous";
       const filename = `complaint_${Date.now()}.${ext}`;
       imagePath = `complaints/${storageUid}/${filename}`;
-      
+
       const imgRef = sRef(storage, imagePath);
       await uploadBytes(imgRef, file);
       imageUrl = await getDownloadURL(imgRef);
@@ -132,32 +159,30 @@ window.submitComplaint = async function () {
 
     // 4. Save to Firestore
     await addDoc(collection(db, "complaints"), {
-      stall: stallSelect.value,       
-      stallName: stallNameText,       // Used for title in history
-      
+      stall: stallSelect.value,
+      stallName: stallNameText, // Used for title in history
+
       firstName: first.value.trim(),
       lastName: last.value.trim(),
-      userName: fullUserName,         // Used for name in history
-      
+      userName: fullUserName, // Used for name in history
+
       email: email.value.trim(),
-      message: msg.value.trim(),      
-      
+      message: msg.value.trim(),
+
       imageUrl: imageUrl || "",
       imagePath: imagePath || "",
-      
-      uid: uidToSave,                 // CRITICAL for History filtering
+
+      uid: uidToSave, // CRITICAL for History filtering
       createdAt: serverTimestamp(),
-      type: "complaint"               // Good practice to verify type
+      type: "complaint", // Good practice to verify type
     });
 
     // 5. Success
     setSubmitState("success");
-    success.style.display = "flex";
 
     setTimeout(function () {
       window.location.href = "feedback.html"; // Go back to feedback menu
     }, 2000);
-
   } catch (err) {
     console.error("Submission Error:", err);
     error.textContent = err?.message || "Failed to submit. Please try again.";

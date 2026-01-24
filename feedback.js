@@ -160,11 +160,16 @@ function renderCards(items) {
 
     card.style.cursor = "pointer";
 
-    card.addEventListener("click", () => {
-      if (it.stallId) {
-        window.location.href = `stall.html?id=${it.stallId}`;
-      }
-    });
+    // ✅ If the card has an image, clicking it should open modal (NOT go stall page)
+    const imgEl = card.querySelector(".fbReviewImg");
+    if (imgEl) {
+      imgEl.style.cursor = "zoom-in";
+      imgEl.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation(); // 🔥 stops the card click redirect
+        openImgModal(imgEl.src);
+      });
+    }
 
     track.appendChild(card);
   }
@@ -210,4 +215,45 @@ onSnapshot(q, (snap) => {
   const items = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
   renderCards(items);
   startAuto();
+});
+/* =========================
+   Feedback page: click review image -> full preview modal
+========================= */
+const imgModal = document.getElementById("imgModal");
+const imgModalBackdrop = document.getElementById("imgModalBackdrop");
+const imgModalContent = document.getElementById("imgModalContent");
+const imgModalClose = document.getElementById("imgModalClose");
+
+function openImgModal(src) {
+  if (!imgModal || !imgModalContent) return;
+  imgModalContent.src = src;
+  imgModal.hidden = false;
+}
+
+function closeImgModal() {
+  if (!imgModal || !imgModalContent) return;
+  imgModal.hidden = true;
+  imgModalContent.src = "";
+}
+
+imgModalBackdrop?.addEventListener("click", closeImgModal);
+imgModalClose?.addEventListener("click", closeImgModal);
+imgModalContent?.addEventListener("click", closeImgModal);
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && imgModal && !imgModal.hidden) closeImgModal();
+});
+
+/* ✅ IMPORTANT:
+   Your fbCard click navigates to stall page.
+   So when user clicks the image, stop that navigation and open modal.
+*/
+track?.addEventListener("click", (e) => {
+  const img = e.target.closest(".fbReviewImg");
+  if (!img) return;
+
+  e.preventDefault();
+  e.stopPropagation();
+
+  openImgModal(img.src);
 });

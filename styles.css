@@ -1770,6 +1770,71 @@ select {
   margin-top: 20px;
 }
 
+/* Review submit button states */
+.submit-btn.isLoading {
+  opacity: 0.9;
+  position: relative;
+}
+
+/* little spinning dot */
+.submit-btn.isLoading::after {
+  content: "";
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-left: 10px;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  border-top-color: #fff;
+  animation: hpSpin 0.8s linear infinite;
+  vertical-align: middle;
+}
+
+@keyframes hpSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.submit-btn.isSuccess {
+  filter: brightness(0.98);
+}
+/* ===== Submit button success (text-only, fun) ===== */
+.submit-btn.isSuccess {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #fff;
+  border: none;
+  cursor: default;
+  letter-spacing: 0.3px;
+  animation: popIn 0.35s ease-out;
+}
+
+/* subtle text glow */
+.submit-btn.isSuccess {
+  text-shadow: 0 2px 8px rgba(255, 255, 255, 0.35);
+}
+
+/* little "pop" effect */
+@keyframes popIn {
+  0% {
+    transform: scale(0.96);
+    opacity: 0.7;
+  }
+  60% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Loading text feels active */
+.submit-btn.isLoading {
+  letter-spacing: 1px;
+  opacity: 0.9;
+}
+
 .error-text {
   color: red;
   font-weight: bold;
@@ -2030,6 +2095,23 @@ select {
 }
 .fbStars .fill {
   color: #ffc107;
+}
+
+/* Feedback History stars only */
+.ratingStars {
+  color: #ffc107;
+  letter-spacing: 2px;
+}
+
+/* Feedback History stars */
+.ratingStars {
+  color: #ffc107; /* gold filled stars */
+  letter-spacing: 2px;
+}
+
+.ratingStarsEmpty {
+  color: #d6d6d6; /* grey empty stars */
+  letter-spacing: 2px;
 }
 
 .fbText {
@@ -2858,229 +2940,357 @@ select,
   background: #4caf50;
 }
 
-
 /* =========================================
-   FEEDBACK HISTORY GRID UI (Left Aligned & Bigger)
-   Paste at bottom of styles.css
+   FEEDBACK HISTORY PAGE
+   (feedback_history.html)
 ========================================= */
 
-/* Main Container - Full Width & Left Aligned */
-.feedback-grid-container {
-  width: 98%;           /* Take up almost full width */
-  max-width: none;      /* Remove the size limit */
-  margin: 0;            /* Remove auto centering */
-  padding: 40px 40px;   /* Add padding (Left aligned) */
+/* Page container */
+.feedback-history-container {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 28px 18px;
 }
 
-/* Header & Tabs */
-.grid-header h2 {
-  font-size: 36px;      /* Bigger Header */
+/* White card wrapper */
+.feedback-history-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 26px 22px 30px;
+  border: 1px solid #e2e2e2;
+}
+
+/* Header */
+.feedback-history-header {
+  text-align: center;
+  margin-bottom: 22px;
+}
+
+.feedback-history-header h2 {
+  font-size: 32px;
   font-weight: 900;
-  margin-bottom: 20px;
-  color: #111;
-  text-align: left;     /* Force Left Alignment */
+  margin: 0 0 6px;
 }
 
-.grid-tabs {
+.feedback-history-header p {
+  font-size: 15px;
+  font-weight: 700;
+  opacity: 0.75;
+  margin: 0;
+}
+
+/* Tabs */
+.historyTabs {
   display: flex;
-  justify-content: flex-start; /* Align tabs to the left */
-  gap: 15px;
-  margin-bottom: 40px;
+  gap: 10px;
+  margin: 18px 0 18px;
 }
 
-.grid-tab-btn {
-  padding: 12px 30px;   /* Bigger Buttons */
-  border-radius: 8px;
-  font-weight: 800;
-  font-size: 16px;      /* Bigger Text */
-  cursor: pointer;
-  border: 1px solid #ccc;
-  background: #e0e0e0;
-  color: #555;
-  transition: all 0.2s ease;
-}
-
-.grid-tab-btn.active {
-  background: #fff;
-  border: 2px solid #f4a261; /* Thicker border */
-  color: #d79042;
-  box-shadow: 0 4px 10px rgba(244, 162, 97, 0.2);
-}
-
-/* THE GRID (3 Columns, but wider) */
-.history-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr); 
-  gap: 30px;            /* Bigger gaps between cards */
-  margin-bottom: 60px;
-}
-
-/* Individual Card */
-.grid-card {
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 16px;  /* Rounder corners */
-  padding: 30px;        /* More breathing room inside */
-  display: flex;
-  flex-direction: column;
-  transition: transform 0.2s, border-color 0.2s;
-  min-height: 260px;    /* Taller cards */
-  text-align: left;     /* Left align text inside cards */
-}
-
-.grid-card:hover {
-  border-color: #f4a261;
-  transform: translateY(-4px);
-  box-shadow: 0 12px 30px rgba(0,0,0,0.08);
-}
-
-/* Card Header: Avatar + Name */
-.card-user-row {
+.historyLeft {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 16px;
+  gap: 12px;
 }
 
-.card-avatar {
-  width: 50px;          /* Bigger Avatar */
-  height: 50px;
-  background: #f4a261;
-  border-radius: 50%;
+.historyAvatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: #fff;
+  flex: 0 0 auto;
   display: grid;
   place-items: center;
-  color: #fff;
-  font-weight: bold;
-  font-size: 20px;
 }
 
-.card-avatar img {
+.historyAvatarImg {
   width: 100%;
   height: 100%;
-  border-radius: 50%;
   object-fit: cover;
+  display: block;
 }
 
-.card-username {
-  font-weight: 800;
-  font-size: 18px;      /* Bigger Name */
-  color: #111;
+.historyAvatarFallback {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  background: #fff3e6;
+  color: rgba(0, 0, 0, 0.75);
 }
 
-/* Stars */
-.card-stars {
-  color: #ffc107;
-  font-size: 22px;      /* Bigger Stars */
-  letter-spacing: 3px;
-  margin-bottom: 16px;
-  text-align: left;     /* Left align stars */
+.tabBtn {
+  flex: 1;
+  background: #fff;
+  border: 2px solid #ddd;
+  border-radius: 999px;
+  padding: 10px 0;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
-/* Review Text */
-.card-text {
-  font-size: 15px;      /* Bigger Text */
-  line-height: 1.6;
-  color: #333;
-  margin-bottom: auto;
-  display: -webkit-box;
-  -webkit-line-clamp: 5; /* Allow more lines */
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-align: left;
+.tabBtn.isOn {
+  background: #df8f3b;
+  color: #fff;
+  border-color: #df8f3b;
 }
 
-/* Footer: Stall Name + Icon */
-.card-footer {
-  margin-top: 25px;
+/* List */
+.historyList {
   display: flex;
-  justify-content: flex-end;
-  align-items: center;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Each feedback item */
+.historyCard {
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #ddd;
+  padding: 14px 14px 16px;
+}
+
+/* Top row */
+.historyTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 6px;
+}
+
+.historyTitle {
+  font-weight: 900;
+  display: flex;
   gap: 8px;
+  flex-wrap: wrap;
+}
+
+.historyDate {
   font-size: 13px;
   font-weight: 800;
-  color: #888;
+  opacity: 0.65;
+  white-space: nowrap;
 }
 
-.stall-icon {
-  width: 18px;
-  height: 18px;
-  opacity: 0.6;
+/* Badges */
+.badge {
+  font-size: 12px;
+  font-weight: 900;
+  padding: 5px 10px;
+  border-radius: 999px;
 }
 
-/* RESPONSIVE */
-@media (max-width: 1200px) {
-  .history-grid {
-    grid-template-columns: repeat(2, 1fr); /* 2 cols on smaller laptops */
-  }
+.badgeReview {
+  background: #e8f5e9;
+  color: #2e7d32;
 }
 
-@media (max-width: 768px) {
-  .history-grid {
-    grid-template-columns: 1fr; /* 1 col on mobile */
-  }
-  .feedback-grid-container {
-    padding: 20px;
-  }
+.badgeComplaint {
+  background: #fdecea;
+  color: #b71c1c;
 }
 
-/* =========================================
-   COMPLAINT IMAGE & SCROLLING STYLES
-========================================= */
+/* Body text */
+.historyBody {
+  margin-top: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  opacity: 0.9;
+  line-height: 1.4;
+}
 
-/* 1. Style the uploaded image inside the card */
-.card-evidence-img {
+/* Tags */
+.tagLine {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 6px 0 8px;
+}
+
+.miniTag {
+  background: #fff3e6;
+  border: 1px solid #f4a261;
+  color: #a35c00;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+/* Images */
+.historyImg {
+  margin-top: 10px;
   width: 100%;
-  height: 160px;       /* Fixed height for consistency */
-  object-fit: cover;   /* Crop nicely */
-  border-radius: 8px;
-  margin-top: 15px;
+  max-height: 220px;
+  object-fit: cover;
+  border-radius: 14px;
   border: 1px solid #eee;
 }
 
-/* 2. Make the grid scrollable vertically */
-.history-grid {
-  /* Set a max height (e.g., 70% of screen height) */
-  max-height: 75vh; 
-  
-  /* Enable vertical scrolling */
-  overflow-y: auto; 
-  
-  /* Add padding for scrollbar space */
-  padding-right: 10px;
-  padding-bottom: 20px;
-  
-  /* Keep grid layout */
-  display: grid;
-  grid-template-columns: repeat(3, 1fr); 
-  gap: 30px;
+/* Empty state */
+.historyEmpty {
+  text-align: center;
+  padding: 30px 10px 10px;
 }
 
-/* Custom Scrollbar Styling (Optional, makes it look cleaner) */
-.history-grid::-webkit-scrollbar {
-  width: 8px;
-}
-.history-grid::-webkit-scrollbar-track {
-  background: #f1f1f1; 
-  border-radius: 4px;
-}
-.history-grid::-webkit-scrollbar-thumb {
-  background: #d4b895; 
-  border-radius: 4px;
-}
-.history-grid::-webkit-scrollbar-thumb:hover {
-  background: #c4a480; 
+.historyEmpty .emptyImg {
+  width: 120px;
+  height: 120px;
+  opacity: 0.85;
 }
 
-/* Responsive adjustments */
-@media (max-width: 1200px) {
-  .history-grid {
-    grid-template-columns: repeat(2, 1fr);
+.historyEmpty .emptyTitle {
+  font-size: 20px;
+  font-weight: 900;
+  margin-top: 10px;
+}
+
+.historyEmpty .emptySub {
+  font-size: 14px;
+  font-weight: 700;
+  opacity: 0.75;
+  margin: 6px 0 16px;
+}
+
+/* Reuse fancy button style */
+.historyEmpty .submit-btn {
+  display: inline-block;
+  text-decoration: none;
+  padding: 16px 22px;
+}
+
+.historyBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.historySort {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.historySortLabel {
+  font-weight: 900;
+  opacity: 0.75;
+}
+
+.historySortSelect {
+  height: 42px;
+  border-radius: 999px;
+  border: 2px solid #e3e3e3;
+  padding: 0 14px;
+  font-weight: 900;
+  background: #fff;
+}
+
+@media (max-width: 720px) {
+  .historyBar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .historySort {
+    justify-content: flex-end;
+  }
+  .historySortSelect {
+    width: 100%;
   }
 }
-@media (max-width: 768px) {
-  .history-grid {
-    grid-template-columns: 1fr;
-    max-height: none; /* On mobile, usually better to let the whole page scroll */
-    overflow-y: visible;
-  }
+/* ===== Feedback History decimal stars (full/half/empty) ===== */
+.ratingWrap {
+  display: inline-flex;
+  gap: 2px;
+  vertical-align: middle;
+  letter-spacing: 0; /* prevent weird spacing */
+}
+
+/* full stars */
+.ratingFull {
+  color: #ffc107;
+}
+
+/* empty stars */
+.ratingEmpty {
+  color: #d6d6d6;
+}
+
+/* half star: grey base + gold half overlay */
+.ratingHalf {
+  color: #d6d6d6;
+  position: relative;
+  display: inline-block;
+  width: 1em;
+  line-height: 1;
+}
+
+.ratingHalf::before {
+  content: "★";
+  position: absolute;
+  left: 0;
+  width: 50%;
+  overflow: hidden;
+  color: #ffc107;
+}
+/* =========================
+   Feedback History - Image Modal
+========================= */
+.imgModal {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+}
+
+.imgModal[hidden] {
+  display: none;
+}
+
+.imgModalBackdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+}
+
+.imgModalContent {
+  position: relative;
+  max-width: 92vw;
+  max-height: 92vh;
+  object-fit: contain;
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  cursor: zoom-out;
+}
+
+.imgModalClose {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 1;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-size: 20px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+/* Make thumbnails feel clickable */
+.historyImg {
+  cursor: zoom-in;
 }

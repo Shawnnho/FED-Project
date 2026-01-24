@@ -4,6 +4,7 @@ import {
   collection,
   query,
   where,
+  orderBy,
   getDocs,
   collectionGroup,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -12,7 +13,7 @@ import {
   onAuthStateChanged,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-/* CONFIG */
+/* SAME config as your other pages */
 const firebaseConfig = {
   apiKey: "AIzaSyC-NTWADB-t1OGl7NbdyMVXjpVjnqjpTXg",
   authDomain: "fedproject-8d254.firebaseapp.com",
@@ -26,163 +27,290 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// DOM Elements
-const gridEl = document.getElementById("historyGrid");
-const statusEl = document.getElementById("statusMsg");
-const loadMoreContainer = document.getElementById("loadMoreContainer");
-const tabBtns = document.querySelectorAll(".grid-tab-btn");
+const listEl = document.getElementById("historyList");
+const statusEl = document.getElementById("historyStatus");
+const emptyEl = document.getElementById("historyEmpty");
 
-let allItems = [];
-let currentTab = "review"; 
+const tabsWrap = document.querySelector(".historyTabs");
+let activeTab = "all";
 
-// --- Helper: Gold Stars ---
-function getStars(n) {
-  const count = parseInt(n) || 0;
-  let s = "";
-  for (let i = 0; i < count; i++) s += "★";
-  for (let i = count; i < 5; i++) s += "☆"; 
-  return s;
+/* ✅ NEW: sort dropdown (Google reviews style) */
+const sortEl = document.getElementById("historySort");
+let activeSort = "relevant"; // relevant | newest | starsDesc | starsAsc
+
+function fmtDate(ts) {
+  if (!ts) return "";
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleString();
 }
 
-// --- Render Card HTML ---
-function createCard(item) {
-  const userName = item.userName || "Anonymous";
-  const avatarLetter = userName.charAt(0).toUpperCase();
+function escapeHtml(s) {
+  return (s || "").replace(
+    /[&<>"']/g,
+    (c) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;",
+      })[c],
+  );
+}
 
-  // If review, show stars. If complaint, show Ticket badge.
-  const starContent = item.type === 'review' 
-    ? getStars(item.rating) 
-    : `<span style="color: #d9382c; font-weight:bold; font-size:14px;">Complaint Ticket</span>`;
+/* ✅ avatar block: image if exists, else fallback initial */
+function avatarHtml(userMeta) {
+  const name = userMeta?.name || "You";
+  const initial = escapeHtml((name.trim()[0] || "Y").toUpperCase());
+  const photo = userMeta?.photoURL ? escapeHtml(userMeta.photoURL) : "";
 
-  const bodyText = item.type === 'review' ? item.text : item.message;
-  // Fallback for stall name
-  const stallName = item.stallName || item.stall || "Unknown Stall";
+  if (photo) {
+    return `<img class="historyAvatarImg" src="${photo}" alt="Profile picture" />`;
+  }
+  return `<div class="historyAvatarFallback" aria-hidden="true">${initial}</div>`;
+}
 
-  // ✅ NEW: Dynamic Image Logic
-  // This works for BOTH Reviews and Complaints
-  let imageHtml = "";
-  if (item.imageUrl) {
-    imageHtml = `<img src="${item.imageUrl}" class="card-evidence-img" alt="Evidence" loading="lazy" />`;
+function cardHtml(item, userMeta) {
+  const badge =
+    item.type === "review"
+      ? `<span class="badge badgeReview">Review</span>`
+      : `<span class="badge badgeComplaint">Complaint</span>`;
+
+  let title;
+
+  if (item.type === "review") {
+    const r = Math.max(0, Math.min(5, Number(item.rating || 0)));
+    const full = Math.floor(r);
+    const half = r - full >= 0.5 ? 1 : 0;
+    const empty = 5 - full - half;
+
+    const starsHtml =
+      `<span class="ratingWrap">` +
+      `<span class="ratingFull">${"★".repeat(full)}</span>` +
+      (half ? `<span class="ratingHalf">★</span>` : ``) +
+      `<span class="ratingEmpty">${"★".repeat(empty)}</span>` +
+      `</span>`;
+
+    title = `${escapeHtml(item.stallName || "Stall")} • ${starsHtml}`;
+  } else {
+    title = `${escapeHtml(item.stall || "Stall")} • Complaint`;
   }
 
+  const tags =
+    item.type === "review" && item.tags?.length
+      ? `<div class="tagLine">${item.tags
+          .map((t) => `<span class="miniTag">${escapeHtml(t)}</span>`)
+          .join("")}</div>`
+      : "";
+
+  const img = item.imageUrl
+    ? `<img class="historyImg" src="${escapeHtml(item.imageUrl)}" alt="Attachment" />`
+    : "";
+
+  const body =
+    item.type === "review"
+      ? escapeHtml(item.text || "")
+      : escapeHtml(item.message || "");
+
   return `
-    <article class="grid-card">
-      <div class="card-user-row">
-        <div class="card-avatar">${avatarLetter}</div>
-        <div class="card-username">${userName}</div>
+    <div class="historyCard" data-type="${item.type}">
+      <div class="historyTop">
+        <div class="historyLeft">
+          <div class="historyAvatar">
+            ${avatarHtml(userMeta)}
+          </div>
+
+          <div class="historyTitle">
+            ${badge} <span>${title}</span>
+          </div>
+        </div>
+
+        <div class="historyDate">${escapeHtml(fmtDate(item.createdAt))}</div>
       </div>
 
-      <div class="card-stars">${starContent}</div>
+      ${tags}
 
-      <div class="card-text">
-        ${bodyText || "No additional text provided."}
-      </div>
-
-      ${imageHtml}
-
-      <div class="card-footer">
-        <img src="images/orange-house.png" class="stall-icon" alt="stall">
-        ${stallName}
-      </div>
-    </article>
+      <div class="historyBody">${body}</div>
+      ${img}
+    </div>
   `;
 }
 
-// --- Render Logic ---
-function render() {
-  const filtered = allItems.filter(item => item.type === currentTab);
+/* ✅ NEW: Google-review style sort */
+function sortItems(arr) {
+  return [...arr].sort((a, b) => {
+    const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+    const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
 
-  if (filtered.length === 0) {
-    gridEl.innerHTML = "";
-    statusEl.style.display = "block";
-    statusEl.textContent = `No ${currentTab}s found.`;
-    if (loadMoreContainer) loadMoreContainer.style.display = "none";
+    const ra = Number(a.rating ?? 0);
+    const rb = Number(b.rating ?? 0);
+
+    const hasImgA = a.imageUrl ? 1 : 0;
+    const hasImgB = b.imageUrl ? 1 : 0;
+
+    const textA = (a.type === "review" ? a.text || "" : a.message || "").trim();
+    const textB = (b.type === "review" ? b.text || "" : b.message || "").trim();
+
+    const lenA = textA.length;
+    const lenB = textB.length;
+
+    if (activeSort === "newest") return tb - ta;
+
+    if (activeSort === "starsDesc") {
+      if (rb !== ra) return rb - ra;
+      return tb - ta;
+    }
+
+    if (activeSort === "starsAsc") {
+      if (ra !== rb) return ra - rb;
+      return tb - ta;
+    }
+
+    // ✅ Most relevant (approx Google)
+    // 1) Reviews first (ratings exist), then complaints
+    const isReviewA = a.type === "review" ? 1 : 0;
+    const isReviewB = b.type === "review" ? 1 : 0;
+    if (isReviewB !== isReviewA) return isReviewB - isReviewA;
+
+    // 2) Higher stars
+    if (rb !== ra) return rb - ra;
+
+    // 3) Photos first
+    if (hasImgB !== hasImgA) return hasImgB - hasImgA;
+
+    // 4) Longer text slightly higher
+    if (lenB !== lenA) return lenB - lenA;
+
+    // 5) Newest tie-breaker
+    return tb - ta;
+  });
+}
+
+function render(items, userMeta) {
+  const filtered =
+    activeTab === "all"
+      ? items
+      : items.filter((x) => x.type === activeTab.slice(0, -1));
+
+  const sorted = sortItems(filtered);
+
+  listEl.innerHTML = sorted.map((it) => cardHtml(it, userMeta)).join("");
+
+  const hasAny = sorted.length > 0;
+  statusEl.style.display = "none";
+  emptyEl.style.display = hasAny ? "none" : "block";
+}
+
+async function loadHistory(user) {
+  statusEl.textContent = "Loading…";
+  statusEl.style.display = "block";
+  emptyEl.style.display = "none";
+  listEl.innerHTML = "";
+
+  const userMeta = {
+    name: user.displayName || user.email || "You",
+    photoURL: user.photoURL || "",
+  };
+
+  const complaintsQ = query(
+    collection(db, "complaints"),
+    where("uid", "==", user.uid),
+    orderBy("createdAt", "desc"),
+  );
+
+  const reviewsQ = query(
+    collectionGroup(db, "reviews"),
+    where("userId", "==", user.uid),
+    orderBy("createdAt", "desc"),
+  );
+
+  const [complaintsSnap, reviewsSnap] = await Promise.all([
+    getDocs(complaintsQ),
+    getDocs(reviewsQ),
+  ]);
+
+  const complaints = complaintsSnap.docs.map((d) => ({
+    id: d.id,
+    type: "complaint",
+    ...d.data(),
+  }));
+
+  const reviews = reviewsSnap.docs.map((d) => ({
+    id: d.id,
+    type: "review",
+    ...d.data(),
+  }));
+
+  const all = [...complaints, ...reviews].sort((a, b) => {
+    const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+    const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+    return tb - ta;
+  });
+
+  render(all, userMeta);
+
+  // ✅ NEW: Sort dropdown listener
+  sortEl?.addEventListener("change", () => {
+    activeSort = sortEl.value;
+    render(all, userMeta);
+  });
+
+  // Tabs
+  tabsWrap?.addEventListener("click", (e) => {
+    const btn = e.target.closest(".tabBtn");
+    if (!btn) return;
+
+    document
+      .querySelectorAll(".tabBtn")
+      .forEach((b) => b.classList.remove("isOn"));
+    btn.classList.add("isOn");
+    activeTab = btn.dataset.tab;
+
+    render(all, userMeta);
+  });
+}
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    statusEl.textContent = "Please log in to view your feedback history.";
     return;
   }
 
-  statusEl.style.display = "none";
-
-  // ✅ SCROLLABLE UPDATE: Render ALL items (removed .slice)
-  gridEl.innerHTML = filtered.map(createCard).join("");
-  
-  // Hide load more button permanently
-  if (loadMoreContainer) loadMoreContainer.style.display = "none"; 
-}
-
-// --- Fetch Data ---
-async function fetchData(user) {
-  statusEl.textContent = "Loading...";
-  gridEl.innerHTML = "";
-
   try {
-    // 1. Fetch Complaints (Easy, top-level collection)
-    const q1 = query(collection(db, "complaints"), where("uid", "==", user.uid));
-    
-    let complaints = [];
-    try {
-      const snap1 = await getDocs(q1);
-      complaints = snap1.docs.map(d => ({ type: 'complaint', ...d.data() }));
-    } catch (e) { console.error("Complaints error:", e); }
-
-    // 2. Fetch Reviews (THE NEW WAY - No Index Needed)
-    // We will loop through every stall to find your reviews.
-    let reviews = [];
-    
-    try {
-      // A. Get list of all stalls first
-      const stallsSnap = await getDocs(collection(db, "stalls"));
-      
-      // B. Create a query for EACH stall
-      const reviewPromises = stallsSnap.docs.map(async (stallDoc) => {
-        const stallId = stallDoc.id;
-        // Search inside THIS specific stall
-        const q = query(
-          collection(db, "stalls", stallId, "reviews"), 
-          where("userId", "==", user.uid)
-        );
-        const snap = await getDocs(q);
-        return snap.docs.map(d => ({ type: 'review', ...d.data() }));
-      });
-
-      // C. Wait for all stall searches to finish
-      const results = await Promise.all(reviewPromises);
-      
-      // D. Flatten the list (combine all results into one array)
-      reviews = results.flat();
-
-    } catch (e) { 
-      console.error("Reviews loop error:", e); 
-    }
-
-    // 3. Combine & Sort by Date (Newest first)
-    allItems = [...complaints, ...reviews].sort((a, b) => {
-      const tA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
-      const tB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
-      return tB - tA;
-    });
-
-    render();
-
+    await loadHistory(user);
   } catch (err) {
-    console.error("Critical Error:", err);
-    statusEl.textContent = "Error loading history.";
+    console.error(err);
+    statusEl.textContent =
+      err?.message ||
+      "Failed to load history. (You may need Firestore indexes — check console for index link.)";
   }
+});
+
+/* ================= Image Click → Full Preview ================= */
+
+const imgModal = document.getElementById("imgModal");
+const imgModalBackdrop = document.getElementById("imgModalBackdrop");
+const imgModalContent = document.getElementById("imgModalContent");
+
+// Open modal when clicking feedback image
+document.addEventListener("click", (e) => {
+  const img = e.target.closest(".historyImg");
+  if (!img) return;
+
+  imgModalContent.src = img.src;
+  imgModal.hidden = false;
+});
+
+// Close when clicking backdrop or image
+imgModalBackdrop.addEventListener("click", closeImgModal);
+imgModalContent.addEventListener("click", closeImgModal);
+
+// Close with ESC key
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeImgModal();
+});
+
+function closeImgModal() {
+  imgModal.hidden = true;
+  imgModalContent.src = "";
 }
-
-// --- Event Listeners ---
-tabBtns.forEach(btn => {
-  btn.addEventListener("click", () => {
-    tabBtns.forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-    currentTab = btn.dataset.tab;
-    render();
-  });
-});
-
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    fetchData(user);
-  } else {
-    statusEl.textContent = "Please log in to view history.";
-  }
-});

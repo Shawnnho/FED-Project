@@ -29,8 +29,8 @@ import {
 /* ✅ SAME config as your other pages */
 const firebaseConfig = {
   apiKey: "AIzaSyC-NTWADB-t1OGl7NbdyMVXjpVjnqjpTXg", // <--- THIS
-  authDomain: "fedproject-8d254.firebaseapp.com",     // <--- THIS
-  projectId: "fedproject-8d254",                      // <--- THIS
+  authDomain: "fedproject-8d254.firebaseapp.com", // <--- THIS
+  projectId: "fedproject-8d254", // <--- THIS
   storageBucket: "fedproject-8d254.firebasestorage.app",
   messagingSenderId: "477538553634",
   appId: "1:477538553634:web:a14b93bbd93d33b9281f7b",
@@ -107,20 +107,25 @@ function setSubmitState(state) {
   const btn = document.getElementById("submit-btn");
   if (!btn) return;
 
+  btn.classList.remove("isLoading", "isSuccess");
+
   if (state === "loading") {
     btn.disabled = true;
-    btn.textContent = "Submitting…";
+    btn.textContent = "Submitting";
+    btn.classList.add("isLoading");
+    return;
   }
 
   if (state === "success") {
     btn.disabled = true;
     btn.textContent = "✅ Submitted";
+    btn.classList.add("isSuccess");
+    return;
   }
 
-  if (state === "idle") {
-    btn.disabled = false;
-    btn.textContent = "Submit Feedback";
-  }
+  // idle
+  btn.disabled = false;
+  btn.textContent = "Submit Feedback";
 }
 
 const imgInput = document.getElementById("review-image");
@@ -190,7 +195,6 @@ if (starContainer) {
 ========================= */
 window.submitReview = async function submitReview() {
   const btn = document.getElementById("submit-btn");
-  const msg = document.getElementById("success-msg");
   const input = document.getElementById("review-text");
   const stall = document.getElementById("stall-select");
   const error = document.getElementById("error-msg");
@@ -263,11 +267,11 @@ window.submitReview = async function submitReview() {
 
         // ✅ Firebase Auth (safe)
         // ✅ Firebase Auth (Fixed)
-// Always save the ID so it shows in YOUR history, but keep name Anonymous
-        userId: currentUser?.uid || null, 
-        userName: isAnonymous() 
-          ? "Anonymous" 
-          : (currentUser?.displayName || currentUser?.email || "Anonymous"),
+        // Always save the ID so it shows in YOUR history, but keep name Anonymous
+        userId: currentUser?.uid || null,
+        userName: isAnonymous()
+          ? "Anonymous"
+          : currentUser?.displayName || currentUser?.email || "Anonymous",
         tags: getSelectedTags(),
         anonymous: isAnonymous(),
 
@@ -287,7 +291,6 @@ window.submitReview = async function submitReview() {
     });
 
     setSubmitState("success");
-    if (msg) msg.style.display = "flex";
 
     setTimeout(() => {
       window.location.href = "feedback.html";
