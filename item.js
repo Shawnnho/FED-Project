@@ -1,11 +1,3 @@
-/*************************************************
- * item.js (FULL)
- * - Works for ALL stalls
- * - Add-ons affect price
- * - Required groups (free) must be selected before adding
- * - Saves to localStorage hp_cart
- * - Back goes to menu.html?id=...
- *************************************************/
 
 function slugify(str) {
   return String(str)
@@ -31,11 +23,7 @@ function writeCart(cart) {
   localStorage.setItem("hp_cart", JSON.stringify(cart));
 }
 
-/* =========================================================
-   MENU DATA (MUST MATCH stallmenu.js names)
-   - addons: checkbox (+price)
-   - requiredGroups: radio groups (FREE unless you set price)
-========================================================= */
+
 const menuByStall = {
   "ahmad-nasi-lemak": [
     {
@@ -375,6 +363,75 @@ const menuByStall = {
       requiredGroups: [],
     },
   ],
+
+  "kopi-fellas": [
+  {
+    name: "Kopi O",
+    price: 2.0,
+    img: "images/kopi-o.png",
+    desc: "Strong traditional black coffee with no milk.",
+    addons: [
+      { id: "less-sugar", label: "Less Sugar", price: 0 },
+      { id: "more-ice", label: "More Ice", price: 0 },
+    ],
+    requiredGroups: [
+      {
+        id: "temp",
+        title: "Temperature (Required)",
+        options: [
+          { id: "hot", label: "Hot", price: 0 },
+          { id: "iced", label: "Iced", price: 0 },
+        ],
+      },
+    ],
+  },
+
+  {
+    name: "Kopi C",
+    price: 2.3,
+    img: "images/kopi-c.png",
+    desc: "Coffee with evaporated milk, smooth and rich.",
+    addons: [{ id: "extra-milk", label: "Extra Milk", price: 0.3 }],
+    requiredGroups: [],
+  },
+
+  {
+    name: "Teh Peng",
+    price: 2.5,
+    img: "images/teh-peng.png",
+    desc: "Iced milk tea, refreshing and sweet.",
+    addons: [{ id: "less-sugar", label: "Less Sugar", price: 0 }],
+    requiredGroups: [],
+  },
+
+  {
+    name: "Yuan Yang",
+    price: 2.8,
+    img: "images/yuan-yang.png",
+    desc: "A local favourite—coffee and tea mixed together.",
+    addons: [{ id: "extra-ice", label: "More Ice", price: 0 }],
+    requiredGroups: [],
+  },
+
+  {
+    name: "Ice Milo",
+    price: 3.0,
+    img: "images/ice-milo.png",
+    desc: "Cold chocolate malt drink.",
+    addons: [{ id: "extra-milo", label: "Extra Milo", price: 0.5 }],
+    requiredGroups: [],
+  },
+
+  {
+    name: "Honey Lemon",
+    price: 3.1,
+    img: "images/honey-lemon.png",
+    desc: "A mixing of fresh lemon juice and honey into cold water.",
+    addons: [{ id: "extra-ice", label: "More Ice", price: 0 }],
+    requiredGroups: [],
+  },
+],
+
 };
 
 /* ===== READ URL ===== */

@@ -34,7 +34,10 @@ const stalls = [
   { id: "tiong-bahru", name: "Tiong Bahru Chicken Rice", grade: "A", icon: "images/chickenrice-hero.jpg" },
   { id: "asia-wok", name: "Asia Wok", grade: "A", icon: "images/asiawok-hero.jpg" },
   { id: "al-azhar", name: "Al-Azhar Restaurant", grade: "C", icon: "images/al-azhar-hero.jpg" },
-  { id: "fat-buddies", name: "Fat Buddies Western Food", grade: "B", icon: "images/stalls/fatbuddies.png" },
+  { id: "fat-buddies", name: "Fat Buddies Western Food", grade: "B", icon: "images/stalls/Fatbuddies.png" },
+  {id: "kopi-fellas", name: "Kopi Fellas", grade: "A", icon: "images/stalls/kopifellas.jpg",
+},
+
 ];
 
 /* ===== MENU ITEMS (you can expand later) ===== */
@@ -83,6 +86,15 @@ const menuByStall = {
     { name: "Chicken Burger", price: 8.0, likes: 42, img: "images/ChicBurg.png" },
     { name: "Curly Fries", price: 4.0, likes: 103, img: "images/CurlyFri.png" },
   ],
+  "kopi-fellas": [
+  { name: "Kopi O", price: 2.0, likes: 210, img: "images/kopi-o.png" },
+  { name: "Kopi C", price: 2.3, likes: 199, img: "images/kopi-c.png" },
+  { name: "Teh Peng", price: 2.5, likes: 160, img: "images/teh-peng.png" },
+  { name: "Yuan Yang", price: 2.8, likes: 144, img: "images/yuan-yang.png" },
+  { name: "Ice Milo", price: 3.0, likes: 290, img: "images/ice-milo.png" }, 
+  { name: "Honey Lemon", price: 3.1, likes: 232, img: "images/honey-lemon.png" }, 
+],
+
 };
 
 /* ===== READ URL (?id=stallId) ===== */
