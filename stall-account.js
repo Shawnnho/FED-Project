@@ -32,12 +32,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-
-if (u.role !== "storeholder") {
-  window.location.href = "home.html";
-  return;
-}
-
 /* ---- shared state ---- */
 let stallRef = null; // centres/{centreId}/stalls/{uid}
 let stallCache = null; // latest stall data snapshot

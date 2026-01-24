@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hawker Point — Stall Dashboard</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body>
+    <!-- ================= HEADER (same style as your pages) ================= -->
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="stall-dashboard.html" aria-label="Hawker Point">
+          <img src="images/logo.png" alt="Hawker Point" class="brand-logo" />
+        </a>
+
+        <div class="stallHeaderTitle" id="stallName">—</div>
+
+        <div class="nav">
+          <span class="userName" id="ownerName">—</span>
+          <button class="pill" id="logoutBtn" type="button">Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ================= PAGE LAYOUT (THIS IS THE IMPORTANT PART) ================= -->
+    <main class="shPage">
+      <div class="shLayout">
+        <!-- ===== Sidebar (same as account page) ===== -->
+        <aside class="shSide">
+          <center><h2>Dashboard</h2></center>
+          <a class="shNav active" href="stall-dashboard.html">
+            <span>Dashboard</span>
+          </a>
+
+          <a class="shNav" href="stall-orders.html">
+            <span>Order</span>
+            <span class="shBadge" id="orderBadge">0</span>
+          </a>
+
+          <a class="shNav" href="stall-menu.html">
+            <span>Menu</span>
+          </a>
+
+          <a class="shNav" href="stall-review.html">
+            <span>Review</span>
+            <span class="shBadge" id="reviewBadge">0</span>
+          </a>
+
+          <a class="shNav" href="stall-analytics.html">
+            <span>Analytics</span>
+            <span class="shBadge" id="analyticsBadge">0</span>
+          </a>
+
+          <a class="shNav" href="stall-hygiene.html">
+            <span>Hygiene</span>
+            <span class="shBadge" id="hygieneBadge">0</span>
+          </a>
+
+          <a class="shNav" href="stall-account.html">
+            <span>Account</span>
+          </a>
+
+          <a class="shNav" href="stall-staff.html">
+            <span>Manage Staff</span>
+          </a>
+        </aside>
+
+        <!-- ===== Content ===== -->
+        <section class="shContent">
+          <!-- Top heading card (same style family as account) -->
+          <div class="shHead">
+            <h1>Dashboard</h1>
+            <p>View orders, stats and manage operations</p>
+          </div>
+
+          <!-- Filters + Search (reuse your existing classes) -->
+          <div class="searchWrap">
+            <div class="filters">
+              <select id="cuisineFilter">
+                <option value="">Cuisine</option>
+              </select>
+
+              <select id="dateFilter">
+                <option value="">Date</option>
+              </select>
+
+              <select id="yearFilter">
+                <option value="">Year</option>
+              </select>
+
+              <button
+                class="btn small primary"
+                id="applyFilterBtn"
+                type="button"
+              >
+                Apply Filter
+              </button>
+            </div>
+
+            <div class="searchBar">
+              <span class="searchIcon">🔍</span>
+              <input
+                id="searchInput"
+                type="text"
+                placeholder="Search by Order ID or Customer"
+              />
+            </div>
+          </div>
+
+          <!-- Status tabs -->
+          <div class="shTabs" style="display: flex; gap: 10px; margin: 14px 0">
+            <button
+              class="btn small primary tabBtn"
+              data-status=""
+              type="button"
+            >
+              Show All
+            </button>
+            <button
+              class="btn small tabBtn"
+              data-status="pending"
+              type="button"
+            >
+              Pending
+            </button>
+            <button
+              class="btn small tabBtn"
+              data-status="in-progress"
+              type="button"
+            >
+              In Progress
+            </button>
+            <button
+              class="btn small tabBtn"
+              data-status="completed"
+              type="button"
+            >
+              Completed
+            </button>
+            <button
+              class="btn small tabBtn"
+              data-status="cancelled"
+              type="button"
+            >
+              Cancelled
+            </button>
+          </div>
+
+          <!-- Stats (simple blocks; your CSS already styles .prep nicely in your project) -->
+          <h3 class="statsTitle">Stats Overview</h3>
+
+          <div class="statsRow">
+            <div class="statBox statPending">
+              <div class="statTop">
+                <div class="statNum" id="statPendingNum">1</div>
+                <div class="statLines" aria-hidden="true"></div>
+              </div>
+              <div class="statLabel">Pending<br />Orders</div>
+            </div>
+
+            <div class="statBox statProgress">
+              <div class="statTop">
+                <div class="statNum" id="statProgressNum">1</div>
+                <div class="statLines" aria-hidden="true"></div>
+              </div>
+              <div class="statLabel">In Progress<br />Orders</div>
+            </div>
+
+            <div class="statBox statSales">
+              <div class="statTop">
+                <div class="statNum" id="statSalesNum">$10,423.70</div>
+                <div class="statLines" aria-hidden="true"></div>
+              </div>
+              <div class="statLabel">Total Sales<br />(This Month)</div>
+            </div>
+
+            <div class="statBox statCancelled">
+              <div class="statTop">
+                <div class="statNum" id="statCancelledNum">1</div>
+                <div class="statLines" aria-hidden="true"></div>
+              </div>
+              <div class="statLabel">Cancelled<br />Orders</div>
+            </div>
+          </div>
+
+          <br />
+          <hr />
+          <br />
+
+          <div class="bulkBar">
+            <div class="bulkLeft">
+              <input type="checkbox" id="bulkCheckAll" />
+              <label for="bulkCheckAll" class="bulkLabel">Bulk Action:</label>
+
+              <select id="bulkActionSelect">
+                <option value="">Update Status</option>
+                <option value="pending">Pending</option>
+                <option value="in-progress">In Progress</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
+
+            <button class="btn small primary" id="bulkApplyBtn">Apply</button>
+          </div>
+
+          <!-- Recent orders table -->
+          <h3 style="margin: 8px 0 10px; font-weight: 900">Recent Orders</h3>
+
+          <div style="overflow: auto">
+            <table
+              style="
+                width: 100%;
+                border-collapse: collapse;
+                background: #fff;
+                border: 1px solid rgba(0, 0, 0, 0.15);
+              "
+            >
+              <thead>
+                <tr style="background: #f0b35b">
+                  <th style="padding: 10px"></th>
+                  <th style="padding: 10px">Order ID</th>
+                  <th style="padding: 10px">Customer</th>
+                  <th style="padding: 10px">Status</th>
+                  <th style="padding: 10px">Item</th>
+                  <th style="padding: 10px">Amount</th>
+                  <th style="padding: 10px">Action</th>
+                </tr>
+              </thead>
+              <tbody id="ordersBody">
+                <tr>
+                  <td colspan="7" style="padding: 14px">Loading…</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <script type="module" src="stall-dashboard.js"></script>
+  </body>
+</html>

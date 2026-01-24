@@ -5326,3 +5326,170 @@ body.stallHolder {
     font-size: 13px;
   }
 }
+/* ===== Stats Overview Cards ===== */
+.statsTitle {
+  margin: 10px 0 12px;
+  font-weight: 900;
+}
+
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(160px, 1fr));
+  gap: 14px;
+  align-items: stretch;
+}
+
+.statBox {
+  border-radius: 6px;
+  padding: 12px 14px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.15);
+}
+
+.statTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.statNum {
+  font-weight: 900;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.statLabel {
+  margin-top: 10px;
+  font-weight: 900;
+  font-size: 15px;
+  line-height: 1.15;
+}
+
+/* top-right decoration lines */
+.statLines {
+  width: 42px;
+  height: 18px;
+  border-radius: 4px;
+  opacity: 0.55;
+  background:
+    linear-gradient(#000 0 0) 0 0/100% 3px no-repeat,
+    linear-gradient(#000 0 0) 0 7px/70% 3px no-repeat,
+    linear-gradient(#000 0 0) 0 14px/85% 3px no-repeat;
+}
+
+/* color variants */
+.statPending {
+  background: #e8b97b;
+}
+.statProgress {
+  background: #9db9ef;
+}
+.statSales {
+  background: #aaf08c;
+}
+.statCancelled {
+  background: #e39590;
+}
+
+/* Mobile: swipe row */
+@media (max-width: 768px) {
+  .statsRow {
+    display: flex;
+    overflow-x: auto;
+    gap: 12px;
+    padding-bottom: 6px;
+  }
+  .statBox {
+    min-width: 210px;
+    flex: 0 0 auto;
+  }
+}
+/* ===== Bulk Action Bar ===== */
+.bulkBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+  margin: 10px 0 14px;
+}
+
+.bulkLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bulkLabel {
+  font-weight: 700;
+}
+
+.bulkBar select {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #aaa;
+  font-weight: 600;
+}
+
+/* Mobile stack */
+@media (max-width: 600px) {
+  .bulkBar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .bulkLeft {
+    flex-wrap: wrap;
+  }
+
+  .bulkBar button {
+    width: 100%;
+  }
+}
+/* =========================
+   Stall Dashboard: mobile fixes
+   (paste at bottom of styles.css)
+========================= */
+
+@media (max-width: 760px) {
+  /* stop sideways overflow */
+  html,
+  body {
+    overflow-x: hidden;
+  }
+
+  /* Filters row MUST wrap instead of forcing wide grid */
+  .searchWrap .filters {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 2 columns */
+    gap: 10px;
+  }
+
+  /* Make Apply button full width */
+  .searchWrap .filters .applyBtn,
+  .searchWrap .filters button {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  /* Search bar full width */
+  .searchWrap .searchBar {
+    width: 100%;
+  }
+
+  /* Status tabs wrap nicely */
+  .shTabs {
+    flex-wrap: wrap;
+  }
+  .shTabs > button {
+    flex: 1 1 48%;
+    min-width: 140px;
+  }
+
+  /* Table area scrolls instead of breaking layout */
+  .shContent table {
+    min-width: 720px; /* allow horizontal scroll inside wrapper */
+  }
+}
