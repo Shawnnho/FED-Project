@@ -1,29 +1,9 @@
-/* =========================================
-   FIREBASE SETUP & AUTO-FILL
-========================================= */
-
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  serverTimestamp,
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-import {
-  getStorage,
-  ref as sRef,
-  uploadBytes,
-  getDownloadURL,
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-import {
-  getAuth,
-  onAuthStateChanged,
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-// Your Firebase Config (Same as signup.js)
+/* ✅ Firebase Config */
 const firebaseConfig = {
   apiKey: "AIzaSyC-NTWADB-t1OGl7NbdyMVXjpVjnqjpTXg",
   authDomain: "fedproject-8d254.firebaseapp.com",
@@ -33,29 +13,28 @@ const firebaseConfig = {
   appId: "1:477538553634:web:a14b93bbd93d33b9281f7b",
 };
 
-// Initialize Firebase
+// Initialize
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-// ✅ LISTEN FOR LOGIN STATUS
+// ✅ Global user variable to ensure we capture the login state correctly
+let currentUser = null;
+
+// Listen for login state
 onAuthStateChanged(auth, (user) => {
+  currentUser = user; // Store user globally
+  
   if (user) {
-    // User is logged in
-    console.log("User detected:", user.email);
-
-    // Find the email input field
+    console.log("✅ Complaint Page: User detected:", user.email);
+    // Auto-fill email
     const emailField = document.getElementById("comp-email");
-
-    // If field exists and user has an email, auto-fill it
     if (emailField && user.email) {
       emailField.value = user.email;
-      // Optional: Make it read-only if you don't want them to change it
-      // emailField.readOnly = true;
     }
   } else {
-    console.log("No user logged in");
+    console.log("⚠️ Complaint Page: No user logged in");
   }
 });
 
@@ -66,19 +45,16 @@ function setSubmitState(state) {
   if (state === "loading") {
     btn.disabled = true;
     btn.textContent = "Submitting…";
-  }
-
-  if (state === "success") {
+  } else if (state === "success") {
     btn.disabled = true;
     btn.textContent = "✅ Submitted";
-  }
-
-  if (state === "idle") {
+  } else if (state === "idle") {
     btn.disabled = false;
     btn.textContent = "Submit a Complaint";
   }
 }
 
+// Image Preview Logic
 const imgInput = document.getElementById("comp-img");
 const imgPreview = document.getElementById("comp-img-preview");
 
@@ -90,7 +66,6 @@ if (imgInput && imgPreview) {
       imgPreview.src = "";
       return;
     }
-
     const url = URL.createObjectURL(file);
     imgPreview.src = url;
     imgPreview.style.display = "block";
@@ -102,10 +77,8 @@ if (imgInput && imgPreview) {
    COMPLAINT FORM LOGIC
 ========================================= */
 
-// We attach this to 'window' so the HTML onclick="submitComplaint()" can find it
 window.submitComplaint = async function () {
-  // 1. Get Elements
-  const stall = document.getElementById("comp-stall");
+  const stallSelect = document.getElementById("comp-stall");
   const first = document.getElementById("comp-first");
   const last = document.getElementById("comp-last");
   const email = document.getElementById("comp-email");
@@ -113,91 +86,82 @@ window.submitComplaint = async function () {
   const imgInput = document.getElementById("comp-img");
 
   const error = document.getElementById("error-msg");
-  const btn = document.getElementById("submit-btn");
   const success = document.getElementById("success-msg");
 
-  // 2. Simple Validation (Check if empty)
-  if (
-    !stall?.value ||
-    !first?.value ||
-    !last?.value ||
-    !email?.value ||
-    !msg?.value
-  ) {
+  // 1. Validation
+  if (!stallSelect?.value || !first?.value || !last?.value || !email?.value || !msg?.value) {
     error.style.display = "block";
+    error.textContent = "Please fill in all fields";
     return;
   }
 
   error.style.display = "none";
-
-  // 3) Disable button while uploading/saving
   setSubmitState("loading");
 
   try {
-    const user = auth.currentUser;
-    const file = imgInput?.files?.[0] || null;
+    // 2. Get Data
+    const stallNameText = stallSelect.options[stallSelect.selectedIndex].text;
+    const fullUserName = `${first.value.trim()} ${last.value.trim()}`;
+    const uidToSave = currentUser ? currentUser.uid : null;
 
+    console.log("Submitting Complaint for UID:", uidToSave); // Debugging
+
+    if (!uidToSave) {
+      // Optional: Warn them if they aren't logged in
+      console.warn("Warning: Submitting as guest. This won't show in history.");
+    }
+
+    // 3. Handle Image Upload
     let imageUrl = "";
     let imagePath = "";
+    const file = imgInput?.files?.[0];
 
-    // 4) Optional image upload
     if (file) {
-      // Basic checks
-      const isOkType =
-        file.type === "image/jpeg" ||
-        file.type === "image/png" ||
-        file.type === "image/jpg";
-
-      if (!isOkType) {
-        throw new Error("Only JPG/PNG images are allowed.");
-      }
-
-      if (file.size > 5 * 1024 * 1024) {
-        throw new Error("Image too large (max 5MB).");
-      }
-
+      if (file.size > 5 * 1024 * 1024) throw new Error("Image too large (max 5MB).");
+      
       const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
-      const uid = user?.uid || "guest";
+      // If guest, use 'anonymous' folder
+      const storageUid = uidToSave || "anonymous"; 
       const filename = `complaint_${Date.now()}.${ext}`;
-
-      imagePath = `complaints/${uid}/${filename}`;
+      imagePath = `complaints/${storageUid}/${filename}`;
+      
       const imgRef = sRef(storage, imagePath);
-
-      await uploadBytes(imgRef, file, {
-        contentType: file.type || "image/jpeg",
-      });
-
+      await uploadBytes(imgRef, file);
       imageUrl = await getDownloadURL(imgRef);
     }
 
-    // 5) Save complaint into Firestore
+    // 4. Save to Firestore
     await addDoc(collection(db, "complaints"), {
-      stall: stall.value,
+      stall: stallSelect.value,       
+      stallName: stallNameText,       // Used for title in history
+      
       firstName: first.value.trim(),
       lastName: last.value.trim(),
+      userName: fullUserName,         // Used for name in history
+      
       email: email.value.trim(),
-      message: msg.value.trim(),
-
+      message: msg.value.trim(),      
+      
       imageUrl: imageUrl || "",
       imagePath: imagePath || "",
-
-      uid: user?.uid || null,
+      
+      uid: uidToSave,                 // CRITICAL for History filtering
       createdAt: serverTimestamp(),
+      type: "complaint"               // Good practice to verify type
     });
 
-    // 6) Success UI
+    // 5. Success
     setSubmitState("success");
     success.style.display = "flex";
 
     setTimeout(function () {
-      window.location.href = "feedback.html";
-    }, 3000);
+      window.location.href = "feedback.html"; // Go back to feedback menu
+    }, 2000);
+
   } catch (err) {
-    console.error(err);
+    console.error("Submission Error:", err);
     error.textContent = err?.message || "Failed to submit. Please try again.";
     error.style.display = "block";
-
-    // Re-enable button
     setSubmitState("idle");
   }
 };
