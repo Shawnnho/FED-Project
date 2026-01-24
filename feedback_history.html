@@ -6,106 +6,52 @@
     <title>Hawker Point - Feedback History</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
-
   <body>
-    <header class="topbar">
+<header class="topbar">
       <div class="topbar-inner">
         <a class="brand" href="home.html">
-          <img src="images/Logo.png" alt="Hawker Point" class="brand-logo" />
+          <img src="images/logo.png" alt="Hawker Point" class="brand-logo" />
         </a>
-
-        <nav class="nav" aria-label="Primary navigation">
+        <nav class="nav">
           <a class="pill" href="home.html">Home</a>
-          <a class="pill" href="promotions.html" id="navPromotions"
-            >Promotions</a
-          >
+          <a class="pill" href="stalls.html">Stalls</a>
           <a class="pill" href="orders.html">Orders</a>
-          <a
-            class="pill active"
-            href="feedback.html"
-            style="background: #df8f3b; color: white"
-            >Feedback</a
-          >
-          <a class="pill" href="hygiene.html" id="navHygiene">Hygiene</a>
+          <a class="pill active" href="feedback.html" style="background: #df8f3b; color: white">Feedback</a>
+          <a class="pill" href="hygiene.html">Hygiene</a>
           <a class="pill account" href="account.html">Account</a>
         </nav>
-
-        <button
-          id="menuBtn"
-          class="menuBtn"
-          type="button"
-          aria-label="Open menu"
-          aria-expanded="false"
-        >
-          ☰
-        </button>
+        <button id="menuBtn" class="menuBtn" type="button">☰</button>
       </div>
-
       <div id="navBackdrop" class="navBackdrop"></div>
-      <nav id="navMobile" class="navMobile" aria-label="Mobile navigation">
-        <a class="mLink active" href="home.html">Home</a>
-        <a class="mLink" href="promotions.html" id="mNavPromotions"
-          >Promotions</a
-        >
+      <nav id="navMobile" class="navMobile">
+        <a class="mLink" href="home.html">Home</a>
+        <a class="mLink" href="stalls.html">Stalls</a>
         <a class="mLink" href="orders.html">Orders</a>
-        <a
-          class="mLink"
-          href="feedback.html"
-          style="background: #df8f3b; color: white"
-          >Feedback</a
-        >
-        <a class="mLink" href="hygiene.html" id="mNavHygiene">Hygiene</a>
-        <a class="mLink" href="account.html">
-          Account <span class="mNotif" id="mNotifCount" hidden></span>
-        </a>
+        <a class="mLink active" href="feedback.html" style="background: #df8f3b; color: white">Feedback</a>
+        <a class="mLink" href="hygiene.html">Hygiene</a>
+        <a class="mLink" href="account.html">Account</a>
       </nav>
     </header>
 
-    <main class="review-container">
-      <div class="review-card">
-        <div class="complaint-header">
-          <h2>Feedback History</h2>
-          <p>Your submitted reviews and complaints.</p>
+    <main class="feedback-grid-container">
+      <div class="grid-header">
+        <h2>Customer Feedback</h2>
+      </div>
+
+      <div class="grid-tabs">
+        <button class="grid-tab-btn active" data-tab="review">Reviews</button>
+        <button class="grid-tab-btn" data-tab="complaint">Complaints</button>
+      </div>
+
+      <div id="statusMsg" style="text-align: left; color: #666; padding: 20px 0; font-size: 18px;">Loading...</div>
+
+      <div id="historyGrid" class="history-grid">
         </div>
 
-        <div class="historyTabs">
-          <button type="button" class="tabBtn isOn" data-tab="all">All</button>
-          <button type="button" class="tabBtn" data-tab="reviews">
-            Reviews
-          </button>
-          <button type="button" class="tabBtn" data-tab="complaints">
-            Complaints
-          </button>
-        </div>
-
-        <div id="historyStatus" class="historyStatus">Loading…</div>
-
-        <div id="historyList" class="historyList"></div>
-
-        <div id="historyEmpty" class="historyEmpty" style="display: none">
-          <img src="images/empty.png" alt="" class="emptyImg" />
-          <div class="emptyTitle">No feedback yet</div>
-          <div class="emptySub">
-            Submit a review or complaint and it will appear here.
-          </div>
-          <a
-            class="submit-btn"
-            href="feedback.html"
-            style="
-              display: inline-block;
-              text-decoration: none;
-              text-align: center;
-            "
-          >
-            Go to Feedback
-          </a>
-        </div>
+      <div class="load-more-container" id="loadMoreContainer" style="display: none;">
+        <button id="loadMoreBtn" class="load-more-btn">Load More Reviews</button>
       </div>
     </main>
-
-    <footer class="site-footer">
-      <p>&copy; 2026 Hawker Point. All rights reserved. Educational project.</p>
-    </footer>
 
     <script type="module" src="feedback_history.js"></script>
     <script type="module" src="menu.js"></script>
