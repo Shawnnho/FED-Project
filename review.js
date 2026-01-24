@@ -41,6 +41,9 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const storage = getStorage(app);
 
+const submitBtn = document.getElementById("submit-btn");
+if (submitBtn) submitBtn.disabled = true;
+
 /* =========================
    Firebase Auth
 ========================= */
@@ -48,7 +51,15 @@ let currentUser = null;
 
 onAuthStateChanged(auth, (u) => {
   currentUser = u;
+
+  if (!u) {
+    alert("Please log in to submit a review.");
+    window.location.href = "signin.html";
+  }
+  // logged in
+  if (submitBtn) submitBtn.disabled = false;
 });
+
 const stallSelect = document.getElementById("stall-select");
 const stallTitle = document.getElementById("selected-stall-text");
 
@@ -194,6 +205,11 @@ if (starContainer) {
    Submit Review
 ========================= */
 window.submitReview = async function submitReview() {
+  if (!currentUser) {
+    alert("You must be logged in to submit a review.");
+    return;
+  }
+
   const btn = document.getElementById("submit-btn");
   const input = document.getElementById("review-text");
   const stall = document.getElementById("stall-select");

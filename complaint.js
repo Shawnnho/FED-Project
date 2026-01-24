@@ -37,17 +37,16 @@ let currentUser = null;
 
 // Listen for login state
 onAuthStateChanged(auth, (user) => {
-  currentUser = user; // Store user globally
+  currentUser = user;
 
   if (user) {
     console.log("✅ Complaint Page: User detected:", user.email);
-    // Auto-fill email
+
     const emailField = document.getElementById("comp-email");
-    if (emailField && user.email) {
-      emailField.value = user.email;
-    }
+    if (emailField && user.email) emailField.value = user.email;
   } else {
-    console.log("⚠️ Complaint Page: No user logged in");
+    alert("Please log in to submit a complaint.");
+    window.location.href = "signin.html";
   }
 });
 
@@ -100,6 +99,11 @@ if (imgInput && imgPreview) {
 ========================================= */
 
 window.submitComplaint = async function () {
+  if (!currentUser) {
+    alert("You must be logged in to submit a complaint.");
+    return;
+  }
+
   const stallSelect = document.getElementById("comp-stall");
   const first = document.getElementById("comp-first");
   const last = document.getElementById("comp-last");
