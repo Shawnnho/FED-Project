@@ -5226,3 +5226,103 @@ body.stallHolder {
     grid-template-columns: 1fr;
   }
 }
+/* ============================
+   Mobile Polish – Account Page
+============================ */
+@media (max-width: 600px) {
+  /* ---------- Header ---------- */
+  .topbar {
+    padding: 0;
+  }
+
+  .topbar-inner {
+    padding: 10px 14px;
+    gap: 10px;
+  }
+
+  .stallTitle,
+  .topbar h1 {
+    font-size: 20px;
+    line-height: 1.1;
+  }
+
+  .brand-logo {
+    width: 42px;
+    height: 42px;
+  }
+
+  .userMenu,
+  .userName {
+    font-size: 14px;
+  }
+
+  /* ---------- Sidebar (grid nav) ---------- */
+  .sidebar,
+  .dashSide,
+  .sideNav {
+    padding: 12px;
+    gap: 10px;
+    border-radius: 16px;
+  }
+
+  .sidebar a,
+  .dashSide a,
+  .sideNav a {
+    padding: 12px 8px;
+    font-size: 14px;
+    border-radius: 12px;
+    min-height: 48px;
+  }
+
+  .sidebar .badge,
+  .sidebar .count {
+    font-size: 11px;
+    width: 22px;
+    height: 22px;
+  }
+
+  /* ---------- Section headers ---------- */
+  .pageTitle,
+  .sectionTitle,
+  .cardTitle {
+    font-size: 22px;
+    margin-bottom: 6px;
+  }
+
+  .pageSubtitle {
+    font-size: 14px;
+  }
+
+  /* ---------- Cards ---------- */
+  .card,
+  .panel,
+  .sectionCard,
+  .settingsCard {
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  /* ---------- Profile row ---------- */
+  .profileRow,
+  .profileInfo {
+    gap: 12px;
+  }
+
+  .profileAvatar {
+    width: 72px;
+    height: 72px;
+  }
+
+  /* ---------- Buttons ---------- */
+  .btn,
+  button {
+    font-size: 14px;
+    padding: 10px 14px;
+    border-radius: 10px;
+  }
+
+  .btn.small {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}

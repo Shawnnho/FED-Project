@@ -104,7 +104,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      window.location.href = "home.html";
+      redirectByRole(snap.data()?.role);
     } catch (err) {
       console.error(err);
       await signOut(auth);
@@ -214,6 +214,25 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* ===============================
+     Helper
+  ============================== */
+  function redirectByRole(role) {
+    if (role === "storeholder") {
+      window.location.href = "stall-dashboard.html";
+      // or: "stall-account.html"
+      return;
+    }
+
+    if (role === "customer") {
+      window.location.href = "home.html";
+      return;
+    }
+
+    // fallback
+    window.location.href = "home.html";
+  }
+
+  /* ===============================
      Submit (LOGIN)
   ============================== */
   form.addEventListener("submit", async (e) => {
@@ -270,7 +289,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      window.location.href = "home.html";
+      redirectByRole(snap.data().role);
     } catch (err) {
       console.error(err);
 
