@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Hawker Point — Stall Menu</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body>
+    <!-- ================= HEADER ================= -->
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="stall-dashboard.html" aria-label="Hawker Point">
+          <img src="images/logo.png" alt="Hawker Point" class="brand-logo" />
+        </a>
+
+        <div class="stallHeaderTitle" id="stallName">—</div>
+
+        <div class="nav">
+          <span class="userName" id="ownerName">—</span>
+          <button class="pill" id="logoutBtn" type="button">Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ================= PAGE LAYOUT ================= -->
+    <main class="shPage">
+      <div class="shLayout">
+        <!-- ===== Sidebar ===== -->
+        <aside class="shSide">
+          <center><h2>Menu</h2></center>
+
+          <a class="shNav" href="stall-dashboard.html"
+            ><span>Dashboard</span></a
+          >
+
+          <a class="shNav" href="stall-orders.html">
+            <span>Order</span><span class="shBadge" id="orderBadge">0</span>
+          </a>
+
+          <a class="shNav active" href="stall-menu.html"><span>Menu</span></a>
+
+          <a class="shNav" href="stall-review.html">
+            <span>Review</span><span class="shBadge" id="reviewBadge">0</span>
+          </a>
+
+          <a class="shNav" href="stall-analytics.html">
+            <span>Analytics</span
+            ><span class="shBadge" id="analyticsBadge">0</span>
+          </a>
+
+          <a class="shNav" href="stall-hygiene.html">
+            <span>Hygiene</span><span class="shBadge" id="hygieneBadge">0</span>
+          </a>
+
+          <a class="shNav" href="stall-account.html"><span>Account</span></a>
+          <a class="shNav" href="stall-staff.html"><span>Manage Staff</span></a>
+        </aside>
+
+        <!-- ===== Content (was nested main before, now section) ===== -->
+        <section class="page menuPage">
+          <div class="menuShell">
+            <div class="menuTop">
+              <div class="menuSectionTitle" id="menuTitle">Menu — Loading…</div>
+
+              <div class="status" id="status" aria-live="polite"></div>
+            </div>
+
+            <section class="menuList" id="menuList"></section>
+
+            <div class="emptyState" id="emptyState" hidden>
+              <div class="emptyTitle">No menu items yet</div>
+              <div class="emptyHint">
+                Add your first item so customers can order.
+              </div>
+              <div class="bottomReset">
+                <button class="resetBtn" id="btnAdd2">➕ Add New Item</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- ===== Add Menu Modal ===== -->
+    <div id="addMenuModal" class="hpModalOverlay" hidden>
+      <div class="hpModal">
+        <div class="hpModalHead">
+          <div class="hpModalTitle">Add Menu Item</div>
+          <button class="hpModalClose" id="closeAddMenu" type="button">
+            ✕
+          </button>
+        </div>
+
+        <div class="hpModalBody">
+          <div class="hpModalRow">
+            <label class="hpModalLabel">Item Name</label>
+            <input id="menuName" class="hpModalInput" placeholder="Laksa" />
+          </div>
+
+          <div class="hpModalRow">
+            <label class="hpModalLabel">Price ($)</label>
+            <input
+              id="menuPrice"
+              type="number"
+              step="0.1"
+              class="hpModalInput"
+              placeholder="6.50"
+            />
+          </div>
+        </div>
+
+        <div class="hpModalFoot">
+          <button class="hpModalBtn ghost" id="cancelAddMenu" type="button">
+            Cancel
+          </button>
+          <button class="hpModalBtn primary" id="saveMenu" type="button">
+            Add Item
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="hpModalRow">
+      <label class="hpModalLabel">Item Image</label>
+
+      <div class="hpAvatarStack">
+        <img
+          id="menuImgPreview"
+          class="hpAvatarPreview"
+          src="images/background.png"
+          alt="Menu image preview"
+        />
+
+        <div class="hpAvatarControls">
+          <input id="menuImg" type="file" accept="image/*" />
+          <div class="hpModalHint">Optional</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Edit Menu Modal ===== -->
+    <div id="editMenuModal" class="hpModalOverlay" hidden>
+      <div class="hpModal">
+        <div class="hpModalHead">
+          <div class="hpModalTitle">Edit Menu Item</div>
+          <button class="hpModalClose" id="closeEditMenu" type="button">
+            ✕
+          </button>
+        </div>
+
+        <div class="hpModalBody">
+          <div class="hpModalRow">
+            <label class="hpModalLabel">Item Name</label>
+            <input id="editName" class="hpModalInput" />
+          </div>
+
+          <div class="hpModalRow">
+            <label class="hpModalLabel">Price ($)</label>
+            <input
+              id="editPrice"
+              type="number"
+              step="0.1"
+              class="hpModalInput"
+            />
+          </div>
+
+          <div class="hpModalRow">
+            <label class="hpModalLabel">Item Image</label>
+            <div class="hpAvatarStack">
+              <img
+                id="editImgPreview"
+                class="hpAvatarPreview"
+                src="images/background.png"
+              />
+              <div class="hpAvatarControls">
+                <input id="editImg" type="file" accept="image/*" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hpModalFoot">
+          <button class="hpModalBtn ghost" id="deleteItemBtn">Delete</button>
+          <button class="hpModalBtn primary" id="saveEditBtn">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="stall-menu.js"></script>
+  </body>
+</html>

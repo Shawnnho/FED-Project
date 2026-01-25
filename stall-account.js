@@ -1,3 +1,8 @@
+import { getStoreholderCtx } from "./storeholder-context.js";
+
+const ctx = await getStoreholderCtx(user.uid);
+// use ctx.stallPath everywhere
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getAuth,

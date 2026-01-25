@@ -2127,12 +2127,6 @@ select {
   letter-spacing: 2px;
 }
 
-/* Feedback History stars */
-.ratingStars {
-  color: #ffc107; /* gold filled stars */
-  letter-spacing: 2px;
-}
-
 .ratingStarsEmpty {
   color: #d6d6d6; /* grey empty stars */
   letter-spacing: 2px;
@@ -3433,7 +3427,7 @@ select,
   margin: 0 auto;
 
   display: grid;
-  grid-template-columns: 210px 1fr 70px; /* bigger image + add btn */
+  grid-template-columns: 210px 1fr 180px;
   align-items: center;
 
   background: rgba(255, 255, 255, 0.96);
@@ -5492,4 +5486,223 @@ body.stallHolder {
   .shContent table {
     min-width: 720px; /* allow horizontal scroll inside wrapper */
   }
+}
+
+/* Stall holder menu action row */
+.menuActionsTop {
+  width: 100%;
+  max-width: 640px;
+  margin: 6px auto 0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* inside each menu card */
+.menuMid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 10px 12px;
+}
+
+.menuNameRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.menuName {
+  font-weight: 900;
+}
+
+.menuPrice {
+  font-weight: 900;
+}
+
+.menuThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 14px;
+  display: block;
+}
+
+.menuThumbPh {
+  width: 100%;
+  height: 100%;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+/* Buttons row */
+.menuActionRow {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+/* reuse your orange button look (copyBtn is already defined in your CSS) */
+.ghostBtn {
+  background: #fff !important;
+  border: 2px solid rgba(0, 0, 0, 0.25) !important;
+  color: #333 !important;
+}
+
+.dangerBtn2 {
+  background: #d9382c !important;
+}
+
+/* ===== Toast ===== */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #2f2f2f;
+  color: #fff;
+  padding: 14px 18px;
+  border-radius: 12px;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.3s ease;
+  z-index: 9999;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ===== New order highlight ===== */
+.orderNew {
+  animation: flash 1.2s ease;
+}
+
+@keyframes flash {
+  0% {
+    background: #fff3cd;
+  }
+  100% {
+    background: transparent;
+  }
+}
+.prep {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* status colours */
+.prep.pending {
+  background: #fff3cd;
+  color: #8a6d3b;
+}
+
+.prep.in-progress {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.prep.completed {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.prep.cancelled {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+button {
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.1s ease;
+}
+
+button:active {
+  transform: scale(0.97);
+}
+.skeleton {
+  height: 14px;
+  background: linear-gradient(90deg, #eee 25%, #f5f5f5 37%, #eee 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+  border-radius: 6px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+/* ===== Simple modal (RENAMED to avoid clashing with hpModalOverlay/hpModal) ===== */
+.hpSimpleModal[hidden] {
+  display: none;
+}
+
+.hpSimpleModal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35); /* ✅ fixed alpha */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 18px;
+}
+
+.hpSimpleModalCard {
+  width: min(560px, 100%);
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+/* FORCE hidden to always hide (prevents CSS overrides) */
+[hidden] {
+  display: none !important;
+}
+/* ===== Price beside Edit (Menu Card) ===== */
+.menuActionCol {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: stretch;
+  min-width: 140px;
+}
+
+.menuPriceAction {
+  font-size: 20px;
+  font-weight: 800;
+  text-align: left;
+}
+
+/* ===== Stall menu action buttons FIX ===== */
+.menuCard .menuActionRow {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 180px; /* keeps buttons inside card */
+}
+
+.menuCard .menuActionRow .copyBtn {
+  height: auto !important; /* override fixed height */
+  min-height: 44px;
+  padding: 12px 18px;
+  line-height: 1.15;
+  white-space: nowrap; /* keep text on one line */
+  width: 100%;
+  box-sizing: border-box;
 }

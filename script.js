@@ -13,6 +13,8 @@ import {
   signInWithEmailAndPassword,
   onAuthStateChanged,
   signOut,
+  GoogleAuthProvider,
+  signInWithPopup,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 import {
@@ -130,6 +132,48 @@ document.addEventListener("DOMContentLoaded", () => {
     googleBtn.style.opacity = lockGoogle ? "0.5" : "1";
     googleBtn.style.cursor = lockGoogle ? "not-allowed" : "pointer";
   }
+  /* ===============================
+   Google Sign In
+============================== */
+  const provider = new GoogleAuthProvider();
+
+  googleBtn?.addEventListener("click", async () => {
+    // Extra safety (UI already disables it)
+    if (selectedRole === "storeholder") {
+      statusMsg.textContent =
+        "❌ Store Holder cannot sign in with Google. Please use Email & Password.";
+      return;
+    }
+
+    try {
+      statusMsg.textContent = "Signing in with Google…";
+
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      // 🔎 Check user record
+      const snap = await getDoc(doc(db, "users", user.uid));
+
+      if (!snap.exists()) {
+        statusMsg.textContent =
+          "❌ This Google account is not registered. Please sign up first.";
+        await signOut(auth);
+        return;
+      }
+
+      if (snap.data()?.deactivated) {
+        statusMsg.textContent =
+          "❌ This account has been deactivated. Please request reactivation.";
+        await signOut(auth);
+        return;
+      }
+
+      redirectByRole(snap.data().role);
+    } catch (err) {
+      console.error(err);
+      statusMsg.textContent = "❌ Google sign-in failed.";
+    }
+  });
 
   roleButtons.forEach((btn) => {
     btn.addEventListener("click", () => {

@@ -315,6 +315,9 @@ async function createStoreholderStall(user) {
       email: user.email || email.value.trim(),
       phone: phone.value.trim(),
       centreId,
+
+      stallId: user.uid, // because you store stall doc as centres/{centreId}/stalls/{uid}
+      stallPath: `centres/${centreId}/stalls/${user.uid}`,
       updatedAt: serverTimestamp(),
       createdAt: serverTimestamp(),
     },
