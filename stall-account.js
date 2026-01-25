@@ -17,9 +17,15 @@ import {
   doc,
   getDoc,
   setDoc,
-  updateDoc,
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+import {
+  getStorage,
+  ref as sRef,
+  uploadBytes,
+  getDownloadURL,
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 /* SAME config as your other pages */
 const firebaseConfig = {
@@ -34,11 +40,26 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
 /* ---- shared state ---- */
 let stallRef = null; // centres/{centreId}/stalls/{uid}
 let stallCache = null; // latest stall data snapshot
 let ctxCache = null; // storeholder context (centreId, stallId, stallPath)
+
+// =========================
+// Publish validation
+// =========================
+function canPublishStall(data) {
+  if (!data.stallName?.trim()) return "Stall name is required";
+  if (!data.cuisine?.trim()) return "Cuisine is required";
+  if (!data.desc?.trim()) return "Description is required";
+  if (!data.prepMin || !data.prepMax)
+    return "Prep time (min & max) is required";
+  if (!data.imageUrl && !data.img) return "Stall image is required";
+
+  return null; // ✅ ok to publish
+}
 
 /* =========================
    Helpers
@@ -164,7 +185,6 @@ function openModal({ title, bodyHtml, primaryText = "Save", onPrimary }) {
 function wireEditStallDetails(user) {
   $("editStallBtn")?.addEventListener("click", () => {
     const s = stallCache || {};
-
     const currentStallName = (
       $("stallName2")?.textContent ||
       s.stallName ||
@@ -243,11 +263,44 @@ function wireEditStallDetails(user) {
           <div class="hpModalHint">Hygiene grade is set by inspection (read-only).</div>
         </div>
 
+        <div class="hpModalRow">
+  <div class="hpModalLabel">Description</div>
+  <textarea id="mDesc" class="hpInput" rows="3" placeholder="Tell customers what you sell..."></textarea>
+</div>
+
+<div class="hpModalRow">
+  <div class="hpModalLabel">Prep Time (minutes)</div>
+  <div class="hpRow2">
+    <input id="mPrepMin" class="hpInput" type="number" min="1" placeholder="Min" />
+    <input id="mPrepMax" class="hpInput" type="number" min="1" placeholder="Max" />
+  </div>
+</div>
+
+<div class="hpModalRow">
+  <label class="hpModalLabel">Stall Image</label>
+
+  <div class="hpUploadRow">
+    <input id="mImageFile" class="hpModalInput" type="file" accept="image/*" />
+    <div class="hpModalHint">Upload a square image/logo for best results.</div>
+  </div>
+
+  <img
+    id="mImagePreview"
+    class="hpStallImagePreview"
+    src=""
+    alt="Stall image preview"
+    style="display:none;"
+  />
+</div>
+
+
+
         <div class="hpModalErr" style="color:#b00020;font-weight:800;"></div>
       `,
+
       onPrimary: async ({ overlay, close }) => {
         const err = overlay.querySelector(".hpModalErr");
-
+        const prev = overlay.querySelector("#mImagePreview");
         const newStallName =
           overlay.querySelector("#mStallName")?.value?.trim() || "";
         const newUnitInput =
@@ -290,36 +343,70 @@ function wireEditStallDetails(user) {
           return;
         }
 
+        const desc = overlay.querySelector("#mDesc").value.trim();
+
+        const prepMinRaw = overlay.querySelector("#mPrepMin").value;
+        const prepMaxRaw = overlay.querySelector("#mPrepMax").value;
+        const prepMin = prepMinRaw ? Number(prepMinRaw) : null;
+        const prepMax = prepMaxRaw ? Number(prepMaxRaw) : null;
+
+        let imageUrl = stallCache?.imageUrl || stallCache?.img || "";
+
+        const imageFile = overlay.querySelector("#mImageFile").files?.[0];
+        if (imageFile) {
+          const safeName = imageFile.name.replace(/[^\w.\-]+/g, "_");
+          const path = `stallImages/${ctxCache.stallId}/${Date.now()}_${safeName}`;
+          const fileRef = sRef(storage, path);
+
+          await uploadBytes(fileRef, imageFile);
+          imageUrl = await getDownloadURL(fileRef);
+          // ✅ after upload, show the REAL download URL preview
+          prev.src = imageUrl;
+          prev.style.display = "block";
+        }
+
         const updates = {
           stallName: newStallName,
           unitNo: unitNo,
           cuisine: newCuisine,
           operatingHours: newHours,
+          desc,
+          prepMin: Number.isFinite(prepMin) ? prepMin : null,
+          prepMax: Number.isFinite(prepMax) ? prepMax : null,
+          imageUrl,
         };
 
         await setDoc(stallRef, updates, { merge: true });
 
-        // ✅ Publish to top-level stalls/{stallId} so home.js can load it
-        if (ctxCache?.stallId) {
-          await setDoc(
-            doc(db, "stalls", ctxCache.stallId),
-            {
-              stallName: updates.stallName,
-              unitNo: updates.unitNo || "",
-              cuisine: updates.cuisine || "",
-              hygieneGrade: stallCache?.hygieneGrade ?? "—",
-              operatingHours: updates.operatingHours,
+        // =========================
+        // 🚫 Block publish if incomplete
+        // =========================
+        const publishError = canPublishStall({
+          stallName: updates.stallName,
+          cuisine: updates.cuisine,
+          desc: updates.desc,
+          prepMin: updates.prepMin,
+          prepMax: updates.prepMax,
+          imageUrl: updates.imageUrl,
+        });
 
-              ownerUid: user.uid,
-              centreId: ctxCache.centreId,
-
-              active: true, // IMPORTANT: home.js filters on active == true :contentReference[oaicite:2]{index=2}
-              hasSetup: true,
-              updatedAt: serverTimestamp(),
-            },
-            { merge: true },
-          );
+        if (publishError) {
+          alert(`Cannot publish stall:\n${publishError}`);
+          return; // ❌ STOP — do not publish to home
         }
+
+        await setDoc(
+          doc(db, "stalls", ctxCache.stallId),
+          {
+            ...updates,
+            ownerUid: user.uid,
+            centreId: ctxCache.centreId,
+            active: true,
+            hasSetup: true,
+            updatedAt: serverTimestamp(),
+          },
+          { merge: true },
+        );
 
         // update UI
         setText("stallName", updates.stallName);
@@ -327,6 +414,7 @@ function wireEditStallDetails(user) {
         setText("unitNo", updates.unitNo || "—");
         setText("cuisine", updates.cuisine || "—");
         setText("operatingHours", updates.operatingHours || "—");
+        setText("stallDesc", updates.desc || "—");
 
         // update cache
         stallCache = { ...(stallCache || {}), ...updates };
@@ -335,7 +423,27 @@ function wireEditStallDetails(user) {
       },
     });
 
-    // ✅ NOW overlay exists here — time prefill + preview wiring
+    const fileInput = overlay.querySelector("#mImageFile");
+
+    // ✅ Prefill ON OPEN (not on Save)
+    overlay.querySelector("#mDesc").value = stallCache?.desc || "";
+    overlay.querySelector("#mPrepMin").value = stallCache?.prepMin ?? "";
+    overlay.querySelector("#mPrepMax").value = stallCache?.prepMax ?? "";
+
+    // ✅ Preview existing image (if any)
+    const prev = overlay.querySelector("#mImagePreview");
+    const currentImg = stallCache?.imageUrl || stallCache?.img || "";
+    if (currentImg) {
+      prev.src = currentImg;
+      prev.style.display = "block";
+    }
+    // ✅ Live preview when user selects a new file
+    fileInput?.addEventListener("change", () => {
+      const f = fileInput.files?.[0];
+      if (!f) return;
+      prev.src = URL.createObjectURL(f);
+      prev.style.display = "block";
+    });
     const openEl = overlay.querySelector("#mOpenTime");
     const closeEl = overlay.querySelector("#mCloseTime");
     const previewEl = overlay.querySelector("#mHoursPreview");
@@ -429,6 +537,7 @@ onAuthStateChanged(auth, async (user) => {
 
       <div class="hpModalErr" style="color:#b00020;font-weight:700;"></div>
     `,
+
         onPrimary: async ({ overlay, close }) => {
           const pwEl = overlay.querySelector("#mDeactPw");
           const errEl = overlay.querySelector(".hpModalErr");
@@ -539,7 +648,6 @@ onAuthStateChanged(auth, async (user) => {
 
       await setDoc(stallRef, blank, { merge: true });
 
-      // also ensure user has stallPath stored (helps other pages)
       await setDoc(
         doc(db, "users", user.uid),
         {
@@ -563,6 +671,7 @@ onAuthStateChanged(auth, async (user) => {
     setText("cuisine", s.cuisine || "—");
     setGrade("hygieneGrade", s.hygieneGrade);
     setText("operatingHours", s.operatingHours || "—");
+    setText("stallDesc", s.desc || "—");
 
     /* =========================
        Edit Profile popup
@@ -582,10 +691,29 @@ onAuthStateChanged(auth, async (user) => {
         ""
       ).trim();
 
-      openModal({
+      const { overlay } = openModal({
         title: "Edit Profile",
         primaryText: "Save",
         bodyHtml: `
+
+        <div class="hpModalRow">
+  <div class="hpModalLabel">Profile Picture</div>
+
+  <div class="hpAvatarStack">
+    <img
+      id="mAvatarPreview"
+      class="hpAvatarPreview"
+      src="${(u.avatarUrl || user.photoURL || "images/defaultprofile.png").replace(/"/g, "&quot;")}"
+      alt="Profile picture preview"
+    />
+
+    <div class="hpAvatarControls">
+      <input id="mAvatar" type="file" accept="image/*" />
+      <div class="hpModalHint">Saved to your account.</div>
+    </div>
+  </div>
+</div>
+
   <div class="hpModalRow">
     <label class="hpModalLabel">Name</label>
     <input id="mName" class="hpModalInput" type="text"
@@ -603,6 +731,7 @@ onAuthStateChanged(auth, async (user) => {
     <input id="mPhone" class="hpModalInput" type="text"
       value="${currentPhone.replace(/"/g, "&quot;")}" />
   </div>
+  
 
   <div class="hpModalErr" style="color:#b00020;font-weight:800;"></div>
 `,
@@ -613,6 +742,33 @@ onAuthStateChanged(auth, async (user) => {
           const newName = overlay.querySelector("#mName").value.trim();
           const newEmail = overlay.querySelector("#mEmail").value.trim();
           const newPhone = overlay.querySelector("#mPhone").value.trim();
+          const avatarFile = overlay.querySelector("#mAvatar")?.files?.[0];
+          let avatarUrlToSave = null;
+
+          if (avatarFile) {
+            // optional size limit: 5MB
+            if (avatarFile.size > 5 * 1024 * 1024) {
+              err.textContent = "Image too large (max 5MB).";
+              return;
+            }
+
+            const ext = (
+              avatarFile.name.split(".").pop() || "jpg"
+            ).toLowerCase();
+            const avatarRef = sRef(
+              storage,
+              `avatars/${user.uid}/avatar.${ext}`,
+            );
+
+            await uploadBytes(avatarRef, avatarFile, {
+              contentType: avatarFile.type || "image/jpeg",
+            });
+
+            avatarUrlToSave = await getDownloadURL(avatarRef);
+
+            // update UI immediately
+            setImg("avatar", avatarUrlToSave);
+          }
 
           if (!newName) {
             err.textContent = "Name cannot be empty.";
@@ -656,10 +812,17 @@ onAuthStateChanged(auth, async (user) => {
 
           await setDoc(
             doc(db, "users", user.uid),
-            { name: newName, phone: newPhone, email: newEmail || user.email },
+            {
+              name: newName,
+              phone: newPhone,
+              email: newEmail || user.email,
+              ...(avatarUrlToSave ? { avatarUrl: avatarUrlToSave } : {}),
+              updatedAt: serverTimestamp(),
+            },
             { merge: true },
           );
-          location.href = "stall-menu.html?first=1";
+          if (avatarUrlToSave) u.avatarUrl = avatarUrlToSave;
+
           setText("ownerName", newName);
           setText("profileName", newName);
           setText("phone", newPhone || "—");
@@ -672,6 +835,19 @@ onAuthStateChanged(auth, async (user) => {
           close();
         },
       });
+      const fileInput = overlay.querySelector("#mAvatar");
+      const previewImg = overlay.querySelector("#mAvatarPreview");
+
+      if (fileInput && previewImg) {
+        fileInput.addEventListener("change", () => {
+          const file = fileInput.files?.[0];
+          if (!file) return;
+
+          const url = URL.createObjectURL(file);
+          previewImg.src = url;
+          previewImg.onload = () => URL.revokeObjectURL(url);
+        });
+      }
     });
 
     /* =========================

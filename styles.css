@@ -5710,7 +5710,6 @@ button:active {
   .menuCard .menuActionRow {
     width: 100% !important; /* ✅ kill fixed width */
     max-width: 100% !important;
-    
   }
 }
 @media (max-width: 520px) {
@@ -5718,4 +5717,13 @@ button:active {
     min-height: 44px;
     font-size: 14px;
   }
+}
+.hpStallImagePreview {
+  width: 100%;
+  max-width: 320px;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 16px;
+  border: 2px solid rgba(0, 0, 0, 0.12);
+  margin-top: 10px;
 }
