@@ -5706,3 +5706,16 @@ button:active {
   width: 100%;
   box-sizing: border-box;
 }
+@media (max-width: 520px) {
+  .menuCard .menuActionRow {
+    width: 100% !important; /* ✅ kill fixed width */
+    max-width: 100% !important;
+    
+  }
+}
+@media (max-width: 520px) {
+  .menuCard .menuActionRow button {
+    min-height: 44px;
+    font-size: 14px;
+  }
+}

@@ -1,3 +1,11 @@
+import { db } from "./firebase.js";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
 /*************************************************
  * home.js - Stall Listing + Filters + Guest Mode (FULL)
  * - Guest mode: home.html?mode=guest
@@ -48,80 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
    DATA
 ================================ */
 
-const stalls = [
-  {
-    id: "tiong-bahru",
-    name: "Tiong Bahru Chicken Rice",
-    cuisine: "Chinese",
-    grade: "A",
-    prepMin: 2,
-    prepMax: 5,
-    popular: true,
-    location: "Tiong Bahru",
-    desc: "Tender poached chicken served with fragrant rice, accompanied by chilli and ginger sauces.",
-    img: "images/stalls/chickenrice.png",
-  },
-  {
-    id: "asia-wok",
-    name: "Asia Wok",
-    cuisine: "Chinese",
-    grade: "A",
-    prepMin: 5,
-    prepMax: 10,
-    popular: false,
-    location: "Ayer Rajah Creasent",
-    desc: "Tze Char is affordable Singapore Chinese home-style cooking with a wide variety of dishes meant for sharing.",
-    img: "images/stalls/asiawok.jpg",
-  },
-  {
-    id: "ahmad-nasi-lemak",
-    name: "Ahmad Nasi Lemak",
-    cuisine: "Malay",
-    grade: "B",
-    prepMin: 2,
-    prepMax: 5,
-    popular: false,
-    location: "Maxwell Food Centre",
-    desc: "Fragrant coconut rice served with spicy sambal, crispy anchovies, peanuts, egg, and cucumber.",
-    img: "images/stalls/nasilemak.jpg",
-  },
-  {
-    id: "al-azhar",
-    name: "Al-Azhar Restaurant",
-    cuisine: "Indian",
-    grade: "C",
-    prepMin: 5,
-    prepMax: 10,
-    popular: false,
-    location: "Bukit Timah Road",
-    desc: "Bold, aromatic dishes made with rich spices, featuring curries, breads, rice, and savoury sides.",
-    img: "images/stalls/al-azhar.jpg",
-  },
-  {
-    id: "fat-buddies",
-    name: "Fat Buddies Western Food",
-    cuisine: "Western",
-    grade: "B",
-    prepMin: 5,
-    prepMax: 10,
-    popular: false,
-    location: "Maxwell Food Centre",
-    desc: "Hearty Western favourites served hot in flavour, from juicy grilled meats to comforting sides.",
-    img: "images/stalls/fatbuddies.png",
-  },
-  {
-    id: "kopi-fellas",
-    name: "Kopi Fellas",
-    cuisine: "Beverages",
-    grade: "A",
-    prepMin: 1,
-    prepMax: 3,
-    popular: true,
-    location: "Ayer Rajah Creasent",
-    desc: "Traditional kopi and teh brewed the old-school way, serving local favourites like Kopi O, Kopi C, Teh Peng, and Yuan Yang.",
-    img: "images/stalls/kopifellas.jpg",
-   },
-];
+let stalls = [];
 
 const els = {
   list: document.getElementById("list"),
@@ -134,6 +69,34 @@ const els = {
   emptyState: document.getElementById("emptyState"),
   resetBtn: document.getElementById("resetFiltersBtn"),
 };
+
+async function loadHomeStalls() {
+  const q = query(collection(db, "stalls"), where("active", "==", true));
+  const snap = await getDocs(q);
+
+  stalls = snap.docs.map((d) => {
+    const s = d.data();
+    return {
+      id: d.id,
+      name: s.stallName ?? s.name ?? d.id,
+      cuisine: s.cuisine ?? "",
+      grade: s.hygieneGrade ?? s.grade ?? "",
+      popular: !!s.popular,
+      location: s.location ?? "",
+      desc: s.desc ?? "",
+      img: s.imageUrl ?? s.img ?? "images/default-stall.png",
+      openTime: s.openTime ?? "",
+      closeTime: s.closeTime ?? "",
+      unit: s.unitNo ?? s.unit ?? "",
+      prepMin: s.prepMin ?? null,
+      prepMax: s.prepMax ?? null,
+    };
+  });
+
+  // render AFTER data exists
+  renderCuisineOptions();
+  applyFilters();
+}
 
 /* ===============================
    GUEST LOCK SCREEN (INSIDE LIST)
@@ -387,9 +350,7 @@ els.list.addEventListener("click", (e) => {
    INIT
 ================================ */
 
-renderCuisineOptions();
-applyFilters();
-
+loadHomeStalls();
 /* ===============================
    LISTENERS
 ================================ */
