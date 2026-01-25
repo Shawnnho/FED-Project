@@ -1,5 +1,3 @@
-import { promos, isExpired } from "./promotions.js";
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getAuth,
@@ -13,6 +11,8 @@ import {
   arrayUnion,
   arrayRemove,
   onSnapshot,
+  collection,
+  getDocs,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -29,100 +29,9 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 // =========================
-// Local stall data (YOUR working stall file)
+// Stall data from Firebase
 // =========================
-const stalls = [
-  {
-    id: "tiong-bahru",
-    name: "Tiong Bahru Chicken Rice",
-    cuisine: "Chinese",
-    grade: "A",
-    prepMin: 2,
-    prepMax: 5,
-    popular: true,
-    location: "Tiong Bahru",
-    openTime: "7:00 AM",
-    closeTime: "9:00 PM",
-    unit: "#01-10",
-    desc: "Tender poached chicken served with fragrant rice, accompanied by chilli and ginger sauces.",
-    img: "images/chickenrice-hero.jpg",
-  },
-  {
-    id: "asia-wok",
-    name: "Asia Wok",
-    cuisine: "Chinese",
-    grade: "A",
-    prepMin: 5,
-    prepMax: 10,
-    popular: false,
-    openTime: "12:00 PM",
-    closeTime: "8:00 PM",
-    unit: "#01-15",
-    location: "Ayer Rajah Creasent",
-    desc: "Tze Char is affordable Singapore Chinese home-style cooking with a wide variety of dishes meant for sharing.",
-    img: "images/asiawok-hero.jpg",
-  },
-  {
-    id: "ahmad-nasi-lemak",
-    name: "Ahmad Nasi Lemak",
-    cuisine: "Malay",
-    grade: "B",
-    prepMin: 2,
-    prepMax: 5,
-    popular: false,
-    openTime: "6:00 AM",
-    closeTime: "3:00 PM",
-    unit: "#01-13",
-    location: "Maxwell Food Centre",
-    desc: "Fragrant coconut rice served with spicy sambal, crispy anchovies, peanuts, egg, and cucumber.",
-    img: "images/stalls/nasilemak.jpg",
-  },
-  {
-    id: "al-azhar",
-    name: "Al-Azhar Restaurant",
-    cuisine: "Indian",
-    grade: "C",
-    prepMin: 5,
-    prepMax: 10,
-    popular: false,
-    openTime: "7:00 AM",
-    closeTime: "3:00 AM",
-    unit: "#01-01",
-    location: "Bukit Timah Road",
-    desc: "Bold, aromatic dishes made with rich spices, featuring curries, breads, rice, and savoury sides.",
-    img: "images/al-azhar-hero.jpg",
-  },
-  {
-    id: "fat-buddies",
-    name: "Fat Buddies Western Food",
-    cuisine: "Western",
-    grade: "B",
-    prepMin: 5,
-    prepMax: 10,
-    popular: false,
-    openTime: "11:00 AM",
-    closeTime: "9:00 PM",
-    unit: "#01-32",
-    location: "Maxwell Food Centre",
-    desc: "Hearty Western favourites served hot in flavour, from juicy grilled meats to comforting sides.",
-    img: "images/stalls/fatbuddies.png",
-  },
-  {
-    id: "kopi-fellas",
-    name: "Kopi Fellas",
-    cuisine: "Beverages",
-    grade: "A",
-    prepMin: 1,
-    prepMax: 3,
-    popular: true,
-    openTime: "8:00 AM",
-    closeTime: "5:30 PM",
-    unit: "#01-07",
-    location: "Ayer Rajah Crescent",
-    desc: "Traditional kopi and teh brewed the old-school way, serving local favourites like Kopi O, Kopi C, Teh Peng, and Yuan Yang.",
-    img: "images/kopifellas-hero.jpg",
-  },
-];
+let stalls = [];
 
 // =========================
 // DOM
@@ -135,19 +44,34 @@ const chipRow = document.getElementById("chipRow");
 const resetBtn = document.getElementById("discoverReset");
 
 // =========================
-// Discover promos (subset)
-// =========================
-const discoverPromos = promos
-  .filter((p) => !isExpired(p))
-  .sort((a, b) => (b.popular === true) - (a.popular === true))
-  .slice(0, 6);
-
-// =========================
 // State
 // =========================
 let activeCat = "all";
 let currentUid = null;
 let favSet = new Set(); // stall ids
+
+function isExpired(p) {
+  return p.expiresAt && Date.now() > p.expiresAt;
+}
+
+async function loadDiscoverPromos() {
+  const snap = await getDocs(collection(db, "promotions"));
+
+  const discoverPromos = snap.docs
+    .map((d) => {
+      const data = d.data();
+      return {
+        id: d.id,
+        ...data,
+        expiresAt: data.expiresAt?.toMillis ? data.expiresAt.toMillis() : 0,
+      };
+    })
+    .filter((p) => !isExpired(p))
+    .sort((a, b) => (b.popular === true) - (a.popular === true))
+    .slice(0, 6);
+
+  renderPromoStrip(discoverPromos);
+}
 
 // =========================
 // Helpers
@@ -468,14 +392,42 @@ listEl?.addEventListener("click", (e) => {
   toggleFavourite(stallId);
 });
 
+let discoverPromos = [];
+
 // =========================
 // Init
 // =========================
-buildChipsFromData(stalls);
-renderFeatured(stalls);
-renderPromoStrip(discoverPromos);
-renderList(stalls);
-applyFilters();
+loadStalls();
+loadDiscoverPromos();
+
+async function loadStalls() {
+  const snap = await getDocs(collection(db, "stalls"));
+
+  stalls = snap.docs.map((d) => {
+    const data = d.data();
+
+    return {
+      id: d.id,
+      name: data.name,
+      cuisine: data.cuisine,
+      grade: data.hygieneGrade || data.grade || "B",
+      prepMin: data.prepMin ?? 5,
+      prepMax: data.prepMax ?? 10,
+      popular: data.popular ?? false,
+      img: data.imageUrl || data.img || "images/stalls/placeholder.jpg",
+      desc: data.desc || "",
+      location: data.location || "",
+      openTime: data.openTime,
+      closeTime: data.closeTime,
+      unit: data.unit,
+    };
+  });
+
+  buildChipsFromData(stalls);
+  renderFeatured(stalls);
+  renderList(stalls);
+  applyFilters();
+}
 
 let stopFavWatch = null;
 

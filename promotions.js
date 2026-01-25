@@ -31,8 +31,6 @@ let currentUser = null;
 let claimedCodes = new Set();
 let claimedDailyIds = new Set();
 
-
-
 function todayKey() {
   const d = new Date();
   const yyyy = d.getFullYear();
@@ -62,166 +60,22 @@ async function loadClaimedCodes(uid) {
   });
 }
 
-// ---- PROMO DATA (REAL-TIME EXPIRY) ----
-// NOTE: these expiries are demo-based (refresh resets).
-export const promos = [
-  {
-    id: "p1",
-    title: "Get $5 Off Your Next Order",
-    desc: "Use this code for orders above $20. Limited redemptions.",
-    code: "HAWKER5",
-    claimOnce: true,
-    type: "cash",
-    redemptionsLeft: 395,
-    popular: true,
-    img: "images/5dollar.jpg",
-    expiresAt: Date.now() + 6 * DAY,
-  },
-  {
-    id: "p2",
-    title: "10% Off For All Orders",
-    desc: "No minimum spend. Works across participating stalls.",
-    code: "MAXWELL10",
-    claimOnce: true,
-    type: "percent",
-    redemptionsLeft: null,
-    popular: false,
-    img: "images/10off.png",
-    expiresAt: Date.now() + 20 * DAY,
-  },
-  {
-    id: "p3",
-    title: "Exclusive First Order Deal",
-    desc: "New users only. Max discount $8.",
-    code: "WELCOME15",
-    claimOnce: true,
-    type: "percent",
-    redemptionsLeft: null,
-    popular: false,
-    img: "images/firstorder.jpg",
-    expiresAt: Date.now() + 30 * DAY,
-  },
-  {
-    id: "p4",
-    title: "Free Drink With Set Meal",
-    desc: "Selected stalls only. While stocks last.",
-    code: "FREEDRINK",
-    claimOnce: true,
-    type: "freebie",
-    redemptionsLeft: 120,
-    popular: false,
-    img: "images/freedrinks.png",
-    expiresAt: Date.now() + 3 * DAY,
-  },
-  {
-    id: "p5",
-    title: "$3 Off Chicken Rice",
-    desc: "Only for Tiong Bahru Chicken Rice. Min spend $12.",
-    code: "TBCR3",
-    claimOnce: true,
-    type: "cash",
-    redemptionsLeft: 220,
-    popular: true,
-    img: "images/chickenricepromo.jpg",
-    expiresAt: Date.now() + 10 * DAY,
-  },
-  {
-    id: "p6",
-    title: "12% Off Tze Char Orders",
-    desc: "Asia Wok only. Great for sharing orders.",
-    code: "ASIA12",
-    claimOnce: true,
-    type: "percent",
-    redemptionsLeft: 180,
-    popular: false,
-    img: "images/12percentoff.png",
-    expiresAt: Date.now() + 12 * DAY,
-  },
-  {
-    id: "p7",
-    title: "$2 Off Nasi Lemak",
-    desc: "Ahmad Nasi Lemak only. Min spend $8.",
-    code: "NASI2",
-    claimOnce: true,
-    type: "cash",
-    redemptionsLeft: 300,
-    popular: false,
-    img: "images/2$off.png",
-    expiresAt: Date.now() + 14 * DAY,
-  },
-  {
-    id: "p8",
-    title: "Free Sambal Add-on",
-    desc: "Free sambal add-on with any Malay cuisine order.",
-    code: "SAMBALFREE",
-    claimOnce: false,
-    type: "freebie",
-    redemptionsLeft: 150,
-    popular: true,
-    img: "images/sambal.jpg",
-    expiresAt: Date.now() + 5 * DAY,
-  },
-  {
-    id: "p9",
-    title: "Lunch Hour Special 8% Off",
-    desc: "Use during 11am–2pm (demo).",
-    code: "LUNCH8",
-    claimOnce: true,
-    type: "percent",
-    redemptionsLeft: null,
-    popular: false,
-    img: "images/lunchspecial.png",
-    expiresAt: Date.now() + 9 * DAY,
-  },
-  {
-    id: "p10",
-    title: "Student Deal $4 Off",
-    desc: "Discount for student orders (demo verification not required).",
-    code: "STUDENT4",
-    claimOnce: true,
-    type: "cash",
-    redemptionsLeft: 500,
-    popular: true,
-    img: "images/4off.png",
-    expiresAt: Date.now() + 25 * DAY,
-  },
-  {
-    id: "p11",
-    title: "Free Iced Tea With Indian Meals",
-    desc: "Selected Indian stalls. Limited quantity daily.",
-    code: "ICEDTEA",
-    claimOnce: false,
-    type: "freebie",
-    redemptionsLeft: 90,
-    popular: false,
-    img: "images/freetea.jpg",
-    expiresAt: Date.now() + 7 * DAY,
-  },
-  {
-    id: "p12",
-    title: "Weekend Treat 5% Off",
-    desc: "Small discount, but applies to everything.",
-    code: "WEEKEND5",
-    claimOnce: true,
-    type: "percent",
-    redemptionsLeft: null,
-    popular: false,
-    img: "images/weekend.jpg",
-    expiresAt: Date.now() + 18 * DAY,
-  },
-  {
-    id: "p13",
-    title: "$6 Off Orders Above $35",
-    desc: "Great for group orders. Limited redemptions.",
-    code: "GROUP6",
-    claimOnce: true,
-    type: "cash",
-    redemptionsLeft: 140,
-    popular: true,
-    img: "images/6$off.png",
-    expiresAt: Date.now() + 8 * DAY,
-  },
-];
+// ---- PROMO DATA  Pull (REAL-TIME EXPIRY) ----
+let promos = [];
+
+async function loadPromos() {
+  const snap = await getDocs(collection(db, "promotions"));
+
+  promos = snap.docs.map((d) => {
+    const data = d.data();
+    return {
+      id: d.id,
+      ...data,
+      // convert Firestore Timestamp → number (so your existing logic still works)
+      expiresAt: data.expiresAt?.toMillis ? data.expiresAt.toMillis() : 0,
+    };
+  });
+}
 
 // ---- DOM ----
 const promoList = document.getElementById("promoList");
@@ -245,36 +99,23 @@ export function isExpired(p) {
 }
 
 if (IS_PROMO_PAGE) {
-
-
   onAuthStateChanged(auth, async (u) => {
-  // ✅ Not logged in: allow viewing promos, but disable claim
-  if (!u) {
-    currentUser = null;
-    claimedCodes = new Set();
-    claimedDailyIds = new Set();
+    if (!u) {
+      currentUser = null;
+      claimedCodes.clear();
+      claimedDailyIds.clear();
+
+      await loadPromos();
+      render();
+      return;
+    }
+
+    currentUser = u;
+    await loadClaimedCodes(u.uid);
+    await loadPromos();
     render();
-    return;
-  }
+  });
 
-  // 🔎 Check role from Firestore
-  const snap = await getDoc(doc(db, "users", u.uid));
-  const role = snap.exists() ? snap.data().role : "customer";
-
-  // ✅ Guest role: allow viewing promos, but disable claim
-  if (role === "guest") {
-    currentUser = null;
-    claimedCodes = new Set();
-    claimedDailyIds = new Set();
-    render();
-    return;
-  }
-
-  // ✅ Allowed user can claim
-  currentUser = u;
-  await loadClaimedCodes(u.uid);
-  render();
-});
   // ---- UI HELPERS ----
   function showToast(msg) {
     toast.textContent = msg;
@@ -536,5 +377,4 @@ if (IS_PROMO_PAGE) {
 
   // ---- INITIAL + LIVE REFRESH ----
   render();
-  setInterval(render, 30000);
 }

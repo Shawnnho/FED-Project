@@ -17,6 +17,10 @@ import {
   arrayUnion,
   arrayRemove,
   onSnapshot,
+  collection,
+  query,
+  orderBy,
+  limit,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* ✅ SAME config as your other pages */
@@ -112,7 +116,7 @@ const stalls = [
     desc: "Hearty Western favourites served hot in flavour, from juicy grilled meats to comforting sides.",
     img: "images/stalls/fatbuddies.png",
   },
-  
+
   {
     id: "kopi-fellas",
     name: "Kopi Fellas",
@@ -157,6 +161,13 @@ const dirBtn = document.getElementById("dirBtn");
 
 const favBtn = document.getElementById("favBtn");
 
+const avgText = document.getElementById("avgText");
+const countText = document.getElementById("countText");
+const starFill = document.getElementById("starFill");
+
+const seeReviewLink = document.getElementById("seeReviewLink");
+if (seeReviewLink)
+  seeReviewLink.href = `feedback_history.html?stall=${stall.id}`;
 // =========================
 // Fill UI
 // =========================

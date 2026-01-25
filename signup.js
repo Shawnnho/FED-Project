@@ -338,6 +338,30 @@ async function createStoreholderStall(user) {
     // operatingHours: {}
   });
 
+  // ✅ ALSO create global stall doc so home.js can show it
+  await setDoc(
+    doc(db, "stalls", user.uid),
+    {
+      ownerUid: user.uid,
+      centreId,
+      stallName: stallName.value.trim(),
+      cuisine: stallCuisine.value,
+      unitNo,
+      phone: phone.value.trim(),
+
+      active: true, // 🔑 required because home.js filters active == true
+      popular: false, // optional (home.js reads it)
+      hygieneGrade: "", // optional
+      imageUrl: "", // optional
+      location: centreId, // your UI uses location filter
+      desc: "",
+
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true },
+  );
+
   return unitNo;
 }
 

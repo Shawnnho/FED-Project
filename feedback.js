@@ -207,17 +207,13 @@ if (track) {
    stalls/{stallId}/reviews/{reviewId}
 ========================= */
 // 1) NEW location: stalls/{stallId}/reviews/{reviewId}
-const qSub = query(
-  collectionGroup(db, "reviews"),
-  orderBy("createdAt", "desc"),
-  limit(20),
-);
+const qSub = query(collectionGroup(db, "reviews"), limit(50));
 
 // 2) OLD location: reviews/{reviewId}
 const qTop = query(
   collection(db, "reviews"),
   orderBy("createdAt", "desc"),
-  limit(20),
+  limit(50),
 );
 
 let subItems = [];
