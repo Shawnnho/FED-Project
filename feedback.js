@@ -7,6 +7,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getFirestore,
+  collection,
   collectionGroup,
   query,
   orderBy,
@@ -205,17 +206,55 @@ if (track) {
    IMPORTANT: this requires your reviews to be stored under:
    stalls/{stallId}/reviews/{reviewId}
 ========================= */
-const q = query(
+// 1) NEW location: stalls/{stallId}/reviews/{reviewId}
+const qSub = query(
   collectionGroup(db, "reviews"),
   orderBy("createdAt", "desc"),
   limit(20),
 );
 
-onSnapshot(q, (snap) => {
-  const items = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-  renderCards(items);
+// 2) OLD location: reviews/{reviewId}
+const qTop = query(
+  collection(db, "reviews"),
+  orderBy("createdAt", "desc"),
+  limit(20),
+);
+
+let subItems = [];
+let topItems = [];
+
+function mergeAndRender() {
+  const map = new Map();
+  for (const it of [...subItems, ...topItems]) map.set(it.id, it);
+
+  const merged = [...map.values()].sort((a, b) => {
+    const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+    const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+    return tb - ta;
+  });
+
+  renderCards(merged.slice(0, 20));
   startAuto();
-});
+}
+
+onSnapshot(
+  qSub,
+  (snap) => {
+    subItems = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    mergeAndRender();
+  },
+  (err) => console.error("❌ qSub denied:", err.code, err.message),
+);
+
+onSnapshot(
+  qTop,
+  (snap) => {
+    topItems = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    mergeAndRender();
+  },
+  (err) => console.error("❌ qTop denied:", err.code, err.message),
+);
+
 /* =========================
    Feedback page: click review image -> full preview modal
 ========================= */

@@ -5,6 +5,8 @@ import {
   query,
   where,
   orderBy,
+  limit,
+  onSnapshot,
   getDocs,
   collectionGroup,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -218,15 +220,23 @@ async function loadHistory(user) {
     orderBy("createdAt", "desc"),
   );
 
-  const reviewsQ = query(
+  const reviewsSubQ = query(
     collectionGroup(db, "reviews"),
     where("userId", "==", user.uid),
     orderBy("createdAt", "desc"),
   );
 
-  const [complaintsSnap, reviewsSnap] = await Promise.all([
+  // ✅ old location support: /reviews (top-level)
+  const reviewsTopQ = query(
+    collection(db, "reviews"),
+    where("userId", "==", user.uid),
+    orderBy("createdAt", "desc"),
+  );
+
+  const [complaintsSnap, reviewsSubSnap, reviewsTopSnap] = await Promise.all([
     getDocs(complaintsQ),
-    getDocs(reviewsQ),
+    getDocs(reviewsSubQ),
+    getDocs(reviewsTopQ),
   ]);
 
   const complaints = complaintsSnap.docs.map((d) => ({
@@ -235,11 +245,18 @@ async function loadHistory(user) {
     ...d.data(),
   }));
 
-  const reviews = reviewsSnap.docs.map((d) => ({
-    id: d.id,
-    type: "review",
-    ...d.data(),
-  }));
+  const reviews = [
+    ...reviewsSubSnap.docs.map((d) => ({
+      id: d.id,
+      type: "review",
+      ...d.data(),
+    })),
+    ...reviewsTopSnap.docs.map((d) => ({
+      id: d.id,
+      type: "review",
+      ...d.data(),
+    })),
+  ];
 
   const all = [...complaints, ...reviews].sort((a, b) => {
     const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
