@@ -298,6 +298,8 @@ onAuthStateChanged(auth, async (user) => {
 
   setStatus("Loading menu…");
 
+  const isFirst = new URLSearchParams(location.search).get("first") === "1";
+
   const ctx = await getStoreholderContext(user.uid);
   if (!ctx) {
     setStatus("No stall found (missing centreId or stall record).", true);
@@ -407,6 +409,15 @@ onAuthStateChanged(auth, async (user) => {
         listEl.innerHTML = "";
         emptyState.hidden = false;
         setStatus("");
+        return;
+      }
+      if (snap.empty) {
+        listEl.innerHTML = "";
+        emptyState.hidden = false;
+
+        if (isFirst) {
+          openAddModal(); // ✅ auto pop-up
+        }
         return;
       }
 

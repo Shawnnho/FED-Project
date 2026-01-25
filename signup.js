@@ -396,9 +396,19 @@ form.addEventListener("submit", async (e) => {
 
     if (selectedRole === "storeholder") {
       statusMsg.textContent = "Creating stall & generating unit no...";
-      await createStoreholderStall(cred.user);
-      statusMsg.textContent = "✅ Storeholder account created. Redirecting...";
+      try {
+        await createStoreholderStall(cred.user);
+        statusMsg.textContent =
+          "✅ Storeholder account created. Redirecting...";
+      } catch (e) {
+        console.error("Stall creation failed:", e);
+        statusMsg.textContent =
+          "⚠️ Account created, but stall setup failed. You can complete it later.";
+      }
+
+      // 🔑 ALWAYS redirect — user IS logged in
       setTimeout(() => redirectByRole("storeholder"), 900);
+
       return;
     }
 

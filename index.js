@@ -401,7 +401,9 @@ loadStalls();
 loadDiscoverPromos();
 
 async function loadStalls() {
-  const snap = await getDocs(collection(db, "stalls"));
+  const snap = await getDocs(
+    query(collection(db, "stalls"), where("active", "==", true)),
+  );
 
   stalls = snap.docs.map((d) => {
     const data = d.data();

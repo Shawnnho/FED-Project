@@ -38,110 +38,42 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 // =========================
-// Local stall data
-// =========================
-const stalls = [
-  {
-    id: "tiong-bahru",
-    name: "Tiong Bahru Chicken Rice",
-    cuisine: "Chinese",
-    grade: "A",
-    prepMin: 2,
-    prepMax: 5,
-    popular: true,
-    location: "Tiong Bahru",
-    openTime: "7:00 AM",
-    closeTime: "9:00 PM",
-    unit: "#01-10",
-    desc: "Tender poached chicken served with fragrant rice, accompanied by chilli and ginger sauces.",
-    img: "images/chickenrice-hero.jpg",
-  },
-  {
-    id: "asia-wok",
-    name: "Asia Wok",
-    cuisine: "Chinese",
-    grade: "A",
-    prepMin: 5,
-    prepMax: 10,
-    popular: false,
-    openTime: "12:00 PM",
-    closeTime: "8:00 PM",
-    unit: "#01-15",
-    location: "Ayer Rajah Creasent",
-    desc: "Tze Char is affordable Singapore Chinese home-style cooking with a wide variety of dishes meant for sharing.",
-    img: "images/asiawok-hero.jpg",
-  },
-  {
-    id: "ahmad-nasi-lemak",
-    name: "Ahmad Nasi Lemak",
-    cuisine: "Malay",
-    grade: "B",
-    prepMin: 2,
-    prepMax: 5,
-    popular: false,
-    openTime: "6:00 AM",
-    closeTime: "3:00 PM",
-    unit: "#01-13",
-    location: "Maxwell Food Centre",
-    desc: "Fragrant coconut rice served with spicy sambal, crispy anchovies, peanuts, egg, and cucumber.",
-    img: "images/stalls/nasilemak.jpg",
-  },
-  {
-    id: "al-azhar",
-    name: "Al-Azhar Restaurant",
-    cuisine: "Indian",
-    grade: "C",
-    prepMin: 5,
-    prepMax: 10,
-    popular: false,
-    openTime: "7:00 AM",
-    closeTime: "3:00 AM",
-    unit: "#01-01",
-    location: "Bukit Timah Road",
-    desc: "Bold, aromatic dishes made with rich spices, featuring curries, breads, rice, and savoury sides.",
-    img: "images/al-azhar-hero.jpg",
-  },
-  {
-    id: "fat-buddies",
-    name: "Fat Buddies Western Food",
-    cuisine: "Western",
-    grade: "B",
-    prepMin: 5,
-    prepMax: 10,
-    popular: false,
-    openTime: "11:00 AM",
-    closeTime: "9:00 PM",
-    unit: "#01-32",
-    location: "Maxwell Food Centre",
-    desc: "Hearty Western favourites served hot in flavour, from juicy grilled meats to comforting sides.",
-    img: "images/stalls/fatbuddies.png",
-  },
-
-  {
-    id: "kopi-fellas",
-    name: "Kopi Fellas",
-    cuisine: "Beverages",
-    grade: "A",
-    prepMin: 1,
-    prepMax: 3,
-    popular: true,
-    openTime: "8:00 AM",
-    closeTime: "5:30 PM",
-    unit: "#01-07",
-    location: "Ayer Rajah Crescent",
-    desc: "Traditional kopi and teh brewed the old-school way, serving local favourites like Kopi O, Kopi C, Teh Peng, and Yuan Yang.",
-    img: "images/kopifellas-hero.jpg",
-  },
-];
-
-// =========================
-// Get stall id from URL
+// Load stall from Firestore
 // =========================
 const params = new URLSearchParams(window.location.search);
-const id = params.get("id") || "tiong-bahru";
-const stall = stalls.find((s) => s.id === id);
+const id = params.get("id");
 
-if (!stall) window.location.href = "home.html";
+if (!id) window.location.href = "home.html";
+
+const stallRef = doc(db, "stalls", id);
+
+let stall = null;
+
+async function loadStall() {
+  const snap = await getDoc(stallRef);
+
+  if (!snap.exists()) {
+    window.location.href = "home.html";
+    return;
+  }
+
+  const d = snap.data();
+
+  stall = {
+    id,
+    name: d.stallName ?? d.name ?? id,
+    cuisine: d.cuisine ?? "",
+    grade: d.hygieneGrade ?? d.grade ?? "—",
+    desc: d.desc ?? "",
+    img: d.imageUrl ?? d.img ?? "images/default-stall.png",
+    openTime: d.openTime ?? "",
+    closeTime: d.closeTime ?? "",
+    unit: d.unitNo ?? "",
+    location: d.location ?? "",
+  };
+
+  fillUI();
+}
 
 // =========================
 // DOM
@@ -166,29 +98,36 @@ const countText = document.getElementById("countText");
 const starFill = document.getElementById("starFill");
 
 const seeReviewLink = document.getElementById("seeReviewLink");
-if (seeReviewLink)
-  seeReviewLink.href = `feedback_history.html?stall=${stall.id}`;
-// =========================
-// Fill UI
-// =========================
-heroEl.src = stall.img;
-heroEl.alt = `${stall.name} hero image`;
 
-nameEl.textContent = stall.name;
-cuisineEl.textContent = stall.cuisine;
+function fillUI() {
+  heroEl.src = stall.img;
+  heroEl.alt = `${stall.name} hero image`;
 
-gradeEl.textContent = stall.grade;
-gradeEl.classList.remove("gradeA", "gradeB", "gradeC");
-gradeEl.classList.add(
-  stall.grade === "A" ? "gradeA" : stall.grade === "B" ? "gradeB" : "gradeC",
-);
+  nameEl.textContent = stall.name;
+  cuisineEl.textContent = stall.cuisine;
 
-descEl.textContent = stall.desc;
+  gradeEl.textContent = stall.grade;
+  gradeEl.classList.remove("gradeA", "gradeB", "gradeC");
+  gradeEl.classList.add(
+    stall.grade === "A" ? "gradeA" : stall.grade === "B" ? "gradeB" : "gradeC",
+  );
 
-// =========================
-// ⭐ LIVE RATING FROM FIRESTORE
-// =========================
-const stallRef = doc(db, "stalls", stall.id);
+  descEl.textContent = stall.desc;
+
+  metaEl.textContent = `Open: ${stall.openTime} - ${stall.closeTime} • Unit ${stall.unit}`;
+
+  if (locationEl) {
+    locationEl.textContent = `📍 ${stall.location}`;
+  }
+
+  if (menuLink) menuLink.href = `menu.html?id=${stall.id}`;
+  if (callBtn) callBtn.href = "tel:+6590000000";
+  if (dirBtn) {
+    dirBtn.href =
+      "https://www.google.com/maps?q=" +
+      encodeURIComponent(stall.location || stall.name);
+  }
+}
 
 onSnapshot(stallRef, (snap) => {
   const d = snap.exists() ? snap.data() : {};
@@ -202,23 +141,6 @@ onSnapshot(stallRef, (snap) => {
   const pct = Math.max(0, Math.min(100, (avg / 5) * 100));
   if (starFill) starFill.style.width = pct + "%";
 });
-
-// Top meta line
-metaEl.textContent = `Open: ${stall.openTime} - ${stall.closeTime} > Unit ${stall.unit}`;
-
-// Location line (if you added it in HTML)
-if (locationEl) {
-  locationEl.textContent = `📍 ${stall.location} • Unit ${stall.unit}`;
-}
-
-// Links
-if (menuLink) menuLink.href = `menu.html?id=${stall.id}`;
-if (callBtn) callBtn.href = "tel:+6590000000";
-if (dirBtn) {
-  dirBtn.href =
-    "https://www.google.com/maps?q=" +
-    encodeURIComponent(stall.location || stall.name);
-}
 
 // =========================
 // ✅ Favourite (Firestore)
@@ -234,6 +156,8 @@ function setFavUI(isFav) {
 }
 
 onAuthStateChanged(auth, async (user) => {
+  await loadStall();
+
   if (!favBtn) return;
 
   // If not logged in, block favourites

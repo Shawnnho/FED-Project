@@ -17,6 +17,7 @@ import {
   doc,
   getDoc,
   setDoc,
+  updateDoc,
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -37,6 +38,7 @@ const db = getFirestore(app);
 /* ---- shared state ---- */
 let stallRef = null; // centres/{centreId}/stalls/{uid}
 let stallCache = null; // latest stall data snapshot
+let ctxCache = null; // storeholder context (centreId, stallId, stallPath)
 
 /* =========================
    Helpers
@@ -186,7 +188,7 @@ function wireEditStallDetails(user) {
     ).trim();
 
     // ✅ Create modal and CAPTURE overlay here
-    const overlay = openModal({
+    const { overlay } = openModal({
       title: "Edit Stall Details",
       primaryText: "Save",
       bodyHtml: `
@@ -297,6 +299,28 @@ function wireEditStallDetails(user) {
 
         await setDoc(stallRef, updates, { merge: true });
 
+        // ✅ Publish to top-level stalls/{stallId} so home.js can load it
+        if (ctxCache?.stallId) {
+          await setDoc(
+            doc(db, "stalls", ctxCache.stallId),
+            {
+              stallName: updates.stallName,
+              unitNo: updates.unitNo || "",
+              cuisine: updates.cuisine || "",
+              hygieneGrade: stallCache?.hygieneGrade ?? "—",
+              operatingHours: updates.operatingHours,
+
+              ownerUid: user.uid,
+              centreId: ctxCache.centreId,
+
+              active: true, // IMPORTANT: home.js filters on active == true :contentReference[oaicite:2]{index=2}
+              hasSetup: true,
+              updatedAt: serverTimestamp(),
+            },
+            { merge: true },
+          );
+        }
+
         // update UI
         setText("stallName", updates.stallName);
         setText("stallName2", updates.stallName);
@@ -356,7 +380,7 @@ function wireEditStallDetails(user) {
 ========================= */
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
-    location.href = "login.html";
+    location.href = "signin.html";
     return;
   }
 
@@ -486,29 +510,59 @@ onAuthStateChanged(auth, async (user) => {
     setText("role2", "Store Owner");
     setImg("avatar", u.avatarUrl || "images/defaultprofile.png");
 
-    // stall doc
     // ✅ stall doc (DB-based via storeholder-context)
     const ctx = await getStoreholderCtx(user.uid);
-
-    if (!ctx || !ctx.stallPath) {
-      console.warn("No stall linked to this storeholder");
+    if (!ctx || !ctx.centreId) {
+      console.warn("No centre linked to this storeholder");
       return;
     }
+    ctxCache = ctx;
 
     stallRef = doc(db, ctx.stallPath);
 
-    const stallSnap = await getDoc(stallRef);
-    if (!stallSnap.exists()) return;
+    // 1) if stall doc doesn't exist → create a blank one
+    let stallSnap = await getDoc(stallRef);
+
+    if (!stallSnap.exists()) {
+      const blank = {
+        stallName: "—",
+        unitNo: "",
+        cuisine: "",
+        hygieneGrade: "—",
+        operatingHours: "07:00AM - 9:00PM",
+        ownerUid: user.uid,
+        centreId: ctx.centreId,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        hasSetup: false,
+      };
+
+      await setDoc(stallRef, blank, { merge: true });
+
+      // also ensure user has stallPath stored (helps other pages)
+      await setDoc(
+        doc(db, "users", user.uid),
+        {
+          stallPath: ctx.stallPath,
+          stallId: ctx.stallId,
+          centreId: ctx.centreId,
+        },
+        { merge: true },
+      );
+
+      stallSnap = await getDoc(stallRef);
+    }
 
     stallCache = stallSnap.data();
     const s = stallCache;
 
+    // render as usual
     setText("stallName", s.stallName);
     setText("stallName2", s.stallName);
-    setText("unitNo", s.unitNo);
-    setText("cuisine", s.cuisine);
+    setText("unitNo", s.unitNo || "—");
+    setText("cuisine", s.cuisine || "—");
     setGrade("hygieneGrade", s.hygieneGrade);
-    setText("operatingHours", s.operatingHours);
+    setText("operatingHours", s.operatingHours || "—");
 
     /* =========================
        Edit Profile popup
@@ -605,7 +659,7 @@ onAuthStateChanged(auth, async (user) => {
             { name: newName, phone: newPhone, email: newEmail || user.email },
             { merge: true },
           );
-
+          location.href = "stall-menu.html?first=1";
           setText("ownerName", newName);
           setText("profileName", newName);
           setText("phone", newPhone || "—");
@@ -620,6 +674,51 @@ onAuthStateChanged(auth, async (user) => {
       });
     });
 
+    /* =========================
+   Notification Preferences
+========================= */
+
+    function readPrefs() {
+      return {
+        newOrders: document.getElementById("prefNewOrders")?.checked || false,
+        orderUpdates:
+          document.getElementById("prefOrderUpdates")?.checked || false,
+        newReview: document.getElementById("prefNewReview")?.checked || false,
+        hygieneInspection:
+          document.getElementById("prefHygiene")?.checked || false,
+      };
+    }
+
+    function applyPrefs(prefs = {}) {
+      document.getElementById("prefNewOrders").checked = !!prefs.newOrders;
+      document.getElementById("prefOrderUpdates").checked =
+        !!prefs.orderUpdates;
+      document.getElementById("prefNewReview").checked = !!prefs.newReview;
+      document.getElementById("prefHygiene").checked =
+        !!prefs.hygieneInspection;
+    }
+
+    /* Load prefs from Firestore */
+    applyPrefs(u.notificationPrefs);
+
+    /* Save prefs */
+    document
+      .getElementById("savePrefsBtn")
+      ?.addEventListener("click", async () => {
+        try {
+          await setDoc(
+            doc(db, "users", user.uid),
+            {
+              notificationPrefs: readPrefs(),
+            },
+            { merge: true },
+          );
+          alert("✅ Preferences saved.");
+        } catch (err) {
+          console.error(err);
+          alert(`❌ Failed to save preferences: ${err.code || err.message}`);
+        }
+      });
     /* =========================
        Change Password popup
     ========================= */
@@ -658,7 +757,7 @@ onAuthStateChanged(auth, async (user) => {
    Logout + staff nav
 ========================= */
 function doLogout() {
-  signOut(auth).then(() => (location.href = "login.html"));
+  signOut(auth).then(() => (location.href = "signin.html"));
 }
 
 $("logoutBtn")?.addEventListener("click", doLogout);
