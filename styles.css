@@ -4358,7 +4358,8 @@ select,
 
 /* Cart item card */
 .cartPage .menuCard.cartCard {
-  max-width: 820px;
+  width: min(640px, 92vw);
+  max-width: none;
   margin: 0 auto 16px;
   padding: 16px;
   border-radius: 18px;
