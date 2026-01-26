@@ -13,7 +13,7 @@
         <a class="brand" href="home.html" aria-label="Hawker Point Home">
           <img src="images/logo.png" alt="Hawker Point" class="brand-logo" />
         </a>
-
+        
         <!-- Desktop nav (same as your current) -->
         <nav class="nav" aria-label="Primary navigation">
           <a class="pill active" href="home.html">Home</a>
@@ -81,10 +81,32 @@
           <span>Total</span>
           <span>$<span id="sumTotal">0.00</span></span>
         </div>
-        <button id="checkoutBtn" class="cartCheckoutBtn" type="button">
-          Checkout
-        </button>
       </section>
+
+      <section class="payBox" id="payBox">
+        <div class="payTitle">Payment Method</div>
+
+        <label class="payOption">
+          <input type="radio" name="payMethod" value="cash" />
+          <span>Cash</span>
+        </label>
+
+        <label class="payOption">
+          <input type="radio" name="payMethod" value="paynow_nets" />
+          <span>Paynow / NETS QR</span>
+        </label>
+
+        <label class="payOption">
+          <input type="radio" name="payMethod" value="card" />
+          <span>Credit/ Debit Card</span>
+        </label>
+      </section>
+
+      <div class="cartAction">
+        <button id="checkoutBtn" class="payProceedBtn" type="button" disabled>
+          Proceed To Payment
+        </button>
+      </div>
 
       <section class="cartEmpty niceEmpty" id="cartEmpty" hidden>
         <div class="cartEmptyIcon">🛒</div>

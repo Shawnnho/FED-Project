@@ -3,20 +3,12 @@
  * - Logged in: Firestore carts/{uid}.items
  * - Guest: localStorage hp_cart
  * - Renders cart page + updates badges
+ * - Payment method selector + Proceed button states
  *************************************************/
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import {
-  getAuth,
-  onAuthStateChanged,
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import {
-  getFirestore,
-  doc,
-  getDoc,
-  setDoc,
-  serverTimestamp,
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* ✅ SAME config as your other files */
 const firebaseConfig = {
@@ -63,11 +55,7 @@ async function readCloudCart(uid) {
   return snap.exists() ? snap.data().items || [] : [];
 }
 async function writeCloudCart(uid, cart) {
-  await setDoc(
-    cartDocRef(uid),
-    { items: cart, updatedAt: serverTimestamp() },
-    { merge: true },
-  );
+  await setDoc(cartDocRef(uid), { items: cart, updatedAt: serverTimestamp() }, { merge: true });
 }
 
 /* ------------------------------
@@ -77,7 +65,6 @@ async function readCart() {
   if (!currentUser) return readLocalCart();
   return await readCloudCart(currentUser.uid);
 }
-
 async function saveCart(cart) {
   if (!currentUser) {
     writeLocalCart(cart);
@@ -92,13 +79,11 @@ async function saveCart(cart) {
 function money(n) {
   return (Number(n) || 0).toFixed(2);
 }
-
 function calcCount(cart) {
   let c = 0;
   for (const it of cart) c += Number(it.qty ?? it.quantity ?? 1) || 1;
   return c;
 }
-
 function updateBadges(count) {
   const el = document.getElementById("cartCount");
   if (el) {
@@ -122,8 +107,8 @@ function mergeCarts(existing = [], incoming = []) {
     `${JSON.stringify(x.addons || [])}|${JSON.stringify(x.required || [])}|${(x.note || "").trim()}`;
 
   const map = new Map();
-
   for (const x of existing) map.set(key(x), { ...x });
+
   for (const x of incoming) {
     const k = key(x);
     if (!map.has(k)) {
@@ -133,9 +118,7 @@ function mergeCarts(existing = [], incoming = []) {
       const addQty = Number(x.qty ?? 1) || 1;
       cur.qty = (Number(cur.qty ?? 1) || 1) + addQty;
 
-      // Recompute totalPrice if unitPrice exists
-      const unit =
-        Number(cur.unitPrice ?? cur.basePrice ?? cur.price ?? 0) || 0;
+      const unit = Number(cur.unitPrice ?? cur.basePrice ?? cur.price ?? 0) || 0;
       cur.totalPrice = unit * (Number(cur.qty ?? 1) || 1);
 
       map.set(k, cur);
@@ -144,6 +127,39 @@ function mergeCarts(existing = [], incoming = []) {
 
   return Array.from(map.values());
 }
+
+/* ------------------------------
+   Payment method + Proceed button
+--------------------------------*/
+function getSelectedPayMethod() {
+  const checked = document.querySelector('input[name="payMethod"]:checked');
+  return checked ? checked.value : "";
+}
+
+function syncProceedBtn() {
+  const btn = document.getElementById("checkoutBtn");
+  if (!btn) return;
+
+  const selected = getSelectedPayMethod();
+  const ready = Boolean(selected);
+
+  btn.classList.toggle("isReady", ready);
+  btn.classList.toggle("isLocked", !ready);
+
+  // disable when not selected
+  btn.disabled = !ready;
+}
+
+function clearPaySelection() {
+  document.querySelectorAll('input[name="payMethod"]').forEach((r) => (r.checked = false));
+  syncProceedBtn();
+}
+
+// When user changes payment method, update button color/state
+document.addEventListener("change", (e) => {
+  if (!e.target.matches('input[name="payMethod"]')) return;
+  syncProceedBtn();
+});
 
 /* ------------------------------
    Render cart page
@@ -164,29 +180,37 @@ async function render() {
 
   list.innerHTML = "";
 
+  const payBox = document.getElementById("payBox");
+  const proceedBtn = document.getElementById("checkoutBtn");
+
   if (cart.length === 0) {
     empty && (empty.hidden = false);
     summary && (summary.style.display = "none");
+    payBox && (payBox.style.display = "none");
+    proceedBtn && (proceedBtn.style.display = "none");
     return;
   }
 
   empty && (empty.hidden = true);
   summary && (summary.style.display = "");
+  payBox && (payBox.style.display = "");
+  proceedBtn && (proceedBtn.style.display = "");
+
+  // ✅ Requirement: by default (every time you open cart), no payment method selected
+  clearPaySelection();
 
   let subtotal = 0;
 
   cart.forEach((it, idx) => {
     const qty = Number(it.qty ?? it.quantity ?? 1) || 1;
 
-    // Support both schemas:
     const name = it.name ?? it.itemName ?? "Item";
     const img = it.img ?? it.image ?? "images/defaultFood.png";
     const note = it.note ?? it.sideNote ?? "";
     const addons = Array.isArray(it.addons) ? it.addons : [];
     const required = Array.isArray(it.required) ? it.required : [];
 
-    const unitPrice =
-      Number(it.unitPrice ?? it.basePrice ?? it.price ?? 0) || 0;
+    const unitPrice = Number(it.unitPrice ?? it.basePrice ?? it.price ?? 0) || 0;
     const line = Number(it.totalPrice) || unitPrice * qty;
 
     subtotal += line;
@@ -242,12 +266,29 @@ async function render() {
   document.getElementById("sumSubtotal").textContent = money(subtotal);
   document.getElementById("sumDelivery").textContent = money(delivery);
   document.getElementById("sumTotal").textContent = money(subtotal + delivery);
+
+  // Keep button in correct state after render
+  syncProceedBtn();
 }
 
 /* ------------------------------
    Qty buttons (cart page)
 --------------------------------*/
 document.addEventListener("click", async (e) => {
+  // Proceed button click
+  const proceed = e.target.closest("#checkoutBtn");
+  if (proceed) {
+    const method = getSelectedPayMethod();
+    if (!method) {
+      // should be disabled anyway, but just in case
+      alert("Please select a payment method first.");
+      return;
+    }
+    alert(`Proceeding with payment method: ${method}`);
+    return;
+  }
+
+  // +/- qty buttons
   const btn = e.target.closest("[data-act]");
   if (!btn) return;
 
@@ -267,17 +308,11 @@ document.addEventListener("click", async (e) => {
   }
 
   // Recompute totalPrice if unitPrice exists
-  const unit =
-    Number(cart[i]?.unitPrice ?? cart[i]?.basePrice ?? cart[i]?.price ?? 0) ||
-    0;
+  const unit = Number(cart[i]?.unitPrice ?? cart[i]?.basePrice ?? cart[i]?.price ?? 0) || 0;
   if (cart[i]) cart[i].totalPrice = unit * (Number(cart[i].qty ?? 1) || 1);
 
   await saveCart(cart);
   render();
-});
-
-document.getElementById("checkoutBtn")?.addEventListener("click", () => {
-  alert("Checkout next step (connect to your payment page).");
 });
 
 /* ------------------------------
