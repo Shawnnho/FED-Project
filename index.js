@@ -412,7 +412,7 @@ async function loadStalls() {
 
     return {
       id: d.id,
-      name: data.name,
+      name: data.name || data.stallName || "Unnamed Stall",
       cuisine: data.cuisine,
       grade: data.hygieneGrade || data.grade || "B",
       prepMin: data.prepMin ?? 5,
