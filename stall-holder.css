@@ -57,11 +57,16 @@ body.stallHolder .hpModalOverlay {
 }
 body.stallHolder .hpModal {
   width: min(520px, 96vw);
+  max-height: 88vh;
   background: #fff;
   border-radius: 14px;
   border: 1px solid rgba(0, 0, 0, 0.18);
   overflow: hidden;
+
+  display: flex;
+  flex-direction: column;
 }
+
 body.stallHolder .hpModalHead {
   display: flex;
   justify-content: space-between;
@@ -81,6 +86,9 @@ body.stallHolder .hpModalClose {
 }
 body.stallHolder .hpModalBody {
   padding: 14px 16px;
+  overflow: auto;
+  flex: 1;
+  min-height: 0; /* important so scrolling works in flex */
 }
 
 /* menu image preview (modal only) */
@@ -146,6 +154,10 @@ body.stallHolder .hpModalFoot {
   justify-content: flex-end;
   gap: 10px;
   padding: 12px 16px 16px;
+
+  position: sticky;
+  bottom: 0;
+  background: #fff;
 }
 
 body.stallHolder .hpModalBtn {
@@ -253,6 +265,12 @@ body.stallHolder .hpModalFile:hover::file-selector-button {
 
 body.stallHolder {
   background: #fbf3e6;
+}
+
+body.stallHolder .hpRow2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
 
 /* keep your existing topbar colors, just spacing */

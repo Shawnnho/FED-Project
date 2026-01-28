@@ -265,22 +265,23 @@ function wireEditStallDetails(user) {
 
         <div class="hpModalRow">
   <div class="hpModalLabel">Description</div>
-  <textarea id="mDesc" class="hpInput" rows="3" placeholder="Tell customers what you sell..."></textarea>
+  <textarea id="mDesc" class="hpModalInput" rows="3" placeholder="Tell customers what you sell..."></textarea>
 </div>
 
 <div class="hpModalRow">
   <div class="hpModalLabel">Prep Time (minutes)</div>
   <div class="hpRow2">
-    <input id="mPrepMin" class="hpInput" type="number" min="1" placeholder="Min" />
-    <input id="mPrepMax" class="hpInput" type="number" min="1" placeholder="Max" />
+    <input id="mPrepMin" class="hpModalInput" type="number" min="1" placeholder="Min" />
+    <input id="mPrepMax" class="hpModalInput" type="number" min="1" placeholder="Max" />
   </div>
 </div>
+
 
 <div class="hpModalRow">
   <label class="hpModalLabel">Stall Image</label>
 
   <div class="hpUploadRow">
-    <input id="mImageFile" class="hpModalInput" type="file" accept="image/*" />
+    <input id="mImageFile" class="hpModalFile" type="file" accept="image/*" />
     <div class="hpModalHint">Upload a square image/logo for best results.</div>
   </div>
 
