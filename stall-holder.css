@@ -559,267 +559,6 @@ body.stallHolder .hpRow2 {
     grid-template-columns: 1fr;
   }
 }
-.shTopbarInner {
-  gap: 18px;
-}
-.shStallTitle {
-  font-weight: 900;
-  font-size: 26px;
-  color: #111;
-}
-.shTopRight {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-.shUserBtn {
-  border: none;
-  background: transparent;
-  font-weight: 900;
-  cursor: pointer;
-  padding: 10px;
-}
-.shMuted {
-  opacity: 0.7;
-}
-.shCaret {
-  font-weight: 900;
-}
-.shLogout {
-  padding: 12px 18px;
-  border-radius: 10px;
-}
-
-.shPage {
-  padding: 18px 18px 70px;
-}
-.shLayout {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 260px 1fr;
-  gap: 18px;
-}
-
-.shSide {
-  background: #2c2c2c;
-  border-radius: 14px;
-  padding: 14px 12px;
-  color: #fff;
-  height: fit-content;
-}
-.shNav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  text-decoration: none;
-  color: #fff;
-  font-weight: 900;
-  padding: 14px 14px;
-  border-radius: 12px;
-  margin-bottom: 10px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-.shNav:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-.shNav.active {
-  background: #df8f3b;
-  color: #fff;
-}
-
-.shBadge {
-  min-width: 26px;
-  height: 26px;
-  border-radius: 999px;
-  display: grid;
-  place-items: center;
-  background: #e11d48;
-  font-size: 12px;
-  font-weight: 900;
-  padding: 0 8px;
-}
-.shSideDivider {
-  height: 1px;
-  background: rgba(255, 255, 255, 0.18);
-  margin: 10px 8px 14px;
-}
-
-.shContent {
-  min-width: 0;
-}
-.shHead {
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 12px;
-  padding: 18px 18px 14px;
-  margin-bottom: 14px;
-}
-.shHead h1 {
-  margin: 0;
-  font-size: 28px;
-  font-weight: 900;
-}
-.shHead p {
-  margin: 6px 0 0;
-  opacity: 0.75;
-  font-weight: 800;
-}
-
-.shProfileGrid {
-  display: grid;
-  grid-template-columns: 100px 1fr auto;
-  gap: 14px;
-  padding: 16px;
-  align-items: center;
-}
-.shName {
-  font-weight: 900;
-  font-size: 16px;
-  margin-bottom: 6px;
-}
-.shMetaRows {
-  display: grid;
-  gap: 8px;
-  font-size: 13px;
-}
-.shMetaRows > div {
-  display: grid;
-  grid-template-columns: 60px 1fr;
-  gap: 10px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.32);
-}
-.shMetaRows > div:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-.shPhone {
-  margin-top: 10px;
-  font-weight: 900;
-}
-.shBtns {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
-.shFormRows {
-  padding: 14px 16px 16px;
-  display: grid;
-  gap: 10px;
-}
-.shRow {
-  display: grid;
-  grid-template-columns: 140px 1fr;
-  gap: 10px;
-  align-items: center;
-  padding-bottom: 8px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.25);
-}
-.shRow .k {
-  font-weight: 900;
-}
-.shRowEnd {
-  display: flex;
-  justify-content: flex-end;
-  padding-top: 6px;
-}
-
-.shGrade {
-  width: 30px;
-  height: 30px;
-  border-radius: 6px;
-  display: grid;
-  place-items: center;
-  background: #6b7280;
-  color: #fff;
-  font-weight: 900;
-}
-.shGrade.gradeA {
-  background: #dc2626;
-}
-.shGrade.gradeB {
-  background: #f97316;
-}
-.shGrade.gradeC {
-  background: #f59e0b;
-}
-.shGrade.gradeD {
-  background: #6b7280;
-}
-
-.shPrefs {
-  padding: 16px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px 18px;
-  align-items: center;
-}
-.shCheck {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: 900;
-}
-.shCheck input {
-  width: 18px;
-  height: 18px;
-}
-.shPrefsEnd {
-  grid-column: 1 / -1;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.shStaff {
-  padding: 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-}
-.actionsRow {
-  padding: 14px 16px 16px;
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  align-items: center;
-}
-.shDangerNote {
-  margin: 0 16px 16px;
-  font-weight: 800;
-  opacity: 0.65;
-}
-
-@media (max-width: 760px) {
-  .shLayout {
-    grid-template-columns: 1fr;
-  }
-  .shSide {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-  .shNav {
-    flex: 1 1 160px;
-    margin-bottom: 0;
-  }
-  .shProfileGrid {
-    grid-template-columns: 90px 1fr;
-  }
-  .shBtns {
-    grid-column: 1 / -1;
-    justify-content: flex-start;
-  }
-  .shPrefs {
-    grid-template-columns: 1fr;
-  }
-}
 
 .hpTimeRow {
   display: grid;
@@ -1346,4 +1085,248 @@ button:active {
     min-height: 44px;
     font-size: 14px;
   }
+}
+
+/* =========================
+   Stall Reviews Page (scoped)
+   paste at bottom of stall-holder.css
+========================= */
+
+body.stallHolder .rvControls {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 10px;
+}
+
+body.stallHolder .rvSelect {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 2px solid rgba(0, 0, 0, 0.18);
+  background: #fff;
+  font-weight: 800;
+}
+
+body.stallHolder .rvCheck {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 900;
+}
+
+body.stallHolder .rvCheck input {
+  width: 18px;
+  height: 18px;
+}
+
+/* summary */
+body.stallHolder .rvSummaryRow {
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+body.stallHolder .rvSummaryText {
+  display: grid;
+  gap: 4px;
+  font-weight: 900;
+}
+
+body.stallHolder .rvMuted {
+  opacity: 0.7;
+  font-weight: 800;
+}
+
+/* list + card */
+
+body.stallHolder .rvTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+body.stallHolder .rvStars {
+  font-weight: 900;
+  letter-spacing: 0.5px;
+}
+
+body.stallHolder .rvMeta {
+  margin-top: 4px;
+  font-size: 12px;
+  opacity: 0.75;
+  font-weight: 800;
+}
+
+/* empty state + status */
+body.stallHolder .rvEmpty {
+  padding: 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  font-weight: 900;
+  opacity: 0.8;
+}
+
+body.stallHolder .rvStatus {
+  margin-top: 10px;
+  font-weight: 900;
+}
+
+/* Review badge red dot only when .isNew is set by JS */
+body.stallHolder .shBadge.isNew {
+  position: relative;
+}
+
+body.stallHolder .shBadge.isNew::after {
+  content: "";
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #ef4444;
+  border: 2px solid #fff;
+}
+/* ===== Reviews polish ===== */
+body.stallHolder .rvSummary {
+  background: #fff;
+  border-radius: 14px;
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+}
+
+body.stallHolder .rvSummaryBig {
+  font-size: 36px;
+  font-weight: 900;
+}
+
+body.stallHolder .rvList {
+  margin-top: 14px;
+  display: grid;
+  gap: 16px;
+}
+
+body.stallHolder .rvCard {
+  background: #fff;
+  border-radius: 14px;
+  padding: 16px 18px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
+body.stallHolder .rvComment {
+  margin-top: 10px;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+body.stallHolder .rvImg {
+  margin-top: 12px;
+  border-radius: 12px;
+}
+
+body.stallHolder .rvEmptyHero {
+  background: #fff;
+  border-radius: 14px;
+  padding: 18px 20px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+body.stallHolder .rvEmptyTitle {
+  font-weight: 900;
+  font-size: 18px;
+  color: #111;
+}
+
+body.stallHolder .rvEmptySub {
+  margin-top: 6px;
+  font-weight: 800;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+/* ===== Reviews: nicer layout + typography ===== */
+
+/* summary spacing */
+body.stallHolder .rvSummaryRow {
+  margin-top: 12px;
+  margin-bottom: 14px;
+}
+
+/* make stars + rating line neat */
+body.stallHolder .rvStars {
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+body.stallHolder .rvStars .rvMuted {
+  font-size: 13px;
+  font-weight: 900;
+}
+
+/* meta line */
+body.stallHolder .rvMeta {
+  margin-top: 6px;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.6);
+  font-weight: 800;
+}
+
+/* review text */
+body.stallHolder .rvComment {
+  margin-top: 12px;
+  font-size: 15px;
+  line-height: 1.5;
+  font-weight: 800;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+/* review card overall */
+body.stallHolder .rvCard {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px 18px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
+}
+
+/* image container look */
+body.stallHolder .rvImg {
+  margin-top: 14px;
+  width: 100%;
+  max-height: 320px;
+  object-fit: cover;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+} /* ===== Review stars color ===== */
+
+/* ===== Gold stars, black rating text ===== */
+
+/* make all stars gold */
+body.stallHolder .rvStars {
+  color: #f5b301; /* gold */
+}
+
+/* BUT keep the rating text (e.g. 5/5) black */
+body.stallHolder .rvStars .rvMuted {
+  color: #111; /* black */
+  font-weight: 800;
+}
+
+/* summary stars (top card) */
+body.stallHolder .rvSummaryText {
+  color: #f5b301; /* gold stars */
+}
+
+/* summary count text like (1) and "1 review" stays normal */
+body.stallHolder .rvSummaryText .rvMuted {
+  color: #444;
 }
