@@ -82,6 +82,30 @@ body.stallHolder .hpModalClose {
 body.stallHolder .hpModalBody {
   padding: 14px 16px;
 }
+
+/* menu image preview (modal only) */
+body.stallHolder .hpModalBody .hpStallImagePreview {
+  width: 240px;
+  max-width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  border-radius: 14px;
+  border: 2px solid rgba(0, 0, 0, 0.12);
+  margin-top: 10px;
+}
+
+body.stallHolder .hpModalBody textarea,
+body.stallHolder .hpModalBody .hpInput {
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 14px;
+  border: 2px solid rgba(0, 0, 0, 0.18);
+  padding: 12px 14px;
+  font-size: 16px;
+  font-weight: 700;
+  min-height: 96px;
+}
+
 body.stallHolder .hpModalRow {
   display: grid;
   gap: 6px;
@@ -91,13 +115,28 @@ body.stallHolder .hpModalLabel {
   font-weight: 900;
   font-size: 12px;
 }
-body.stallHolder .hpModalInput {
-  height: 40px;
-  border-radius: 10px;
-  border: 1px solid rgba(0, 0, 0, 0.2);
-  padding: 0 12px;
+
+body.stallHolder .hpModalInput,
+body.stallHolder .hpModalBody textarea,
+body.stallHolder .hpModalBody .hpInput {
+  height: 46px;
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 14px;
+  border: 2px solid rgba(0, 0, 0, 0.18);
+  padding: 0 14px;
+  font-size: 16px;
   font-weight: 700;
+  background: #fff;
 }
+/* FIX file input spacing in modal */
+body.stallHolder input[type="file"].hpModalInput {
+  height: auto !important;
+  padding: 10px 14px !important;
+  line-height: normal;
+  display: block;
+}
+
 body.stallHolder .hpModalHint {
   font-size: 12px;
   color: #6b6b6b;
@@ -108,14 +147,17 @@ body.stallHolder .hpModalFoot {
   gap: 10px;
   padding: 12px 16px 16px;
 }
+
 body.stallHolder .hpModalBtn {
-  height: 34px;
-  padding: 0 14px;
-  border-radius: 8px;
+  height: 44px;
+  min-width: 140px;
+  padding: 0 18px;
+  border-radius: 14px;
   font-weight: 900;
   border: none;
   cursor: pointer;
 }
+
 body.stallHolder .hpModalBtn.ghost {
   background: #fff;
   border: 1px solid rgba(0, 0, 0, 0.25);
@@ -175,6 +217,33 @@ body.stallHolder #accStatus.show {
 }
 body.stallHolder #accStatus.error {
   background: #b00020;
+}
+
+/* File input: make it look like a proper upload control */
+body.stallHolder .hpModalFile {
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 14px;
+  border: 2px solid rgba(0, 0, 0, 0.18);
+  padding: 10px 12px;
+  background: #fff;
+  font-weight: 700;
+}
+
+/* Style the "Choose file" button */
+body.stallHolder .hpModalFile::file-selector-button {
+  border: 0;
+  background: #e8944c;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-weight: 900;
+  cursor: pointer;
+  margin-right: 12px;
+}
+
+body.stallHolder .hpModalFile:hover::file-selector-button {
+  filter: brightness(0.95);
 }
 
 /* =========================================
@@ -733,38 +802,7 @@ body.stallHolder {
     grid-template-columns: 1fr;
   }
 }
-.hpModalOverlay {
-  position: fixed;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  padding: 14px;
-  z-index: 9999;
-}
-.hpModal {
-  width: min(92vw, 520px);
-  max-height: 85vh;
-  overflow: auto;
-  border-radius: 14px;
-}
-.hpModalBody {
-  max-height: calc(85vh - 140px);
-  overflow: auto;
-}
-@media (max-width: 480px) {
-  .hpModal {
-    width: 94vw;
-    max-height: 88vh;
-  }
-  .hpModalFoot {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .hpModalBtn {
-    width: 100%;
-  }
-}
+
 .hpTimeRow {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -785,6 +823,9 @@ body.stallHolder {
   opacity: 0.85;
 }
 
+.hpStallImagePreview:where(:not([src]), [src=""]) {
+  display: none;
+}
 @media (max-width: 480px) {
   .hpTimeRow {
     grid-template-columns: 1fr;
@@ -1287,13 +1328,4 @@ button:active {
     min-height: 44px;
     font-size: 14px;
   }
-}
-.hpStallImagePreview {
-  width: 100%;
-  max-width: 320px;
-  aspect-ratio: 1 / 1;
-  object-fit: cover;
-  border-radius: 16px;
-  border: 2px solid rgba(0, 0, 0, 0.12);
-  margin-top: 10px;
 }

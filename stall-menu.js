@@ -142,11 +142,12 @@ function ensureAddExtras() {
     row.className = "hpModalRow";
     row.innerHTML = `
       <label class="hpModalLabel">Item Image</label>
-      <input id="menuImage" type="file" accept="image/*" class="hpModalInput" />
+      <input id="menuImage" type="file" accept="image/*" class="hpModalFile" />
       <div style="margin-top:10px; display:flex; gap:12px; align-items:center;">
-        <div class="menuImgWrap" style="width:140px; height:92px;">
-          <img id="menuImagePreview" src="images/defaultfood.png" alt="Preview" />
-        </div>
+        <div class="menuImgWrap" id="menuImageWrap" style="width:140px; height:92px; display:none;">
+  <img id="menuImagePreview" src="" alt="Preview" class="hpStallImagePreview" />
+</div>
+
         <div style="font-weight:800; opacity:.7; font-size:13px;">
           Optional. JPG/PNG recommended.
         </div>
@@ -156,13 +157,17 @@ function ensureAddExtras() {
     addImgEl = row.querySelector("#menuImage");
     addImgPreviewEl = row.querySelector("#menuImagePreview");
 
+    const wrap = row.querySelector("#menuImageWrap");
+
     addImgEl.addEventListener("change", () => {
       const f = addImgEl.files?.[0];
       if (!f) {
-        addImgPreviewEl.src = "images/defaultfood.png";
+        addImgPreviewEl.removeAttribute("src");
+        wrap.style.display = "none";
         return;
       }
       addImgPreviewEl.src = URL.createObjectURL(f);
+      wrap.style.display = "block";
     });
   } else {
     addImgPreviewEl = document.getElementById("menuImagePreview");
@@ -320,7 +325,11 @@ onAuthStateChanged(auth, async (user) => {
     priceInput.value = "";
     if (addDescEl) addDescEl.value = "";
     if (addImgEl) addImgEl.value = "";
-    if (addImgPreviewEl) addImgPreviewEl.src = "images/defaultfood.png";
+    if (addImgPreviewEl) {
+      addImgPreviewEl.removeAttribute("src");
+      const wrap = document.getElementById("menuImageWrap");
+      if (wrap) wrap.style.display = "none";
+    }
 
     openOverlay(addModal);
     nameInput?.focus();
@@ -534,7 +543,11 @@ onAuthStateChanged(auth, async (user) => {
         editDesc.value = it.description || "";
 
         editImg.value = "";
-        editPreview.src = it.imageUrl || "images/defaultfood.png";
+        if (it.imageUrl) {
+          editPreview.src = it.imageUrl;
+        } else {
+          editPreview.removeAttribute("src");
+        }
 
         // Bind save (overwrite previous handler safely)
         editSaveBtn.onclick = async () => {

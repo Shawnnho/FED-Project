@@ -71,7 +71,12 @@
             <div class="menuTop">
               <div class="menuSectionTitle" id="menuTitle">Menu — Loading…</div>
 
-              <div class="status" id="status" aria-live="polite"></div>
+              <div style="display: flex; gap: 10px; align-items: center">
+                <button class="btn small primary" id="btnAdd" type="button">
+                  ➕ Add New Item
+                </button>
+                <div class="status" id="status" aria-live="polite"></div>
+              </div>
             </div>
 
             <section class="menuList" id="menuList"></section>
@@ -129,24 +134,6 @@
       </div>
     </div>
 
-    <div class="hpModalRow">
-      <label class="hpModalLabel">Item Image</label>
-
-      <div class="hpAvatarStack">
-        <img
-          id="menuImgPreview"
-          class="hpAvatarPreview"
-          src="images/background.png"
-          alt="Menu image preview"
-        />
-
-        <div class="hpAvatarControls">
-          <input id="menuImg" type="file" accept="image/*" />
-          <div class="hpModalHint">Optional</div>
-        </div>
-      </div>
-    </div>
-
     <!-- ===== Edit Menu Modal ===== -->
     <div id="editMenuModal" class="hpModalOverlay" hidden>
       <div class="hpModal">
@@ -178,9 +165,11 @@
             <div class="hpAvatarStack">
               <img
                 id="editImgPreview"
-                class="hpAvatarPreview"
-                src="images/background.png"
+                class="hpStallImagePreview"
+                src=""
+                alt="Preview"
               />
+
               <div class="hpAvatarControls">
                 <input id="editImg" type="file" accept="image/*" />
               </div>
