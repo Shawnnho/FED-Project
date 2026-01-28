@@ -65,6 +65,42 @@ function canPublishStall(data) {
    Helpers
 ========================= */
 
+function formatUnitForDisplay(unit) {
+  // "01-001" -> "01-01", "01-004" -> "01-04"
+  if (!unit) return unit;
+
+  const clean = String(unit).trim().startsWith("#")
+    ? String(unit).trim().slice(1)
+    : String(unit).trim();
+
+  const parts = clean.split("-");
+  if (parts.length !== 2) return unit;
+
+  const block = parts[0];
+  const n = parseInt(parts[1], 10);
+  if (!Number.isFinite(n)) return unit;
+
+  return `${block}-${String(n).padStart(2, "0")}`;
+}
+
+function formatUnitForSave(unit) {
+  // "01-04" -> "01-004"  (Firestore format)
+  if (!unit) return unit;
+
+  const clean = String(unit).trim().startsWith("#")
+    ? String(unit).trim().slice(1)
+    : String(unit).trim();
+
+  const parts = clean.split("-");
+  if (parts.length !== 2) return unit;
+
+  const block = parts[0];
+  const n = parseInt(parts[1], 10);
+  if (!Number.isFinite(n)) return unit;
+
+  return `${block}-${String(n).padStart(3, "0")}`;
+}
+
 function format12h(time24) {
   // "07:00" -> "07:00AM", "21:00" -> "9:00PM"
   const [hhStr, mm] = time24.split(":");
@@ -137,11 +173,16 @@ function normalizeUnit(v) {
   const raw = String(v || "").trim();
   if (!raw) return "";
 
-  // accept 01-11 or #01-11
-  const m = raw.match(/^#?(\d{2})-(\d{2})$/);
+  // accept: 01-4, 01-04, 01-004, and with optional "#"
+  const m = raw.match(/^#?(\d{2})-(\d{1,3})$/);
   if (!m) return null;
 
-  return `#${m[1]}-${m[2]}`;
+  const block = m[1];
+  const n = parseInt(m[2], 10);
+  if (!Number.isFinite(n)) return null;
+
+  // return human format (no #, 2-digit right side)
+  return `${block}-${String(n).padStart(2, "0")}`;
 }
 
 /* =========================
@@ -190,7 +231,7 @@ function wireEditStallDetails(user) {
       s.stallName ||
       ""
     ).trim();
-    const currentUnitNo = ($("unitNo")?.textContent || s.unitNo || "").trim();
+    const currentUnitNo = formatUnitForDisplay(s.unitNo || "");
     const currentCuisine = (
       $("cuisine")?.textContent ||
       s.cuisine ||
@@ -333,7 +374,7 @@ function wireEditStallDetails(user) {
           return;
         }
 
-        const unitNo = normalizeUnit(newUnitInput);
+        const unitNo = formatUnitForSave(normalizeUnit(newUnitInput));
         if (unitNo === null) {
           err.textContent = "Unit number should look like 01-10 (or #01-10).";
           return;
@@ -412,7 +453,7 @@ function wireEditStallDetails(user) {
         // update UI
         setText("stallName", updates.stallName);
         setText("stallName2", updates.stallName);
-        setText("unitNo", updates.unitNo || "—");
+        setText("unitNo", formatUnitForDisplay(updates.unitNo) || "—");
         setText("cuisine", updates.cuisine || "—");
         setText("operatingHours", updates.operatingHours || "—");
         setText("stallDesc", updates.desc || "—");
@@ -668,7 +709,7 @@ onAuthStateChanged(auth, async (user) => {
     // render as usual
     setText("stallName", s.stallName);
     setText("stallName2", s.stallName);
-    setText("unitNo", s.unitNo || "—");
+    setText("unitNo", formatUnitForDisplay(s.unitNo) || "—");
     setText("cuisine", s.cuisine || "—");
     setGrade("hygieneGrade", s.hygieneGrade);
     setText("operatingHours", s.operatingHours || "—");
