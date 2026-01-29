@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NEA Officer Portal - Hawker Point</title>
+    <link rel="stylesheet" href="nea.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+  </head>
+  <body class="nea-body">
+    
+    <nav class="nea-sidebar">
+      <div class="nea-brand">
+        <img src="images/logo.png" alt="Logo" />
+        <h3>NEA Officer</h3>
+      </div>
+
+      <ul class="nea-menu">
+        <li class="active" onclick="switchTab('inspections')">
+          <i class="fa-solid fa-calendar-check"></i> Inspections
+        </li>
+        <li onclick="switchTab('complaints')">
+          <i class="fa-solid fa-triangle-exclamation"></i> Complaints
+        </li>
+        <li onclick="switchTab('grading')">
+          <i class="fa-solid fa-star"></i> Update Grades
+        </li>
+      </ul>
+
+      <button class="nea-logout" onclick="window.location.href='home.html'">
+        <i class="fa-solid fa-right-from-bracket"></i> Exit Portal
+      </button>
+    </nav>
+
+    <main class="nea-content">
+      
+      <section id="tab-inspections" class="nea-tab active">
+        <div class="nea-header">
+          <h2>Inspection Management</h2>
+          <button class="btn-primary" onclick="openScheduleModal()">+ Schedule New</button>
+        </div>
+
+        <div class="nea-card-container">
+          <h3>Upcoming & Past Inspections</h3>
+          <div id="inspectionList" class="nea-list">
+            <p>Loading inspections...</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-complaints" class="nea-tab">
+        <div class="nea-header">
+          <h2>Public Complaints</h2>
+        </div>
+        <div class="nea-card-container">
+          <div id="complaintList" class="nea-list">
+            <p>Loading complaints...</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-grading" class="nea-tab">
+        <div class="nea-header">
+          <h2>Update Hygiene Grades</h2>
+        </div>
+        
+        <div class="grading-wrapper">
+          <div class="nea-form-card">
+            <label>Select Stall to Grade</label>
+            <select id="gradeStallSelect" class="std-input" onchange="updateCurrentGradeDisplay()">
+              <option value="" disabled selected>Loading Stalls...</option>
+            </select>
+
+            <div style="background: #f1f1f1; padding: 10px; border-radius: 6px; margin: 15px 0;">
+              <strong>Current Grade in Database: </strong>
+              <span id="currentGradeDisplay" style="color: #e67e22; font-weight: bold;">-</span>
+            </div>
+
+            <label>New Hygiene Grade</label>
+            <div class="grade-picker">
+              <button class="grade-btn" onclick="selectGrade('A')">A</button>
+              <button class="grade-btn" onclick="selectGrade('B')">B</button>
+              <button class="grade-btn" onclick="selectGrade('C')">C</button>
+              <button class="grade-btn" onclick="selectGrade('D')">D</button>
+            </div>
+            <input type="hidden" id="selectedGrade" />
+
+            <button class="btn-primary full-width" onclick="submitGradeUpdate()">
+              Update Grade
+            </button>
+            <p id="gradeMsg" class="success-msg"></p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <div id="scheduleModal" class="nea-modal">
+      <div class="modal-content">
+        <h3>Schedule Inspection</h3>
+        
+        <label>Stall</label>
+        <select id="schStall" class="std-input">
+          <option value="" disabled selected>Select Stall</option>
+          </select>
+
+        <label>Date</label>
+        <input type="date" id="schDate" class="std-input" />
+
+        <label>Officer Name</label>
+        <input type="text" id="schOfficer" placeholder="e.g. Officer Tan" class="std-input" />
+
+        <div class="modal-actions">
+          <button class="btn-secondary" onclick="closeScheduleModal()">Cancel</button>
+          <button class="btn-primary" onclick="submitSchedule()">Confirm</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="nea.js"></script>
+  </body>
+</html>

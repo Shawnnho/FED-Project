@@ -1,0 +1,212 @@
+/* =========================================
+   NEA OFFICER DASHBOARD STYLES
+========================================= */
+.nea-body {
+  display: flex;
+  background: #f4f7f6;
+  min-height: 100vh;
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* SIDEBAR */
+.nea-sidebar {
+  width: 260px;
+  background: #2c3e50;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.nea-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 40px;
+}
+.nea-brand img { width: 40px; }
+.nea-brand h3 { margin: 0; font-size: 20px; }
+
+.nea-menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex: 1;
+}
+
+.nea-menu li {
+  padding: 15px;
+  margin-bottom: 5px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: 0.2s;
+  font-weight: 500;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.nea-menu li:hover { background: rgba(255,255,255,0.1); }
+.nea-menu li.active { background: #e67e22; color: white; font-weight: 700; }
+
+.nea-logout {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #ddd;
+  padding: 10px;
+  cursor: pointer;
+  border-radius: 6px;
+  margin-top: auto;
+}
+
+/* CONTENT AREA */
+.nea-content {
+  flex: 1;
+  padding: 30px;
+  overflow-y: auto;
+}
+
+.nea-tab { display: none; }
+.nea-tab.active { display: block; animation: fadeIn 0.3s; }
+
+.nea-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+.nea-header h2 { color: #333; margin: 0; }
+
+/* Cards & Lists */
+.nea-card-container {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.nea-item {
+  border-bottom: 1px solid #eee;
+  padding: 15px 0;
+}
+.nea-item:last-child { border: none; }
+
+.item-main {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+.item-main h4 { margin: 0; font-size: 16px; color: #2c3e50; }
+
+.badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.badge.red { background: #ffebee; color: #c62828; }
+.badge.green { background: #e8f5e9; color: #2e7d32; }
+
+.item-meta {
+  font-size: 13px;
+  color: #888;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 5px;
+}
+
+.evidence-link { color: #e67e22; text-decoration: none; font-weight: 700; }
+
+/* Buttons */
+.btn-primary {
+  background: #e67e22;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 700;
+}
+.btn-primary:hover { background: #d35400; }
+
+.btn-secondary {
+  background: #ccc;
+  color: #333;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* Grading Section */
+.grading-wrapper {
+  max-width: 500px;
+  margin: 0 auto;
+}
+.nea-form-card {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+.grade-picker {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.grade-btn {
+  flex: 1;
+  padding: 15px;
+  border: 2px solid #ddd;
+  background: white;
+  font-size: 18px;
+  font-weight: 900;
+  cursor: pointer;
+  border-radius: 8px;
+}
+.grade-btn.selected {
+  border-color: #e67e22;
+  background: #fff3e0;
+  color: #e67e22;
+}
+.success-msg { color: green; font-weight: bold; margin-top: 10px; text-align: center; }
+
+/* Modal */
+.nea-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+.modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* Inputs */
+.std-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
