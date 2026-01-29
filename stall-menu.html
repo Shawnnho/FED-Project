@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Hawker Point — Stall Menu</title>
     <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="stall-holder.css" />
   </head>
 
-  <body>
+  <body class="stallHolder">
+
     <!-- ================= HEADER ================= -->
     <header class="topbar">
       <div class="topbar-inner">
@@ -15,11 +17,17 @@
           <img src="images/logo.png" alt="Hawker Point" class="brand-logo" />
         </a>
 
-        <div class="stallHeaderTitle" id="stallName">—</div>
+        <div class="shStallTitle" id="stallName">—</div>
 
-        <div class="nav">
-          <span class="userName" id="ownerName">—</span>
-          <button class="pill" id="logoutBtn" type="button">Logout</button>
+        <div class="shTopRight">
+          <button class="shUserBtn" type="button">
+            <span id="ownerName">—</span>
+            <span class="shMuted">(Owner)</span>
+          </button>
+
+          <button id="logoutBtn" class="pill shLogout" type="button">
+            Logout
+          </button>
         </div>
       </div>
     </header>
@@ -36,26 +44,29 @@
           >
 
           <a class="shNav" href="stall-orders.html">
-            <span>Order</span><span class="shBadge" id="orderBadge">0</span>
+            <span>Order</span><span class="shBadge" id="orderBadge"></span>
           </a>
 
           <a class="shNav active" href="stall-menu.html"><span>Menu</span></a>
 
           <a class="shNav" href="stall-review.html">
-            <span>Review</span><span class="shBadge" id="reviewBadge">0</span>
+            <span>Review</span>
+            <span class="shBadge" id="reviewBadge"></span>
           </a>
 
           <a class="shNav" href="stall-analytics.html">
             <span>Analytics</span
-            ><span class="shBadge" id="analyticsBadge">0</span>
+            ><span class="shBadge" id="analyticsBadge"></span>
           </a>
 
           <a class="shNav" href="stall-hygiene.html">
-            <span>Hygiene</span><span class="shBadge" id="hygieneBadge">0</span>
+            <span>Hygiene</span><span class="shBadge" id="hygieneBadge"></span>
           </a>
 
           <a class="shNav" href="stall-account.html"><span>Account</span></a>
-          <a class="shNav" href="stall-staff.html"><span>Manage Staff</span></a>
+          <a class="shNav" href="rental-payment.html"
+            ><span>Manage Rental Payment</span></a
+          >
         </aside>
 
         <!-- ===== Content (was nested main before, now section) ===== -->
@@ -64,7 +75,12 @@
             <div class="menuTop">
               <div class="menuSectionTitle" id="menuTitle">Menu — Loading…</div>
 
-              <div class="status" id="status" aria-live="polite"></div>
+              <div style="display: flex; gap: 10px; align-items: center">
+                <button class="btn small primary" id="btnAdd" type="button">
+                  ➕ Add New Item
+                </button>
+                <div class="status" id="status" aria-live="polite"></div>
+              </div>
             </div>
 
             <section class="menuList" id="menuList"></section>
@@ -122,24 +138,6 @@
       </div>
     </div>
 
-    <div class="hpModalRow">
-      <label class="hpModalLabel">Item Image</label>
-
-      <div class="hpAvatarStack">
-        <img
-          id="menuImgPreview"
-          class="hpAvatarPreview"
-          src="images/background.png"
-          alt="Menu image preview"
-        />
-
-        <div class="hpAvatarControls">
-          <input id="menuImg" type="file" accept="image/*" />
-          <div class="hpModalHint">Optional</div>
-        </div>
-      </div>
-    </div>
-
     <!-- ===== Edit Menu Modal ===== -->
     <div id="editMenuModal" class="hpModalOverlay" hidden>
       <div class="hpModal">
@@ -171,9 +169,11 @@
             <div class="hpAvatarStack">
               <img
                 id="editImgPreview"
-                class="hpAvatarPreview"
-                src="images/background.png"
+                class="hpStallImagePreview"
+                src=""
+                alt="Preview"
               />
+
               <div class="hpAvatarControls">
                 <input id="editImg" type="file" accept="image/*" />
               </div>

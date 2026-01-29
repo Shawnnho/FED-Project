@@ -545,7 +545,7 @@ function renderAddons() {
   if (hasAddons) {
     const addOnLabel = document.createElement("div");
     addOnLabel.classList.add("reqTitle");
-    addOnLabel.textContent = "— Add On’s";
+    addOnLabel.textContent = "— Add On's";
     addonsList.appendChild(addOnLabel);
 
     item.addons.forEach((a) => {

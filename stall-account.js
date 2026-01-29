@@ -18,6 +18,11 @@ import {
   getDoc,
   setDoc,
   serverTimestamp,
+  collection,
+  query,
+  orderBy,
+  limit,
+  onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 import {
@@ -64,6 +69,42 @@ function canPublishStall(data) {
 /* =========================
    Helpers
 ========================= */
+
+function formatUnitForDisplay(unit) {
+  // "01-001" -> "01-01", "01-004" -> "01-04"
+  if (!unit) return unit;
+
+  const clean = String(unit).trim().startsWith("#")
+    ? String(unit).trim().slice(1)
+    : String(unit).trim();
+
+  const parts = clean.split("-");
+  if (parts.length !== 2) return unit;
+
+  const block = parts[0];
+  const n = parseInt(parts[1], 10);
+  if (!Number.isFinite(n)) return unit;
+
+  return `${block}-${String(n).padStart(2, "0")}`;
+}
+
+function formatUnitForSave(unit) {
+  // "01-04" -> "01-004"  (Firestore format)
+  if (!unit) return unit;
+
+  const clean = String(unit).trim().startsWith("#")
+    ? String(unit).trim().slice(1)
+    : String(unit).trim();
+
+  const parts = clean.split("-");
+  if (parts.length !== 2) return unit;
+
+  const block = parts[0];
+  const n = parseInt(parts[1], 10);
+  if (!Number.isFinite(n)) return unit;
+
+  return `${block}-${String(n).padStart(3, "0")}`;
+}
 
 function format12h(time24) {
   // "07:00" -> "07:00AM", "21:00" -> "9:00PM"
@@ -137,11 +178,16 @@ function normalizeUnit(v) {
   const raw = String(v || "").trim();
   if (!raw) return "";
 
-  // accept 01-11 or #01-11
-  const m = raw.match(/^#?(\d{2})-(\d{2})$/);
+  // accept: 01-4, 01-04, 01-004, and with optional "#"
+  const m = raw.match(/^#?(\d{2})-(\d{1,3})$/);
   if (!m) return null;
 
-  return `#${m[1]}-${m[2]}`;
+  const block = m[1];
+  const n = parseInt(m[2], 10);
+  if (!Number.isFinite(n)) return null;
+
+  // return human format (no #, 2-digit right side)
+  return `${block}-${String(n).padStart(2, "0")}`;
 }
 
 /* =========================
@@ -190,7 +236,7 @@ function wireEditStallDetails(user) {
       s.stallName ||
       ""
     ).trim();
-    const currentUnitNo = ($("unitNo")?.textContent || s.unitNo || "").trim();
+    const currentUnitNo = formatUnitForDisplay(s.unitNo || "");
     const currentCuisine = (
       $("cuisine")?.textContent ||
       s.cuisine ||
@@ -265,22 +311,23 @@ function wireEditStallDetails(user) {
 
         <div class="hpModalRow">
   <div class="hpModalLabel">Description</div>
-  <textarea id="mDesc" class="hpInput" rows="3" placeholder="Tell customers what you sell..."></textarea>
+  <textarea id="mDesc" class="hpModalInput" rows="3" placeholder="Tell customers what you sell..."></textarea>
 </div>
 
 <div class="hpModalRow">
   <div class="hpModalLabel">Prep Time (minutes)</div>
   <div class="hpRow2">
-    <input id="mPrepMin" class="hpInput" type="number" min="1" placeholder="Min" />
-    <input id="mPrepMax" class="hpInput" type="number" min="1" placeholder="Max" />
+    <input id="mPrepMin" class="hpModalInput" type="number" min="1" placeholder="Min" />
+    <input id="mPrepMax" class="hpModalInput" type="number" min="1" placeholder="Max" />
   </div>
 </div>
+
 
 <div class="hpModalRow">
   <label class="hpModalLabel">Stall Image</label>
 
   <div class="hpUploadRow">
-    <input id="mImageFile" class="hpModalInput" type="file" accept="image/*" />
+    <input id="mImageFile" class="hpModalFile" type="file" accept="image/*" />
     <div class="hpModalHint">Upload a square image/logo for best results.</div>
   </div>
 
@@ -332,7 +379,7 @@ function wireEditStallDetails(user) {
           return;
         }
 
-        const unitNo = normalizeUnit(newUnitInput);
+        const unitNo = formatUnitForSave(normalizeUnit(newUnitInput));
         if (unitNo === null) {
           err.textContent = "Unit number should look like 01-10 (or #01-10).";
           return;
@@ -411,7 +458,7 @@ function wireEditStallDetails(user) {
         // update UI
         setText("stallName", updates.stallName);
         setText("stallName2", updates.stallName);
-        setText("unitNo", updates.unitNo || "—");
+        setText("unitNo", formatUnitForDisplay(updates.unitNo) || "—");
         setText("cuisine", updates.cuisine || "—");
         setText("operatingHours", updates.operatingHours || "—");
         setText("stallDesc", updates.desc || "—");
@@ -479,9 +526,43 @@ function wireEditStallDetails(user) {
   });
 }
 
-/* =========================
-   Edit Stall Details (popup)
-========================= */
+// ================= REVIEW BADGE (Dashboard-style) =================
+function reviewSeenKey(uid) {
+  return `hp:lastSeenReviewMs:${uid}`;
+}
+
+function loadLastSeenReviewMs(uid) {
+  const raw = localStorage.getItem(reviewSeenKey(uid));
+  const ms = Number(raw);
+  return Number.isFinite(ms) ? ms : 0;
+}
+
+function wireReviewBadgeDashboardWay(stallUid) {
+  const badge = document.getElementById("reviewBadge");
+  if (!badge) return;
+
+  const reviewsCol = collection(db, "stalls", stallUid, "reviews");
+  const q = query(reviewsCol, orderBy("createdAt", "desc"), limit(1));
+
+  onSnapshot(q, (snap) => {
+    if (snap.empty) {
+      badge.style.display = "none";
+      badge.classList.remove("isNew");
+      badge.textContent = "";
+      return;
+    }
+
+    const r = snap.docs[0].data() || {};
+    const latestMs = r.createdAt?.toMillis ? r.createdAt.toMillis() : 0;
+    const lastSeenMs = loadLastSeenReviewMs(stallUid);
+
+    const hasNew = latestMs > lastSeenMs;
+
+    badge.style.display = hasNew ? "grid" : "none";
+    badge.classList.toggle("isNew", hasNew);
+    badge.textContent = "";
+  });
+}
 
 /* =========================
    Main
@@ -494,6 +575,7 @@ onAuthStateChanged(auth, async (user) => {
 
   try {
     // users/{uid}
+    wireReviewBadgeDashboardWay(user.uid); // ✅ ADD HERE
     const userRef = doc(db, "users", user.uid);
     const userSnap = await getDoc(userRef);
     if (!userSnap.exists()) return;
@@ -667,7 +749,7 @@ onAuthStateChanged(auth, async (user) => {
     // render as usual
     setText("stallName", s.stallName);
     setText("stallName2", s.stallName);
-    setText("unitNo", s.unitNo || "—");
+    setText("unitNo", formatUnitForDisplay(s.unitNo) || "—");
     setText("cuisine", s.cuisine || "—");
     setGrade("hygieneGrade", s.hygieneGrade);
     setText("operatingHours", s.operatingHours || "—");

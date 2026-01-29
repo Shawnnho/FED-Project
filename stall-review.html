@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hawker Point — Stall Reviews</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="stall-holder.css" />
+  </head>
+
+  <body class="stallHolder">
+    <!-- Header (same as dashboard) -->
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="stall-dashboard.html" aria-label="Hawker Point">
+          <img src="images/logo.png" alt="Hawker Point" class="brand-logo" />
+        </a>
+
+        <div class="shStallTitle" id="stallName">—</div>
+
+        <div class="shTopRight">
+          <button class="shUserBtn" type="button">
+            <span id="ownerName">—</span>
+            <span class="shMuted">(Owner)</span>
+          </button>
+
+          <button id="logoutBtn" class="pill shLogout" type="button">
+            Logout
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="shPage">
+      <div class="shLayout">
+        <!-- Sidebar (same links as dashboard, make Reviews active) -->
+        <aside class="shSide">
+          <center><h2>Dashboard</h2></center>
+
+          <a class="shNav" href="stall-dashboard.html"
+            ><span>Dashboard</span></a
+          >
+
+          <a class="shNav" href="stall-orders.html">
+            <span>Order</span>
+            <span class="shBadge" id="orderBadge"></span>
+          </a>
+
+          <a class="shNav" href="stall-menu.html"><span>Menu</span></a>
+
+          <a class="shNav active" href="stall-review.html">
+            <span>Review</span>
+            <span class="shBadge" id="reviewBadge"></span>
+          </a>
+
+          <a class="shNav" href="stall-analytics.html">
+            <span>Analytics</span>
+            <span class="shBadge" id="analyticsBadge"></span>
+          </a>
+
+          <a class="shNav" href="stall-hygiene.html">
+            <span>Hygiene</span>
+            <span class="shBadge" id="hygieneBadge"></span>
+          </a>
+
+          <a class="shNav" href="stall-account.html"><span>Account</span></a>
+          <a class="shNav" href="rental-payment.html"><span>Manage Rental Payment</span></a>
+        </aside>
+
+        <!-- Content -->
+        <section class="shContent">
+          <div class="shHead">
+            <h1>Reviews</h1>
+            <p>See feedback for your stall</p>
+
+            <div class="rvControls">
+              <select id="sortSelect" class="rvSelect">
+                <option value="newest">Newest</option>
+                <option value="oldest">Oldest</option>
+                <option value="rating_desc">Rating: High → Low</option>
+                <option value="rating_asc">Rating: Low → High</option>
+              </select>
+
+              <label class="rvCheck">
+                <input type="checkbox" id="photoOnly" />
+                With Photos only
+              </label>
+            </div>
+          </div>
+
+          <div id="summaryRow" class="rvSummaryRow"></div>
+          <div id="reviewsList" class="rvList"></div>
+          <div id="statusText" class="rvStatus"></div>
+        </section>
+      </div>
+    </main>
+
+    <script type="module" src="stall-review.js"></script>
+  </body>
+</html>
