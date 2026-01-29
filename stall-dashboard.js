@@ -125,7 +125,7 @@ function renderOrdersTable() {
   setText("statSalesNum", money(sales));
 
   // Sidebar badge (you can change this to something else)
-  setText("orderBadge", pendingCount);
+  setBadge("orderBadge", pendingCount);
 
   // Table
   const body = $("ordersBody");

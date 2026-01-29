@@ -39,6 +39,26 @@ const db = getFirestore(app);
 /* helpers */
 const $ = (id) => document.getElementById(id);
 
+function setBadge(count, hasNew) {
+  const badge = $("reviewBadge");
+  if (!badge) return;
+
+  const n = Number(count) || 0;
+
+  // hide badge when there is 0
+  if (n <= 0) {
+    badge.classList.remove("isNew");
+    return;
+  }
+
+  // show badge when > 0
+  badge.style.display = "grid";
+  badge.textContent = String(n);
+
+  // red dot if new
+  badge.classList.toggle("isNew", !!hasNew);
+}
+
 function setText(id, value) {
   const el = $(id);
   if (el) el.textContent = value ?? "—";
@@ -92,16 +112,6 @@ function saveLastSeen(uid, ms) {
   localStorage.setItem(storageKey(uid), String(ms || 0));
 }
 
-function setBadge(count, hasNew) {
-  const badge = $("reviewBadge");
-  if (!badge) return;
-
-  badge.textContent = String(count || 0);
-
-  // class used for red dot
-  badge.classList.toggle("isNew", !!hasNew);
-}
-
 function render() {
   const listEl = $("reviewsList");
   const sumEl = $("summaryRow");
@@ -130,10 +140,11 @@ function render() {
 
   // ✅ nicer empty state: don't show "0.0" summary when no reviews
   if (count === 0) {
+    setBadge(0, false);
     sumEl.innerHTML = `
     <div class="rvEmptyHero">
       <div class="rvEmptyTitle">No reviews yet</div>
-      <div class="rvEmptySub">When customers leave feedback, it’ll show up here.</div>
+      <div class="rvEmptySub">When customers leave feedback, it'll show up here.</div>
     </div>
   `;
     listEl.innerHTML = ``; // no duplicate "No reviews yet."
@@ -306,6 +317,13 @@ onAuthStateChanged(auth, async (user) => {
     }
 
     const u = userSnap.data() || {};
+
+    // hide other tab badges on this page (until real counts are implemented)
+    const a = document.getElementById("analyticsBadge");
+    if (a) a.style.display = "none";
+
+    const h = document.getElementById("hygieneBadge");
+    if (h) h.style.display = "none";
 
     // protect: only storeholder
     if (u.role !== "storeholder") {

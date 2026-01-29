@@ -361,7 +361,7 @@ body.stallHolder .hpRow2 {
   min-width: 26px;
   height: 26px;
   border-radius: 999px;
-  display: grid;
+  display: none;
   place-items: center;
   background: #e11d48;
   font-size: 12px;
