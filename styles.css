@@ -5810,3 +5810,687 @@ button:active {
   border: 2px solid rgba(0, 0, 0, 0.12);
   margin-top: 10px;
 }
+
+/* =========================================
+   HYGIENE PAGE STYLES (New)
+========================================= */
+
+/* Main layout */
+.page.hygienePage {
+  background: #fbf3e6;
+  padding: 24px 16px 60px;
+  display: block;
+}
+
+.hygieneGrid {
+  max-width: 1000px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+/* Cards */
+.hygieneCard {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  margin-bottom: 20px;
+}
+
+.hygieneCard h3 {
+  margin: 0 0 16px;
+  font-size: 18px;
+  font-weight: 800;
+  color: #111;
+}
+
+/* Select Stall */
+.selectCard select {
+  width: 100%;
+  height: 46px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  font-weight: 600;
+  background: #fff;
+}
+
+/* Big Grade Card (Red box in screenshot) */
+.gradeBigCard {
+  background: #ff0000; /* Default A */
+  color: #fff;
+  border-radius: 16px;
+  padding: 30px;
+  text-align: center;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 20px rgba(220, 38, 38, 0.25);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 280px;
+  transition: background-color 0.3s ease;
+}
+
+.bigGrade {
+  font-size: 120px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.gradeLabel {
+  font-size: 18px;
+  font-weight: 700;
+  margin-top: 10px;
+  opacity: 0.95;
+}
+
+/* License Info */
+.licenseRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.licenseDays {
+  font-size: 24px;
+  font-weight: 900;
+  color: #166534;
+}
+
+.licenseTag {
+  background: #dcfce7;
+  color: #166534;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 800;
+  font-size: 12px;
+}
+
+.licenseBar {
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 99px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.licenseFill {
+  height: 100%;
+  background: #00c853;
+  border-radius: 99px;
+  transition: width 0.5s ease;
+}
+
+.licenseDates {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #6b7280;
+  font-weight: 700;
+}
+
+/* Chart Section */
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.chartWrap {
+  height: 220px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  padding: 30px 10px 0; /* padding top for value labels */
+  border-bottom: 1px solid #ddd;
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.chartEmpty {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-weight: 700;
+  color: #999;
+  z-index: 2;
+}
+
+.chartCol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  height: 100%;
+  justify-content: flex-end;
+  position: relative;
+  z-index: 1;
+}
+
+.chartBar {
+  width: 24px;
+  border-radius: 4px 4px 0 0;
+  position: relative;
+  transition: height 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  min-height: 4px;
+}
+
+.chartLabel {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #555;
+}
+
+.chartValue {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  font-weight: 800;
+  white-space: nowrap;
+  margin-bottom: 6px;
+}
+
+.chartGrid {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  z-index: 0;
+  pointer-events: none;
+  padding-top: 30px; /* match container padding */
+  padding-bottom: 30px; /* space for labels */
+}
+
+.chartLine {
+  border-top: 1px dashed #eee;
+  width: 100%;
+  height: 1px;
+}
+
+.chartFooter {
+  font-size: 12px;
+  color: #666;
+  font-weight: 600;
+}
+
+/* History List */
+.historyList {
+  display: flex;
+  flex-direction: column;
+}
+
+.histRow {
+  display: grid;
+  grid-template-columns: 100px 70px 60px 1fr;
+  gap: 14px;
+  padding: 14px 10px;
+  border-bottom: 1px solid #eee;
+  align-items: center;
+  font-size: 14px;
+}
+
+.histRow:last-child {
+  border-bottom: none;
+}
+
+.histHead {
+  font-weight: 900;
+  background: #f3f4f6;
+  border-radius: 8px;
+  color: #374151;
+  padding: 12px 14px;
+  margin-bottom: 6px;
+}
+
+.histGrade {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  color: #fff;
+  font-weight: 900;
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+}
+
+/* Mobile Responsive */
+ @media (max-width: 800px) {
+  .hygieneGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .gradeBigCard {
+    min-height: 200px;
+  }
+
+  /* Transform table to cards on mobile */
+  .histHead {
+    display: none;
+  }
+
+  .histRow.histDataRow {
+    display: block; /* stack elements */
+    background: #f9fafb;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    padding: 14px;
+    border: 1px solid #eee;
+  }
+
+  .histRow.histDataRow > div {
+    margin-bottom: 6px;
+  }
+
+  .histRow.histDataRow > div:nth-child(1) {
+    /* Date */
+    font-weight: 900;
+    color: #333;
+    display: inline-block;
+  }
+
+  .histRow.histDataRow > div:nth-child(3) {
+    /* Grade */
+    float: right;
+    margin-top: -24px;
+  }
+}
+
+/* =========================================
+   HYGIENE HISTORY PAGE (styles.css)
+========================================= */
+
+/* Mobile Header (matches screenshot) */
+.mobileHeader {
+  display: none; /* hidden on desktop */
+  background: #f7a036; /* orange */
+  padding: 14px 16px;
+  align-items: center;
+  gap: 14px;
+  color: #000;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 0;
+  z-index: 900;
+}
+
+.mobileHeader h1 {
+  font-size: 20px;
+  font-weight: 800;
+  margin: 0;
+  flex: 1;
+  text-align: center; /* center based on screenshot */
+  margin-right: 24px; /* balance back btn */
+}
+
+.mobileBackBtn {
+  background: transparent;
+  border: none;
+  font-size: 32px;
+  font-weight: 300; /* thin arrow */
+  line-height: 0.5;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* Page Layout */
+.historyPage {
+  background: #fff8ee;
+  padding: 24px 16px 60px;
+}
+
+.hhGrid {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* Sidebar */
+.hhSidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.hhBackLink {
+  text-decoration: none;
+  color: #000;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.hhStallInfo {
+  text-align: center;
+}
+
+.hhStallImg {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.hhStallName {
+  font-size: 22px;
+  font-weight: 900;
+  margin: 0;
+}
+
+/* Current Grade Card (Green Box) */
+.currentGradeCard {
+  background: #a7eeb8; /* pale green */
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  color: #0d5f23;
+}
+
+.cgLabel {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.cgValue {
+  font-size: 32px;
+  font-weight: 900;
+}
+
+/* Content Area */
+.hhContent {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+.hhPageTitle {
+  margin: 0 0 20px;
+  font-size: 24px;
+  font-weight: 900;
+}
+
+/* Controls Row */
+.hhControls {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.hhSearch {
+  flex: 1;
+}
+.hhSearch input {
+  width: 100%;
+  height: 42px;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+}
+
+.hhFilters select {
+  height: 42px;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+  min-width: 120px;
+  background: #fff;
+  cursor: pointer;
+}
+
+/* Mobile Pills */
+.hhPills {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  width: 100%;
+}
+
+.hhPill {
+  white-space: nowrap;
+  padding: 8px 16px;
+  border-radius: 99px;
+  border: 1px solid #ccc;
+  background: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.hhPill.active {
+  background: #000;
+  color: #fff;
+  border-color: #000;
+}
+
+/* Desktop Table */
+.hhTableWrap {
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.hhTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.hhTable th {
+  background: #eee;
+  padding: 14px;
+  text-align: left;
+  font-weight: 800;
+  color: #555;
+}
+
+.hhTable td {
+  padding: 14px;
+  border-top: 1px solid #eee;
+  font-size: 14px;
+  vertical-align: middle;
+}
+
+.hhBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  color: #fff;
+  font-weight: 900;
+  font-size: 16px;
+}
+.badgeRed { background: #ff0000; }
+.badgeGreen { background: #00c853; }
+.badgeOrange { background: #ff9800; }
+
+/* Mobile Cards */
+.hhMobileList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.hhMobileCard {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  border-left-width: 8px; /* The colored bar */
+  border-left-style: solid;
+}
+
+.borderRed { border-left-color: #ff0000; }
+.borderGreen { border-left-color: #00c853; }
+
+.mcHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.mcDate {
+  font-size: 18px;
+  font-weight: 900;
+  color: #111;
+}
+
+.mcRef {
+  font-size: 12px;
+  color: #999;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.mcBody {
+  font-size: 14px;
+  line-height: 1.4;
+  color: #333;
+  margin-bottom: 14px;
+}
+
+.mcDivider {
+  height: 1px;
+  background: #eee;
+  margin-bottom: 12px;
+}
+
+.mcFoot {
+  display: flex;
+  justify-content: space-between;
+}
+
+.mcLabel {
+  display: block;
+  font-size: 11px;
+  color: #888;
+  font-weight: 700;
+}
+
+.mcVal {
+  font-size: 14px;
+  font-weight: 900;
+  color: #222;
+}
+
+/* Footer / Pagination */
+.hhFooter {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #eee;
+  padding: 10px 14px;
+  border-radius: 0 0 16px 16px; /* round bottom only if inside card */
+}
+/* override radius if mobile load more */
+ @media (max-width: 800px) {
+  .hhFooter {
+    background: transparent;
+    padding: 0;
+    justify-content: center;
+  }
+}
+
+.hhCount {
+  font-size: 13px;
+  font-weight: 700;
+  color: #666;
+}
+
+.hhPagination {
+  display: flex;
+  gap: 6px;
+}
+
+.pgBtn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #ccc;
+  background: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 700;
+  color: #555;
+}
+.pgBtn.active {
+  background: #f7a036;
+  color: #fff;
+  border-color: #f7a036;
+}
+
+.loadMoreBtn {
+  width: 100%;
+  height: 48px;
+  background: #fff;
+  border: 1px solid #333;
+  border-radius: 99px;
+  font-weight: 800;
+  font-size: 15px;
+}
+
+/* RESPONSIVE TOGGLES */
+.mobileOnly { display: none !important; }
+.desktopOnly { display: block !important; }
+
+ @media (max-width: 800px) {
+  .mobileOnly { display: flex !important; }
+  /* hack for block elements */
+  div.mobileOnly { display: block !important; }
+  .hhPills.mobileOnly { display: flex !important; }
+
+  .desktopOnly { display: none !important; }
+
+  /* Adjust Layout */
+  .hhGrid {
+    grid-template-columns: 1fr;
+    display: block;
+  }
+
+  /* Hide standard Topbar on Mobile for this specific page look?
+     The screenshot implies a custom header.
+     We can hide .topbar and show .mobileHeader. */
+  .topbar {
+    display: none !important;
+  }
+
+  .mobileHeader {
+    display: flex;
+  }
+
+  .historyPage {
+    padding: 16px;
+    background: #fff8ee;
+  }
+
+  .hhContent {
+    background: transparent;
+    box-shadow: none;
+    border: none;
+    padding: 0;
+  }
+}

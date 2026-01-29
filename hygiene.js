@@ -66,9 +66,13 @@ const chartWrap = document.getElementById("chartWrap");
 const chartFooter = document.getElementById("chartFooter");
 const historyRows = document.getElementById("historyRows");
 
+const viewHistoryBtn = document.getElementById("viewHistoryBtn");
+
 /* =========================
    Logic
 ========================= */
+
+let currentStallId = null;
 
 async function loadStalls() {
   // Get ID from URL if present
@@ -86,7 +90,7 @@ async function loadStalls() {
 
   // Populate Select
   stallSelect.innerHTML = `<option value="" disabled ${!preselectId ? 'selected' : ''}>Select Stall</option>`;
-  
+
   stalls.forEach(s => {
     const opt = document.createElement("option");
     opt.value = s.id;
@@ -107,9 +111,11 @@ async function loadStalls() {
 }
 
 function renderStallData(stallId, currentGrade) {
+  currentStallId = stallId; // Store it
+
   // 1. Grade Card
   bigGrade.textContent = currentGrade;
-  
+
   let color = "#16a34a"; // Green (B)
   let text = "Good Hygiene Standards";
 
@@ -126,14 +132,14 @@ function renderStallData(stallId, currentGrade) {
 
   // 2. Mock Data (License, Chart, History)
   // Use pseudo-random logic to vary data based on ID length so it feels dynamic
-  const seed = stallId.length; 
+  const seed = stallId.length;
   const data = MOCK_DATA.default;
 
   // License
   const days = 100 + (seed * 10);
   const totalDays = 365;
   const pct = Math.min(100, (days / totalDays) * 100);
-  
+
   licDays.textContent = `${days} Days`;
   licStatus.textContent = "Active";
   licFill.style.width = `${pct}%`;
@@ -209,3 +215,14 @@ function renderHistory(history, currentGrade) {
 
 // Init
 loadStalls();
+
+// Add listener for view history button
+if (viewHistoryBtn) {
+  viewHistoryBtn.addEventListener("click", () => {
+    if (currentStallId) {
+      window.location.href = `hygiene-history.html?id=${currentStallId}`;
+    } else {
+      alert("Please select a stall first.");
+    }
+  });
+}
