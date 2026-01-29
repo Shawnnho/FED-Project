@@ -226,3 +226,16 @@ if (viewHistoryBtn) {
     }
   });
 }
+
+// Hygiene Trend Button
+const viewTrendBtn = document.getElementById("viewTrendBtn");
+
+if (viewTrendBtn) {
+  viewTrendBtn.addEventListener("click", () => {
+    if (currentStallId) {
+      window.location.href = `hygiene-trend.html?id=${currentStallId}`;
+    } else {
+      alert("Please select a stall first.");
+    }
+  });
+}

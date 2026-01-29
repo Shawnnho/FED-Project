@@ -6494,3 +6494,225 @@ button:active {
     padding: 0;
   }
 }
+
+/* =========================================
+   HYGIENE TREND PAGE (Detailed Analytic)
+========================================= */
+
+.trendPage {
+  background: #fff8ee;
+  padding: 24px 16px 60px;
+}
+
+.htGrid {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.htContent {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.htBottomRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+/* Specific Chart Tweaks for this page */
+.bigChart {
+  height: 260px;
+  padding-top: 40px;
+}
+
+/* Detailed Score Breakdown */
+.breakdownList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 10px;
+}
+
+.bdRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bdTop {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-weight: 700;
+  font-size: 14px;
+  color: #111;
+}
+
+.bdTrack {
+  height: 10px;
+  background: #e5e5e5;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.bdFill {
+  height: 100%;
+  border-radius: 99px;
+}
+
+/* Market Comparison */
+.subLabel {
+  font-size: 12px;
+  color: #777;
+  margin: -10px 0 16px;
+}
+
+.marketStats {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 30px;
+  margin-bottom: 24px;
+}
+
+.mDivider {
+  width: 1px;
+  height: 50px;
+  background: #ddd;
+}
+
+.mStat {
+  text-align: center;
+}
+
+.mVal {
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.bigGreen {
+  color: #00c853;
+}
+
+.mLabel {
+  font-size: 12px;
+  color: #666;
+}
+
+/* Comparison Bar Widget */
+.compWidget {
+  background: #f0f0f0;
+  padding: 16px;
+  border-radius: 12px;
+}
+
+.compLabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  font-weight: 800;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.compStoreLabel {
+  text-align: right;
+  color: #777;
+}
+
+.compTrack {
+  position: relative;
+  height: 8px;
+  background: #d4d4d4;
+  border-radius: 99px;
+}
+
+.compBar {
+  height: 100%;
+  background: #00c853;
+  border-radius: 99px;
+}
+
+.compMarker {
+  position: absolute;
+  top: -6px; /* align with bar visually */
+  height: 34px;
+  width: 1px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.compLine {
+  width: 2px;
+  height: 20px;
+  background: #555;
+}
+
+.compVal {
+  font-size: 10px;
+  font-weight: 700;
+  color: #555;
+  margin-top: 2px;
+}
+
+/* Mobile Responsive */
+ @media (max-width: 800px) {
+  .htGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .htBottomRow {
+    grid-template-columns: 1fr;
+  }
+
+  /* Hide sidebar on mobile (use custom header) */
+  .trendPage .hhSidebar {
+    display: none !important;
+  }
+
+  .trendPage .hhStallInfo {
+    display: block; /* show inside card if needed, but for now sidebar is hidden */
+  }
+
+  /* Add stall card to top of content for mobile */
+  .htContent::before {
+    /* content: ... complex to do in CSS, JS handles rendering if needed
+       Ideally we show the stall info in the first card or header.
+       Current 'hygiene-trend.html' sidebar is hidden on mobile via desktopOnly class in 'hygiene-history' styles.
+       We need to ensure that style applies or replicate it. */
+  }
+
+  /* Re-use hhMobile styles */
+  .trendPage .hhSidebar.desktopOnly {
+    display: flex !important; /* Force show sidebar content? No, images show it separate */
+  }
+
+  /* Actually, looking at image:
+     Mobile has a card at top with Image, Name, Grade.
+     We can replicate the Sidebar inside the main content for mobile only. */
+}
+
+ @media (max-width: 800px) {
+  /* Show sidebar content as a card at the top */
+  .trendPage .hhSidebar.desktopOnly {
+    display: flex !important;
+    background: #fff;
+    padding: 16px;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    margin-bottom: 0;
+  }
+
+  .hhBackLink {
+    display: block; /* keep back link */
+  }
+}
