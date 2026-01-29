@@ -40,8 +40,50 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+// =========================
+// REVIEW BADGE (NEW FEEDBACK) — FIXED FOR /stalls/{stallId}/reviews
+// =========================
+function listenReviewBadge(stallUid) {
+  const badge = document.getElementById("reviewBadge");
+  if (!badge) return;
+
+  const reviewsCol = collection(db, "stalls", stallUid, "reviews");
+  const q = query(reviewsCol, orderBy("createdAt", "desc"), limit(1));
+
+  onSnapshot(q, (snap) => {
+    if (snap.empty) {
+      badge.style.display = "none";
+      badge.classList.remove("isNew");
+      return;
+    }
+
+    const data = snap.docs[0].data() || {};
+    const latestMs = data.createdAt?.toMillis ? data.createdAt.toMillis() : 0;
+
+    const lastSeenMs = loadLastSeen(stallUid);
+
+    // show dot only if newest review is newer than what Review page saved
+    const hasNew = latestMs > lastSeenMs;
+
+    badge.style.display = hasNew ? "grid" : "none";
+    badge.classList.toggle("isNew", hasNew);
+    badge.textContent = "";
+  });
+}
+
 /* helpers */
 const $ = (id) => document.getElementById(id);
+
+/* ===== REVIEW LAST-SEEN HELPERS ===== */
+function storageKey(uid) {
+  return `hp:lastSeenReviewMs:${uid}`;
+}
+
+function loadLastSeen(uid) {
+  const raw = localStorage.getItem(storageKey(uid));
+  const ms = Number(raw);
+  return Number.isFinite(ms) ? ms : 0;
+}
 
 function showToast(msg) {
   let t = document.querySelector(".toast");
@@ -59,6 +101,22 @@ function showToast(msg) {
 function setText(id, value) {
   const el = $(id);
   if (el) el.textContent = value ?? "—";
+}
+
+function setBadge(id, value) {
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  const n = Number(value) || 0;
+
+  if (n > 0) {
+    el.textContent = String(n);
+    el.style.display = "grid"; // matches your .shBadge display: grid
+  } else {
+    el.textContent = "";
+    el.style.display = "none";
+    el.classList.remove("isNew"); // safety: removes red dot if any
+  }
 }
 
 function money(n) {
@@ -371,6 +429,7 @@ onAuthStateChanged(auth, async (user) => {
       setText("stallName", "No centre linked");
       return;
     }
+    listenReviewBadge(user.uid);
 
     // centres/{centreId}/stalls/{uid}
     const stallRef = doc(db, "centres", centreId, "stalls", user.uid);

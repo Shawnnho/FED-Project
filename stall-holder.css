@@ -1186,8 +1186,6 @@ body.stallHolder .shBadge.isNew::after {
   width: 10px;
   height: 10px;
   border-radius: 999px;
-  background: #ef4444;
-  border: 2px solid #fff;
 }
 /* ===== Reviews polish ===== */
 body.stallHolder .rvSummary {
