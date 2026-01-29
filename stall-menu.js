@@ -12,10 +12,13 @@ import {
 import {
   getFirestore,
   collection,
+  collectionGroup,
+  where,
   doc,
   getDoc,
   query,
   orderBy,
+  limit,
   onSnapshot,
   updateDoc,
   deleteDoc,
@@ -312,6 +315,44 @@ onAuthStateChanged(auth, async (user) => {
   }
 
   const { centreId, stallName, userName, stallRef } = ctx;
+  // ================= REVIEW BADGE (RED DOT) — SAME AS DASHBOARD =================
+  function storageKey(uid) {
+    return `hp:lastSeenReviewMs:${uid}`;
+  }
+  function loadLastSeen(uid) {
+    const raw = localStorage.getItem(storageKey(uid));
+    const ms = Number(raw);
+    return Number.isFinite(ms) ? ms : 0;
+  }
+
+  function listenReviewBadge(stallUid) {
+    const badge = document.getElementById("reviewBadge");
+    if (!badge) return;
+
+    const reviewsCol = collection(db, "stalls", stallUid, "reviews");
+    const q = query(reviewsCol, orderBy("createdAt", "desc"), limit(1));
+
+    onSnapshot(q, (snap) => {
+      if (snap.empty) {
+        badge.style.display = "none";
+        badge.classList.remove("isNew");
+        return;
+      }
+
+      const data = snap.docs[0].data() || {};
+      const latestMs = data.createdAt?.toMillis ? data.createdAt.toMillis() : 0;
+
+      const lastSeenMs = loadLastSeen(stallUid);
+      const hasNew = latestMs > lastSeenMs;
+
+      badge.style.display = hasNew ? "grid" : "none";
+      badge.classList.toggle("isNew", hasNew);
+      badge.textContent = "";
+    });
+  }
+
+  // call it
+  listenReviewBadge(user.uid);
 
   if (stallNameEl) stallNameEl.textContent = stallName;
   if (ownerNameEl) ownerNameEl.textContent = userName;

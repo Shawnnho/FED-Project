@@ -18,6 +18,11 @@ import {
   getDoc,
   setDoc,
   serverTimestamp,
+  collection,
+  query,
+  orderBy,
+  limit,
+  onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 import {
@@ -521,9 +526,43 @@ function wireEditStallDetails(user) {
   });
 }
 
-/* =========================
-   Edit Stall Details (popup)
-========================= */
+// ================= REVIEW BADGE (Dashboard-style) =================
+function reviewSeenKey(uid) {
+  return `hp:lastSeenReviewMs:${uid}`;
+}
+
+function loadLastSeenReviewMs(uid) {
+  const raw = localStorage.getItem(reviewSeenKey(uid));
+  const ms = Number(raw);
+  return Number.isFinite(ms) ? ms : 0;
+}
+
+function wireReviewBadgeDashboardWay(stallUid) {
+  const badge = document.getElementById("reviewBadge");
+  if (!badge) return;
+
+  const reviewsCol = collection(db, "stalls", stallUid, "reviews");
+  const q = query(reviewsCol, orderBy("createdAt", "desc"), limit(1));
+
+  onSnapshot(q, (snap) => {
+    if (snap.empty) {
+      badge.style.display = "none";
+      badge.classList.remove("isNew");
+      badge.textContent = "";
+      return;
+    }
+
+    const r = snap.docs[0].data() || {};
+    const latestMs = r.createdAt?.toMillis ? r.createdAt.toMillis() : 0;
+    const lastSeenMs = loadLastSeenReviewMs(stallUid);
+
+    const hasNew = latestMs > lastSeenMs;
+
+    badge.style.display = hasNew ? "grid" : "none";
+    badge.classList.toggle("isNew", hasNew);
+    badge.textContent = "";
+  });
+}
 
 /* =========================
    Main
@@ -536,6 +575,7 @@ onAuthStateChanged(auth, async (user) => {
 
   try {
     // users/{uid}
+    wireReviewBadgeDashboardWay(user.uid); // ✅ ADD HERE
     const userRef = doc(db, "users", user.uid);
     const userSnap = await getDoc(userRef);
     if (!userSnap.exists()) return;
