@@ -1,5 +1,10 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
+  getAuth,
+  signOut,
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+import {
   getFirestore,
   collection,
   getDocs,
@@ -23,17 +28,22 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
 // ✅ NEW: Store stall data here so we can show the grade instantly
-let stallDataCache = {}; 
+let stallDataCache = {};
 
 // --- 1. TAB SWITCHING LOGIC ---
 window.switchTab = (tabName) => {
-  document.querySelectorAll(".nea-tab").forEach((el) => el.classList.remove("active"));
-  document.querySelectorAll(".nea-menu li").forEach((el) => el.classList.remove("active"));
+  document
+    .querySelectorAll(".nea-tab")
+    .forEach((el) => el.classList.remove("active"));
+  document
+    .querySelectorAll(".nea-menu li")
+    .forEach((el) => el.classList.remove("active"));
 
   document.getElementById(`tab-${tabName}`).classList.add("active");
-  
+
   const index = ["inspections", "complaints", "grading"].indexOf(tabName);
   if (document.querySelectorAll(".nea-menu li")[index]) {
     document.querySelectorAll(".nea-menu li")[index].classList.add("active");
@@ -48,7 +58,7 @@ window.switchTab = (tabName) => {
 async function loadComplaints() {
   const list = document.getElementById("complaintList");
   list.innerHTML = "Loading...";
-  
+
   try {
     const q = query(collection(db, "complaints"), orderBy("createdAt", "desc"));
     const snap = await getDocs(q);
@@ -58,12 +68,17 @@ async function loadComplaints() {
       return;
     }
 
-    list.innerHTML = snap.docs.map(doc => {
-      const d = doc.data();
-      const date = d.createdAt?.toDate ? d.createdAt.toDate().toLocaleDateString() : "Unknown Date";
-      const imgHtml = d.imageUrl ? `<a href="${d.imageUrl}" target="_blank" class="evidence-link">View Evidence</a>` : "";
+    list.innerHTML = snap.docs
+      .map((doc) => {
+        const d = doc.data();
+        const date = d.createdAt?.toDate
+          ? d.createdAt.toDate().toLocaleDateString()
+          : "Unknown Date";
+        const imgHtml = d.imageUrl
+          ? `<a href="${d.imageUrl}" target="_blank" class="evidence-link">View Evidence</a>`
+          : "";
 
-      return `
+        return `
         <div class="nea-item">
           <div class="item-main">
             <h4>${d.stallName || d.stall || "Unknown Stall"}</h4>
@@ -76,7 +91,8 @@ async function loadComplaints() {
           </div>
         </div>
       `;
-    }).join("");
+      })
+      .join("");
   } catch (err) {
     console.error(err);
     list.innerHTML = "Error loading complaints.";
@@ -97,9 +113,10 @@ async function loadInspections() {
       return;
     }
 
-    list.innerHTML = snap.docs.map(doc => {
-      const d = doc.data();
-      return `
+    list.innerHTML = snap.docs
+      .map((doc) => {
+        const d = doc.data();
+        return `
         <div class="nea-item">
           <div class="item-main">
             <h4>${d.stallName}</h4>
@@ -111,7 +128,8 @@ async function loadInspections() {
           </div>
         </div>
       `;
-    }).join("");
+      })
+      .join("");
   } catch (err) {
     console.error(err);
     list.innerHTML = "<p>No inspections found.</p>";
@@ -122,25 +140,25 @@ async function loadInspections() {
 async function loadStallsForDropdowns() {
   const schSelect = document.getElementById("schStall");
   const gradeSelect = document.getElementById("gradeStallSelect");
-  
+
   const loadingOpt = '<option value="" disabled selected>Loading...</option>';
   if (schSelect) schSelect.innerHTML = loadingOpt;
   if (gradeSelect) gradeSelect.innerHTML = loadingOpt;
 
   try {
     const snap = await getDocs(collection(db, "stalls"));
-    
+
     let options = '<option value="" disabled selected>Select Stall</option>';
     stallDataCache = {}; // Reset cache
 
-    snap.forEach(doc => {
+    snap.forEach((doc) => {
       const data = doc.data();
-      const name = data.name || doc.id; 
-      
+      const name = data.name || doc.id;
+
       // ✅ Save the grade to our cache so we can use it later
       stallDataCache[doc.id] = {
         name: name,
-        hygieneGrade: data.hygieneGrade || "Not Graded"
+        hygieneGrade: data.hygieneGrade || "Not Graded",
       };
 
       options += `<option value="${doc.id}">${name}</option>`;
@@ -148,7 +166,6 @@ async function loadStallsForDropdowns() {
 
     if (schSelect) schSelect.innerHTML = options;
     if (gradeSelect) gradeSelect.innerHTML = options;
-
   } catch (err) {
     console.error("Error loading stalls:", err);
   }
@@ -163,7 +180,7 @@ window.updateCurrentGradeDisplay = () => {
   if (stallDataCache[stallId]) {
     const grade = stallDataCache[stallId].hygieneGrade;
     // Handle empty string case from your screenshot
-    display.textContent = (grade === "" || !grade) ? "Not Graded" : grade;
+    display.textContent = grade === "" || !grade ? "Not Graded" : grade;
   } else {
     display.textContent = "-";
   }
@@ -196,7 +213,7 @@ window.submitSchedule = async () => {
       date: date,
       officer: officer,
       status: "scheduled",
-      createdAt: serverTimestamp()
+      createdAt: serverTimestamp(),
     });
     closeScheduleModal();
     loadInspections();
@@ -209,7 +226,9 @@ window.submitSchedule = async () => {
 
 window.selectGrade = (grade) => {
   document.getElementById("selectedGrade").value = grade;
-  document.querySelectorAll(".grade-btn").forEach(b => b.classList.remove("selected"));
+  document
+    .querySelectorAll(".grade-btn")
+    .forEach((b) => b.classList.remove("selected"));
   event.target.classList.add("selected");
 };
 
@@ -227,16 +246,15 @@ window.submitGradeUpdate = async () => {
     const stallRef = doc(db, "stalls", stallId);
     await updateDoc(stallRef, {
       hygieneGrade: newGrade,
-      lastInspection: serverTimestamp()
+      lastInspection: serverTimestamp(),
     });
-    
+
     // Update the display immediately without reloading
     document.getElementById("currentGradeDisplay").textContent = newGrade;
     stallDataCache[stallId].hygieneGrade = newGrade; // Update cache
 
     msg.textContent = `Success: Grade updated to ${newGrade}`;
-    setTimeout(() => msg.textContent = "", 3000);
-
+    setTimeout(() => (msg.textContent = ""), 3000);
   } catch (err) {
     console.error("Error updating grade:", err);
     msg.style.color = "red";
@@ -246,5 +264,15 @@ window.submitGradeUpdate = async () => {
 
 // Init
 window.addEventListener("DOMContentLoaded", () => {
-  switchTab('inspections');
+  switchTab("inspections");
 });
+
+window.logoutNEA = async () => {
+  try {
+    await signOut(auth);
+    window.location.href = "index.html";
+  } catch (err) {
+    console.error("Logout failed:", err);
+    alert("Error logging out. Please try again.");
+  }
+};

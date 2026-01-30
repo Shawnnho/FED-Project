@@ -127,7 +127,8 @@ document.addEventListener("DOMContentLoaded", () => {
   ============================== */
   function applyRoleUI() {
     if (!googleBtn) return;
-    const lockGoogle = selectedRole === "storeholder";
+    const lockGoogle =
+      selectedRole === "storeholder" || selectedRole === "nea_officer";
     googleBtn.disabled = lockGoogle;
     googleBtn.style.opacity = lockGoogle ? "0.5" : "1";
     googleBtn.style.cursor = lockGoogle ? "not-allowed" : "pointer";
@@ -263,7 +264,11 @@ document.addEventListener("DOMContentLoaded", () => {
   function redirectByRole(role) {
     if (role === "storeholder") {
       window.location.href = "stall-dashboard.html";
-      // or: "stall-account.html"
+      return;
+    }
+
+    if (role === "nea_officer") {
+      window.location.href = "nea.html";
       return;
     }
 
