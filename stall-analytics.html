@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Hawker Point — Stall Holder Analytics</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="stall-holder.css" />
+  </head>
+
+  <body class="stallHolder">
+    <!-- TOP BAR -->
+    <header class="topbar shTopbar">
+      <div class="topbar-inner shTopbarInner">
+        <a class="brand" href="home.html" aria-label="Hawker Point Home">
+          <img src="images/logo.png" alt="Hawker Point" class="brand-logo" />
+        </a>
+
+        <!-- dynamic -->
+        <div class="shStallTitle" id="stallName">Loading…</div>
+
+        <div class="shTopRight">
+          <button class="shUserBtn" type="button" id="userBtn">
+            <span id="ownerName">…</span>
+            <span class="shMuted">(<span id="role">…</span>)</span>
+            <span class="shCaret">▾</span>
+          </button>
+
+          <button id="logoutBtn" class="pill shLogout" type="button">
+            Logout
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="shPage">
+      <div class="shLayout">
+        <!-- SIDEBAR -->
+        <aside class="shSide">
+          <center><h2>Account</h2></center>
+
+          <a class="shNav" href="stall-dashboard.html">Dashboard</a>
+
+          <a class="shNav" href="stall-orders.html">
+            Order <span class="shBadge" id="orderCount"></span>
+          </a>
+
+          <a class="shNav" href="stall-menu.html">Menu</a>
+
+          <a class="shNav" href="stall-review.html">
+            <span>Review</span>
+            <span class="shBadge" id="reviewBadge"></span>
+          </a>
+
+          <a class="shNav active" href="stall-analytics.html">
+            Analytics <span class="shBadge" id="analyticsCount"></span>
+          </a>
+
+          <a class="shNav" href="stall-hygiene.html">
+            Hygiene <span class="shBadge" id="hygieneCount"></span>
+          </a>
+
+          <a class="shNav" href="stall-account.html">Account</a>
+
+          <div class="shSideDivider"></div>
+
+          <a class="shNav" href="rental-payment.html">Manage Rental Payment</a>
+        </aside>
+
+        <section class="shContent">
+          <!-- KPI cards row -->
+          <div class="anKpis">
+            <div class="anKpi">
+              <div class="anKpiTop">
+                <div class="anKpiTitle">Sales</div>
+              </div>
+              <div class="anKpiValue" id="kpiSales">—</div>
+              <div class="anKpiSub" id="kpiSalesSub">—</div>
+            </div>
+
+            <div class="anKpi">
+              <div class="anKpiTop">
+                <div class="anKpiTitle">Orders</div>
+              </div>
+              <div class="anKpiValue" id="kpiOrders">—</div>
+              <div class="anKpiSub" id="kpiOrdersSub">—</div>
+            </div>
+
+            <div class="anKpi">
+              <div class="anKpiTop">
+                <div class="anKpiTitle">Revenue</div>
+                <div class="anKpiHint" id="kpiRevenueHint">—</div>
+              </div>
+              <div class="anKpiValue" id="kpiRevenue">—</div>
+              <div class="anKpiSub" id="kpiRevenueSub">—</div>
+            </div>
+
+            <div class="anKpi anKpiGrade">
+              <div class="anKpiTop">
+                <div class="anKpiTitle">Hygiene Grade</div>
+              </div>
+              <div class="anGradeRow">
+                <div class="anGradeBox" id="kpiGrade">—</div>
+                <div class="anGradeMeta">
+                  <div class="anGradeTick">✓</div>
+                  <div class="anGradeText" id="kpiGradeWord">—</div>
+                </div>
+              </div>
+              <div class="anKpiSub" id="kpiGradeHint" style="margin-top: 8px">
+                —
+              </div>
+            </div>
+          </div>
+
+          <!-- Filters row -->
+          <div class="anFilters">
+            <select class="anSelect" id="dateRangeMode">
+              <option value="range">Date Range</option>
+              <option value="today">Today</option>
+              <option value="week">This Week</option>
+              <option value="month">This Month</option>
+            </select>
+
+            <select class="anSelect" id="datePreset">
+              <option value="today">Today</option>
+              <option value="yesterday">Yesterday</option>
+              <option value="last7">Last 7 days</option>
+            </select>
+
+            <div class="anToggle">
+              <div class="anToggleLabel">Comparison</div>
+              <label class="anSwitch">
+                <input type="checkbox" id="compareToggle" checked />
+                <span class="anSlider"></span>
+              </label>
+            </div>
+
+            <button class="anIconBtn" id="chartModeBtn" title="Chart">
+              📊
+            </button>
+
+            <button class="anSaveBtn" id="saveBtn">Save</button>
+          </div>
+
+          <!-- Main grid -->
+          <div class="anGrid">
+            <!-- LEFT: Sales chart card -->
+            <div class="anCard anCardChart">
+              <div class="anCardHead">
+                <div class="anCardTitle">Sales Overview</div>
+              </div>
+
+              <div class="anChartTop">
+                <div class="anChartLabel">Total Sales</div>
+                <div class="anChartValue">
+                  <span id="totalSales">—</span>
+                  <span id="totalSalesSub">—</span>
+                </div>
+              </div>
+
+              <div class="anChartBox">
+                <canvas id="salesChart"></canvas>
+              </div>
+
+              <div class="anLegend">
+                <span class="anDot today"></span> Today
+                <span class="anDot yest" id="legendCompareDot"></span>
+                <span id="legendCompareText">Yesterday</span>
+              </div>
+            </div>
+
+            <!-- RIGHT: Hygiene + Order overview -->
+            <div class="anSideCards">
+              <div class="anCard anMiniCard">
+                <div class="anMiniHead">Hygiene Overview</div>
+                <div class="anMiniBody">
+                  <div class="anMiniRow">
+                    <div class="anMiniBig" id="hygWhen">—</div>
+                    <div class="anMiniBadge" id="hygGrade">—</div>
+                  </div>
+                  <div class="anMiniPill">✓ <span id="hygWord">—</span></div>
+                  <div class="anMiniHint" id="hygHint">—</div>
+                </div>
+              </div>
+
+              <div class="anCard anMiniCard">
+                <div class="anMiniHead">Order Overview</div>
+                <div class="anMiniBody">
+                  <div class="anMiniRow">
+                    <div class="anMiniBig" id="orderCountMini">—</div>
+                    <div class="anMiniBig" id="orderWhenMini">—</div>
+                  </div>
+                  <div class="anMiniHint">
+                    Completion Rate<br />
+                    <b id="completionRate">—</b>
+                  </div>
+                  <button class="anMiniBtn" id="viewDetailsBtn">
+                    View Details
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- BOTTOM LEFT: top dishes -->
+            <div class="anCard">
+              <div class="anCardHead">
+                <div class="anCardTitle">Top Dishes</div>
+              </div>
+
+              <div class="anTableWrap">
+                <table class="anTable">
+                  <thead>
+                    <tr>
+                      <th>Rank</th>
+                      <th>Dish Name</th>
+                      <th>Orders</th>
+                      <th>Sales ($)</th>
+                    </tr>
+                  </thead>
+                  <tbody id="topDishesBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- BOTTOM RIGHT: rating -->
+            <div class="anCard">
+              <div class="anCardHead">
+                <div class="anCardTitle">Customer Rating</div>
+              </div>
+
+              <div class="anRatingBox">
+                <div class="anRatingTop">
+                  <div class="anRatingScore" id="ratingAvg">—</div>
+                  <div class="anStars" id="ratingStars">—</div>
+                </div>
+
+                <div class="anBars" id="ratingBars"></div>
+
+                <button class="anFeedbackBtn" id="viewFeedbackBtn">
+                  View Feedback
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <script type="module" src="stall-analytics.js"></script>
+  </body>
+</html>

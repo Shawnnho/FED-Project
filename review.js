@@ -28,7 +28,6 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 /* ✅ SAME config as your other pages */
-/* ✅ SAME config as your other pages */
 const firebaseConfig = {
   apiKey: "AIzaSyC-NTWADB-t1OGl7NbdyMVXjpVjnqjpTXg", // <--- THIS
   authDomain: "fedproject-8d254.firebaseapp.com", // <--- THIS

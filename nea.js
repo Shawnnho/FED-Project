@@ -14,6 +14,7 @@ import {
   query,
   orderBy,
   serverTimestamp,
+  Timestamp,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* ✅ CONFIG */
@@ -207,14 +208,19 @@ window.submitSchedule = async () => {
   const stallName = stallSelect.options[stallSelect.selectedIndex].text;
 
   try {
+    const dateStr = date; // already "YYYY-MM-DD" from input
+    const dateTs = Timestamp.fromDate(new Date(dateStr + "T00:00:00"));
+
     await addDoc(collection(db, "inspections"), {
       stallId: stallSelect.value,
       stallName: stallName,
-      date: date,
+      date: dateStr, // keep string
+      dateTs: dateTs,
       officer: officer,
       status: "scheduled",
       createdAt: serverTimestamp(),
     });
+
     closeScheduleModal();
     loadInspections();
     alert("Inspection Scheduled!");

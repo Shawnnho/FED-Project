@@ -1328,3 +1328,475 @@ body.stallHolder .rvSummaryText {
 body.stallHolder .rvSummaryText .rvMuted {
   color: #444;
 }
+
+/* =========================
+   Analytics Page (Stall Holder)
+   paste at bottom of stall-holder.css
+========================= */
+
+body.stallHolder .anKpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(180px, 1fr));
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+body.stallHolder .anKpi {
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  padding: 14px 14px 12px;
+}
+
+body.stallHolder .anKpiTop {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+body.stallHolder .anKpiTitle {
+  font-weight: 950;
+  font-size: 18px;
+}
+
+body.stallHolder .anKpiHint {
+  font-weight: 900;
+  font-size: 12px;
+  opacity: 0.55;
+}
+
+body.stallHolder .anKpiValue {
+  margin-top: 6px;
+  font-weight: 950;
+  font-size: 26px;
+}
+
+body.stallHolder .anKpiSub {
+  margin-top: 4px;
+  font-weight: 950;
+  font-size: 18px;
+  opacity: 0.55;
+}
+
+body.stallHolder .anKpiGrade .anGradeRow {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+body.stallHolder .anGradeBox {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: #dc2626;
+  color: #fff;
+  font-weight: 950;
+  font-size: 20px;
+}
+
+body.stallHolder .anGradeMeta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  font-weight: 950;
+}
+
+body.stallHolder .anGradeTick {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: #22c55e;
+  color: #111;
+  font-weight: 950;
+}
+
+body.stallHolder .anGradeText {
+  font-size: 18px;
+  opacity: 0.6;
+}
+
+/* filters row */
+body.stallHolder .anFilters {
+  display: grid;
+  grid-template-columns: 220px 220px 1fr 46px 110px;
+  gap: 12px;
+  align-items: center;
+
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+}
+
+body.stallHolder .anSelect {
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  padding: 0 12px;
+  font-weight: 900;
+  background: #fff;
+}
+
+body.stallHolder .anToggle {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+body.stallHolder .anToggleLabel {
+  font-weight: 950;
+}
+
+body.stallHolder .anSwitch {
+  position: relative;
+  width: 56px;
+  height: 30px;
+}
+
+body.stallHolder .anSwitch input {
+  display: none;
+}
+
+body.stallHolder .anSlider {
+  position: absolute;
+  inset: 0;
+  background: #e5e5e5;
+  border-radius: 999px;
+  transition: 0.2s ease;
+}
+
+body.stallHolder .anSlider::before {
+  content: "";
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  left: 3px;
+  top: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: 0.2s ease;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+}
+
+body.stallHolder .anSwitch input:checked + .anSlider {
+  background: #22c55e;
+}
+
+body.stallHolder .anSwitch input:checked + .anSlider::before {
+  transform: translateX(26px);
+}
+
+body.stallHolder .anIconBtn {
+  width: 46px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  background: #fff;
+  cursor: pointer;
+  font-weight: 950;
+}
+
+body.stallHolder .anSaveBtn {
+  height: 40px;
+  border-radius: 10px;
+  border: none;
+  background: #e8944c;
+  color: #fff;
+  font-weight: 950;
+  cursor: pointer;
+}
+
+body.stallHolder .anSaveBtn:hover {
+  filter: brightness(0.97);
+}
+
+/* main grid */
+body.stallHolder .anGrid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 14px;
+  align-items: start;
+}
+
+body.stallHolder .anCard {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+body.stallHolder .anCardHead {
+  background: rgba(0, 0, 0, 0.08);
+  padding: 12px 14px;
+}
+
+body.stallHolder .anCardTitle {
+  font-weight: 950;
+}
+
+body.stallHolder .anCardChart {
+  grid-column: 1 / 2;
+}
+
+body.stallHolder .anSideCards {
+  display: grid;
+  gap: 12px;
+}
+
+body.stallHolder .anMiniCard .anMiniHead {
+  background: rgba(0, 0, 0, 0.08);
+  padding: 10px 12px;
+  font-weight: 950;
+}
+
+body.stallHolder .anMiniBody {
+  padding: 12px;
+}
+
+body.stallHolder .anMiniRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+body.stallHolder .anMiniBig {
+  font-weight: 950;
+  font-size: 22px;
+}
+
+body.stallHolder .anMiniBadge {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: #dc2626;
+  color: #fff;
+  font-weight: 950;
+}
+
+body.stallHolder .anMiniPill {
+  margin-top: 10px;
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(34, 197, 94, 0.18);
+  font-weight: 950;
+}
+
+body.stallHolder .anMiniHint {
+  margin-top: 8px;
+  font-weight: 900;
+  opacity: 0.65;
+  font-size: 12px;
+}
+
+body.stallHolder .anMiniBtn {
+  margin-top: 10px;
+  width: 100%;
+  height: 38px;
+  border-radius: 10px;
+  border: none;
+  background: #e8944c;
+  color: #fff;
+  font-weight: 950;
+  cursor: pointer;
+}
+
+/* chart area */
+body.stallHolder .anChartTop {
+  padding: 12px 14px 0;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+body.stallHolder .anChartLabel {
+  font-weight: 950;
+  opacity: 0.75;
+}
+
+body.stallHolder .anChartValue {
+  font-weight: 950;
+  color: #e8944c;
+}
+
+body.stallHolder .anChartValue span {
+  color: rgba(0, 0, 0, 0.55);
+  margin-left: 6px;
+}
+
+body.stallHolder .anChartBox {
+  padding: 10px 14px 12px;
+  height: 260px;
+}
+
+body.stallHolder .anLegend {
+  padding: 0 14px 14px;
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  font-weight: 950;
+}
+
+body.stallHolder .anDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  display: inline-block;
+  margin-right: 6px;
+  transform: translateY(1px);
+}
+
+body.stallHolder .anDot.today {
+  background: #e8944c;
+}
+
+body.stallHolder .anDot.yest {
+  background: #3b82f6;
+}
+
+/* bottom row cards span full width on left column */
+body.stallHolder .anGrid > .anCard:nth-last-child(2),
+body.stallHolder .anGrid > .anCard:nth-last-child(1) {
+  margin-top: 0;
+}
+
+/* table */
+body.stallHolder .anTableWrap {
+  padding: 12px 14px 14px;
+}
+
+body.stallHolder .anTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-weight: 900;
+  font-size: 13px;
+}
+
+body.stallHolder .anTable th,
+body.stallHolder .anTable td {
+  padding: 10px 8px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+body.stallHolder .anTable th {
+  text-align: left;
+  opacity: 0.8;
+}
+
+body.stallHolder .anDishCell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+body.stallHolder .anDishImg {
+  width: 44px;
+  height: 34px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+/* rating card */
+body.stallHolder .anRatingBox {
+  padding: 12px 14px 14px;
+}
+
+body.stallHolder .anRatingTop {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+body.stallHolder .anRatingScore {
+  font-size: 26px;
+  font-weight: 950;
+}
+
+body.stallHolder .anStars {
+  color: #f5b301;
+  font-size: 18px;
+  letter-spacing: 2px;
+  transform: translateY(1px);
+}
+
+body.stallHolder .anBars {
+  margin-top: 10px;
+  display: grid;
+  gap: 10px;
+}
+
+body.stallHolder .anBarRow {
+  display: grid;
+  grid-template-columns: 60px 1fr 40px;
+  align-items: center;
+  gap: 10px;
+  font-weight: 950;
+  font-size: 12px;
+}
+
+body.stallHolder .anBar {
+  height: 10px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+body.stallHolder .anBar i {
+  display: block;
+  height: 100%;
+  background: #f5b301;
+  border-radius: 999px;
+}
+
+body.stallHolder .anFeedbackBtn {
+  margin-top: 12px;
+  width: 100%;
+  height: 40px;
+  border-radius: 10px;
+  border: none;
+  background: #e8944c;
+  color: #fff;
+  font-weight: 950;
+  cursor: pointer;
+}
+
+/* responsive */
+@media (max-width: 980px) {
+  body.stallHolder .anKpis {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  body.stallHolder .anFilters {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  body.stallHolder .anToggle {
+    justify-content: space-between;
+  }
+
+  body.stallHolder .anIconBtn,
+  body.stallHolder .anSaveBtn {
+    width: 100%;
+  }
+
+  body.stallHolder .anGrid {
+    grid-template-columns: 1fr;
+  }
+}
