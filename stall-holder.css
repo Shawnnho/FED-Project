@@ -472,10 +472,28 @@ body.stallHolder .hpRow2 {
   border-radius: 6px;
   display: grid;
   place-items: center;
-  background: #dc2626;
+  background: #9ca3af;
   color: #fff;
   font-weight: 900;
 }
+
+.shGrade.gradeA {
+  background: #16a34a;
+} /* green */
+.shGrade.gradeB {
+  background: #f59e0b;
+} /* amber/yellow */
+.shGrade.gradeC {
+  background: #f97316;
+} /* orange */
+.shGrade.gradeD {
+  background: #dc2626;
+} /* red */
+
+/* optional */
+.shGrade.gradeNA {
+  background: #9ca3af;
+} /* grey */
 
 .shRowEnd {
   display: flex;
@@ -1799,4 +1817,52 @@ body.stallHolder .anFeedbackBtn {
   body.stallHolder .anGrid {
     grid-template-columns: 1fr;
   }
+}
+/* === Manage Payments polish === */
+.payPill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 900;
+  font-size: 12px;
+  letter-spacing: 0.3px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: #fff;
+}
+
+.payPaid {
+  background: rgba(0, 200, 0, 0.12);
+}
+.payUnpaid {
+  background: rgba(255, 180, 0, 0.15);
+}
+.payOverdue {
+  background: rgba(255, 0, 0, 0.12);
+}
+.payPartial {
+  background: rgba(0, 120, 255, 0.12);
+}
+
+.payHint {
+  margin-top: 6px;
+  font-weight: 800;
+  opacity: 0.7;
+  font-size: 12px;
+}
+
+.payDelta {
+  font-weight: 900;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.paySmallLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 900;
+  font-size: 12px;
+  opacity: 0.9;
+  min-width: 180px;
 }

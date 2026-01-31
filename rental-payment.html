@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hawker Point — Manage Payments</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="stall-holder.css" />
+  </head>
+
+  <body class="stallHolder">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="stall-dashboard.html" aria-label="Hawker Point">
+          <img src="images/logo.png" alt="Hawker Point" class="brand-logo" />
+        </a>
+
+        <div class="shStallTitle" id="stallName">—</div>
+
+        <div class="shTopRight">
+          <button class="shUserBtn" type="button">
+            <span id="ownerName">—</span>
+            <span class="shMuted">(Owner)</span>
+          </button>
+
+          <button id="logoutBtn" class="pill shLogout" type="button">
+            Logout
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="shPage">
+      <div class="shLayout">
+        <aside class="shSide">
+          <center><h2>Dashboard</h2></center>
+
+          <a class="shNav" href="stall-dashboard.html"
+            ><span>Dashboard</span></a
+          >
+
+          <a class="shNav" href="stall-orders.html">
+            <span>Order</span>
+            <span class="shBadge" id="orderBadge"></span>
+          </a>
+
+          <a class="shNav" href="stall-menu.html"><span>Menu</span></a>
+
+          <a class="shNav" href="stall-review.html">
+            <span>Review</span>
+            <span class="shBadge" id="reviewBadge"></span>
+          </a>
+
+          <a class="shNav" href="stall-analytics.html">
+            <span>Analytics</span>
+            <span class="shBadge" id="analyticsBadge"></span>
+          </a>
+
+          <a class="shNav" href="stall-hygiene.html">
+            <span>Hygiene</span>
+            <span class="shBadge" id="hygieneBadge"></span>
+          </a>
+
+          <a class="shNav" href="stall-account.html"><span>Account</span></a>
+
+          <a class="shNav active" href="rental-payment.html">
+            <span>Manage Payments</span>
+          </a>
+        </aside>
+
+        <section class="shContent">
+          <div class="shHead">
+            <h1>Manage Payments</h1>
+            <p>
+              Operator invoice (rent + utilities) and staff payroll (timesheets)
+              by month.
+            </p>
+          </div>
+
+          <!-- Filters -->
+          <div class="searchWrap">
+            <div
+              class="filters"
+              style="
+                grid-template-columns: 1fr auto auto auto;
+                align-items: center;
+              "
+            >
+              <select id="monthSelect"></select>
+              <button class="btn small primary" id="refreshBtn" type="button">
+                Refresh
+              </button>
+              <button class="btn small" id="exportBtn" type="button">
+                Export CSV
+              </button>
+              <button class="btn small" id="printBtn" type="button">
+                Print
+              </button>
+            </div>
+          </div>
+
+          <!-- Status row -->
+          <div class="accCard">
+            <div
+              class="accCardTitle"
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+              "
+            >
+              <span>Monthly Status</span>
+              <span class="payPill" id="monthStatusPill">—</span>
+            </div>
+
+            <div class="summaryGrid">
+              <div>
+                <strong>Due Date:</strong> <span id="dueDateLine">—</span>
+                <div class="payHint" id="lateHint">—</div>
+              </div>
+
+              <div>
+                <strong>Compared to last month:</strong>
+                <div class="payDelta" id="deltaLine">—</div>
+              </div>
+
+              <div style="display: flex; gap: 10px; flex-wrap: wrap">
+                <label class="paySmallLabel">
+                  Payment Method
+                  <select
+                    id="payMethod"
+                    class="hpModalInput"
+                    style="max-width: 220px"
+                  >
+                    <option value="paynow">PayNow</option>
+                    <option value="bank">Bank Transfer</option>
+                    <option value="cash">Cash</option>
+                  </select>
+                </label>
+
+                <label class="paySmallLabel" style="min-width: 240px">
+                  Note (optional)
+                  <input
+                    id="payNote"
+                    class="hpModalInput"
+                    placeholder="e.g. Paid via PayNow ref XXXX"
+                  />
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <h3 class="statsTitle">Payment Summary</h3>
+
+          <!-- ✅ add stat color classes -->
+          <div class="statsRow">
+            <div
+              class="statBox statSales"
+              title="Total operator invoice amount for the month"
+            >
+              <div class="statTop">
+                <div class="statNum" id="operatorDueNum">$0.00</div>
+                <div class="statLines" aria-hidden="true"></div>
+              </div>
+              <div class="statLabel">Operator Bill<br />(This Month)</div>
+            </div>
+
+            <div
+              class="statBox statProgress"
+              title="Total staff payroll based on timesheets"
+            >
+              <div class="statTop">
+                <div class="statNum" id="staffDueNum">$0.00</div>
+                <div class="statLines" aria-hidden="true"></div>
+              </div>
+              <div class="statLabel">Pay Staff<br />(Timesheets)</div>
+            </div>
+
+            <div
+              class="statBox statPending"
+              title="Total payable (operator + staff)"
+            >
+              <div class="statTop">
+                <div class="statNum" id="grandDueNum">$0.00</div>
+                <div class="statLines" aria-hidden="true"></div>
+              </div>
+              <div class="statLabel">Grand Total<br />Payable</div>
+            </div>
+
+            <div
+              class="statBox statCancelled"
+              title="Total paid this month (from payment history)"
+            >
+              <div class="statTop">
+                <div class="statNum" id="paidThisMonthNum">$0.00</div>
+                <div class="statLines" aria-hidden="true"></div>
+              </div>
+              <div class="statLabel">Paid<br />(This Month)</div>
+            </div>
+          </div>
+
+          <br />
+          <hr />
+          <br />
+
+          <!-- Operator breakdown -->
+          <div class="accCard">
+            <div
+              class="accCardTitle"
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+              "
+            >
+              <span>Operator Breakdown</span>
+
+              <div style="display: flex; gap: 10px; flex-wrap: wrap">
+                <span class="payPill" id="operatorStatusPill">—</span>
+                <button
+                  class="btn small primary"
+                  id="markOperatorPaidBtn"
+                  type="button"
+                >
+                  Mark Operator Paid
+                </button>
+              </div>
+            </div>
+
+            <div class="summaryGrid">
+              <div title="Fixed monthly rental paid to operator/landlord">
+                <strong>Rent:</strong> <span id="rentLine">$0.00</span>
+              </div>
+
+              <div title="Electricity/water/gas charges billed monthly">
+                <strong>Utilities:</strong>
+                <span id="utilitiesLine">$0.00</span>
+              </div>
+
+              <div title="Shared cleaning, pest control, conservancy">
+                <strong>Cleaning Fee:</strong>
+                <span id="cleaningLine">$0.00</span>
+              </div>
+
+              <div title="Late payment penalty (if any)">
+                <strong>Penalty:</strong> <span id="penaltyLine">$0.00</span>
+              </div>
+
+              <div title="Other operator charges (optional)">
+                <strong>Other:</strong> <span id="otherLine">$0.00</span>
+              </div>
+
+              <div style="font-size: 18px">
+                <strong>Total to Operator:</strong>
+                <span id="operatorLine">$0.00</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Staff breakdown -->
+          <div class="accCard">
+            <div
+              class="accCardTitle"
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+              "
+            >
+              <span>Staff Payroll</span>
+              <div style="display: flex; gap: 10px; flex-wrap: wrap">
+                <span class="payPill" id="staffStatusPill">—</span>
+                <button
+                  class="btn small primary"
+                  id="markStaffPaidBtn"
+                  type="button"
+                >
+                  Mark Staff Paid
+                </button>
+              </div>
+            </div>
+
+            <div class="summaryGrid">
+              <div>
+                <strong>Total Hours:</strong> <span id="hoursLine">0.00</span>
+              </div>
+              <div>
+                <strong>Total Staff Pay:</strong>
+                <span id="staffLine">$0.00</span>
+              </div>
+              <div class="payHint" style="grid-column: 1 / -1">
+                Payroll is calculated from staff timesheets for the selected
+                month.
+              </div>
+            </div>
+
+            <div style="padding: 14px 16px">
+              <table style="width: 100%; border-collapse: collapse">
+                <thead>
+                  <tr>
+                    <th
+                      style="
+                        text-align: left;
+                        padding: 10px;
+                        border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+                      "
+                    >
+                      Staff
+                    </th>
+                    <th
+                      style="
+                        text-align: left;
+                        padding: 10px;
+                        border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+                      "
+                    >
+                      Hours
+                    </th>
+                    <th
+                      style="
+                        text-align: left;
+                        padding: 10px;
+                        border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+                      "
+                    >
+                      Rate
+                    </th>
+                    <th
+                      style="
+                        text-align: left;
+                        padding: 10px;
+                        border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+                      "
+                    >
+                      Amount
+                    </th>
+                    <th
+                      style="
+                        text-align: left;
+                        padding: 10px;
+                        border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+                      "
+                    >
+                      Status
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="staffBody">
+                  <tr>
+                    <td
+                      colspan="5"
+                      style="padding: 12px; opacity: 0.8; font-weight: 800"
+                    >
+                      No staff records yet.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Payment history -->
+          <div class="accCard">
+            <div class="accCardTitle">Payment History (This Month)</div>
+            <div style="padding: 14px 16px">
+              <table style="width: 100%; border-collapse: collapse">
+                <thead>
+                  <tr>
+                    <th
+                      style="
+                        text-align: left;
+                        padding: 10px;
+                        border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+                      "
+                    >
+                      Date
+                    </th>
+                    <th
+                      style="
+                        text-align: left;
+                        padding: 10px;
+                        border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+                      "
+                    >
+                      Type
+                    </th>
+                    <th
+                      style="
+                        text-align: left;
+                        padding: 10px;
+                        border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+                      "
+                    >
+                      Amount
+                    </th>
+                    <th
+                      style="
+                        text-align: left;
+                        padding: 10px;
+                        border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+                      "
+                    >
+                      Method
+                    </th>
+                    <th
+                      style="
+                        text-align: left;
+                        padding: 10px;
+                        border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+                      "
+                    >
+                      Note
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="payHistBody">
+                  <tr>
+                    <td
+                      colspan="5"
+                      style="padding: 12px; opacity: 0.8; font-weight: 800"
+                    >
+                      No payments yet.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <p id="statusMsg" class="status"></p>
+        </section>
+      </div>
+    </main>
+
+    <script type="module" src="rental-payment.js"></script>
+  </body>
+</html>

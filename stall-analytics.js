@@ -26,6 +26,23 @@ const SUB_REVIEWS = "reviews";
 // =============================
 // HELPER
 // =============================
+function setGradeColor(el, grade) {
+  if (!el) return;
+
+  const g = String(grade || "")
+    .toUpperCase()
+    .trim();
+
+  el.textContent = g || "—";
+  el.classList.remove("gradeA", "gradeB", "gradeC", "gradeD", "gradeNA");
+
+  if (g === "A") el.classList.add("gradeA");
+  else if (g === "B") el.classList.add("gradeB");
+  else if (g === "C") el.classList.add("gradeC");
+  else if (g === "D") el.classList.add("gradeD");
+  else el.classList.add("gradeNA");
+}
+
 function daysUntil(ts) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -496,7 +513,6 @@ document.addEventListener("DOMContentLoaded", () => {
       // hygiene grade pulled from stalls/{stallId}
       const grade = String(stall.hygieneGrade || "—").toUpperCase();
 
-      // map grade -> word
       const gradeWord =
         grade === "A"
           ? "Excellent"
@@ -508,16 +524,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 ? "Poor"
                 : "—";
 
-      // optional hint (if you don’t store next check date yet)
       const gradeHint = "—";
 
-      // KPI card (top right) + right-side hygiene overview
-      setText("kpiGrade", grade);
+      /* KPI hygiene card (top row) */
+      setGradeColor($("kpiGrade"), grade);
       setText("kpiGradeWord", gradeWord);
       setText("kpiGradeHint", gradeHint);
 
+      /* Right-side hygiene overview card */
       setText("hygWhen", "Today");
-      setText("hygGrade", grade);
+      setGradeColor($("hygGrade"), grade);
       setText("hygWord", gradeWord);
       setText("hygHint", gradeHint);
 

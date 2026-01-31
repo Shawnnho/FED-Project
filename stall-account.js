@@ -167,7 +167,23 @@ function setImg(id, src) {
 function setGrade(id, grade) {
   const el = $(id);
   if (!el) return;
-  el.textContent = grade ?? "—";
+
+  const g = String(grade ?? "")
+    .trim()
+    .toUpperCase();
+
+  // text
+  el.textContent = g || "—";
+
+  // reset classes
+  el.classList.remove("gradeA", "gradeB", "gradeC", "gradeD", "gradeNA");
+
+  // apply color by grade
+  if (g === "A") el.classList.add("gradeA");
+  else if (g === "B") el.classList.add("gradeB");
+  else if (g === "C") el.classList.add("gradeC");
+  else if (g === "D") el.classList.add("gradeD");
+  else el.classList.add("gradeNA"); // for — / N.A. / empty
 }
 
 function isPhone(v) {
@@ -751,9 +767,32 @@ onAuthStateChanged(auth, async (user) => {
     setText("stallName2", s.stallName);
     setText("unitNo", formatUnitForDisplay(s.unitNo) || "—");
     setText("cuisine", s.cuisine || "—");
-    setGrade("hygieneGrade", s.hygieneGrade);
     setText("operatingHours", s.operatingHours || "—");
     setText("stallDesc", s.desc || "—");
+
+    // ✅ hygiene grade is stored in top-level stalls/{stallId} (NEA updates there)
+    let hygieneToShow = s.hygieneGrade;
+
+    try {
+      const pubSnap = await getDoc(doc(db, "stalls", ctx.stallId));
+      if (pubSnap.exists()) {
+        const pub = pubSnap.data() || {};
+        if (pub.hygieneGrade) hygieneToShow = pub.hygieneGrade;
+
+        // (optional) keep centres stall doc in sync so other pages can read it too
+        if (hygieneToShow && hygieneToShow !== s.hygieneGrade) {
+          await setDoc(
+            stallRef,
+            { hygieneGrade: hygieneToShow },
+            { merge: true },
+          );
+        }
+      }
+    } catch (e) {
+      console.warn("Could not read public stall hygieneGrade:", e);
+    }
+
+    setGrade("hygieneGrade", hygieneToShow || "—");
 
     /* =========================
        Edit Profile popup
