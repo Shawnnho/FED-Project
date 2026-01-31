@@ -10,6 +10,7 @@ ABOUT PAGE – HARD CENTERED
   flex-direction: column;
   align-items: center;
   text-align: center;
+  box-sizing: border-box;
 }
 
 .about-page h2 {
@@ -30,6 +31,16 @@ ABOUT PAGE – HARD CENTERED
   margin: 0 auto 20px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
   text-align: center;
+  box-sizing: border-box;
+
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.about-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
 }
 
 .about-card h3 {
@@ -41,6 +52,11 @@ ABOUT PAGE – HARD CENTERED
   margin: 0;
   line-height: 1.65;
   color: #333;
+
+  /* keeps about text nicely readable */
+  max-width: 520px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* Image card */
@@ -56,6 +72,7 @@ ABOUT PAGE – HARD CENTERED
   object-fit: cover;
   display: block;
 }
+
 /* =====================
 PAGE HERO (ADD-ON ONLY)
 ===================== */
@@ -99,6 +116,7 @@ PAGE HERO (ADD-ON ONLY)
   color: #fff;
   text-align: center;
   padding: 0 20px;
+  box-sizing: border-box;
 }
 
 .page-hero-text h1 {
@@ -110,22 +128,6 @@ PAGE HERO (ADD-ON ONLY)
   margin: 0;
   font-size: 16px;
   opacity: 0.9;
-}
-
-.about-card {
-  transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease;
-}
-
-.about-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
-}
-.about-card p {
-  max-width: 520px;
-  margin-left: auto;
-  margin-right: auto;
 }
 
 /* =====================
@@ -146,6 +148,7 @@ CENTRES PAGE ONLY
   background: rgba(255, 255, 255, 0.9);
   min-width: 220px;
   font: inherit;
+  box-sizing: border-box;
 }
 
 .centres-list {
@@ -154,30 +157,11 @@ CENTRES PAGE ONLY
   flex-direction: column;
   gap: 18px;
   align-items: center;
-}
-
-.centre-card {
-  width: 100%;
-  max-width: 720px;
-  text-decoration: none;
-  color: inherit;
-  background: #fff;
-  border-radius: 16px;
-  padding: 24px 28px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-}
-
-.centre-card h3 {
-  margin: 0 0 6px;
-}
-
-.centre-meta {
-  font-size: 13px;
-  color: rgba(0, 0, 0, 0.6);
+  box-sizing: border-box;
 }
 
 /* =====================
-CENTRE CARD WITH IMAGE
+CENTRE CARD WITH IMAGE (SINGLE SOURCE OF TRUTH)
 ===================== */
 
 .centre-card {
@@ -188,6 +172,7 @@ CENTRE CARD WITH IMAGE
   overflow: hidden;
   text-decoration: none;
   color: inherit;
+  box-sizing: border-box;
 
   /* HERO-like shadow */
   box-shadow:
@@ -224,6 +209,7 @@ CENTRE CARD WITH IMAGE
 .centre-content {
   padding: 18px 22px;
   text-align: center;
+  box-sizing: border-box;
 }
 
 .centre-content h3 {
@@ -233,4 +219,312 @@ CENTRE CARD WITH IMAGE
 .centre-meta {
   font-size: 13px;
   color: rgba(0, 0, 0, 0.6);
+}
+
+/* =====================
+PRICING PAGE
+===================== */
+
+.pricing-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  max-width: 980px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+@media (max-width: 980px) {
+  .pricing-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pricing-card {
+  background: #fff;
+  border-radius: 18px;
+  overflow: hidden;
+  padding: 22px 22px 18px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.pricing-featured {
+  box-shadow:
+    0 22px 46px rgba(0, 0, 0, 0.18),
+    0 10px 20px rgba(0, 0, 0, 0.12);
+  transform: translateY(-6px);
+}
+
+@media (max-width: 980px) {
+  .pricing-featured {
+    transform: none;
+  }
+}
+
+.pricing-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: #ff7c10;
+  color: #fff;
+  font-weight: 700;
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.pricing-top h3 {
+  margin: 6px 0 6px;
+}
+
+.pricing-desc {
+  margin: 0 0 14px;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 13.5px;
+}
+
+.pricing-price {
+  font-size: 34px;
+  font-weight: 900;
+  margin: 8px 0 16px;
+}
+
+.pricing-currency {
+  font-size: 16px;
+  vertical-align: super;
+  margin-right: 2px;
+}
+
+.pricing-period {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.55);
+  margin-left: 6px;
+}
+
+.pricing-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px;
+  text-align: left;
+}
+
+.pricing-list li {
+  padding: 8px 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  font-size: 14px;
+}
+
+.pricing-list li:first-child {
+  border-top: none;
+}
+
+.pricing-btn {
+  display: inline-block;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #f0b35b;
+  color: #000;
+  font-weight: 800;
+  text-decoration: none;
+  border: 2px solid rgba(0, 0, 0, 0.08);
+  box-sizing: border-box;
+}
+
+.pricing-btn:hover {
+  background: #ff7c10;
+  color: #fff;
+}
+
+.pricing-btn-strong {
+  background: #ff7c10;
+  color: #fff;
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.pricing-btn-strong:hover {
+  filter: brightness(0.95);
+}
+
+.pricing-note {
+  margin-top: 18px;
+}
+
+/* =====================
+LEGAL PAGES (PRIVACY + TERMS)
+Clean + stable centering
+===================== */
+
+.legal-page {
+  width: 100%;
+  padding: 32px 24px 48px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.legal-page .about-card {
+  max-width: 900px; /* override about default 720 for legal */
+}
+
+.legal-intro {
+  text-align: center;
+}
+
+.legal-intro p {
+  margin: 10px 0;
+}
+
+.legal-muted {
+  font-size: 12.5px;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.legal-doc {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto 24px;
+  text-align: left;
+  padding: 18px 22px;
+  box-sizing: border-box;
+}
+
+.legal-section {
+  padding: 14px 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.legal-section:first-child {
+  border-top: none;
+  padding-top: 6px;
+}
+
+.legal-section h3 {
+  margin: 0 0 8px;
+}
+
+.legal-section p {
+  margin: 0 0 10px;
+  line-height: 1.75;
+}
+
+.legal-doc ul {
+  margin: 8px 0 10px;
+  padding-left: 18px;
+  line-height: 1.75;
+}
+
+.legal-doc li {
+  margin: 4px 0;
+}
+
+/* IMPORTANT: undo about-page paragraph centering inside legal doc */
+.legal-doc p,
+.legal-doc li {
+  max-width: none;
+}
+
+.legal-link-btn {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  text-decoration: none;
+  font-weight: 800;
+  background: #ff7c10;
+  color: #fff;
+}
+
+.legal-link-btn:hover {
+  filter: brightness(0.95);
+}
+
+/* =====================
+LEGAL PAGE POLISH (privacy / terms)
+Paste at bottom of footer.css
+===================== */
+
+/* Make the legal content slightly narrower + nicer spacing */
+.legal-page {
+  padding: 28px 24px 52px;
+}
+
+/* Make both cards consistent width */
+.legal-page .about-card,
+.legal-doc {
+  max-width: 860px; /* was 900 */
+}
+
+/* Overview card: less tall + nicer reading */
+.legal-intro {
+  padding: 18px 22px;
+}
+
+.legal-intro p {
+  max-width: 680px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.7;
+  font-size: 14.5px;
+}
+
+/* Legal document typography */
+.legal-doc {
+  padding: 22px 26px;
+  border-radius: 18px;
+}
+
+.legal-section h3 {
+  font-size: 16px;
+}
+
+.legal-section p,
+.legal-doc li {
+  font-size: 14.5px;
+  line-height: 1.8;
+}
+
+/* List bullets slightly nicer spacing */
+.legal-doc ul {
+  padding-left: 20px;
+}
+
+.legal-doc li {
+  margin: 6px 0;
+}
+
+/* CTA button a bit nicer */
+.legal-link-btn {
+  padding: 11px 16px;
+  border-radius: 999px;
+}
+
+/* =====================
+HERO: better responsive behaviour
+===================== */
+@media (max-width: 640px) {
+  .page-hero {
+    height: 260px;
+  }
+
+  .page-hero-text h1 {
+    font-size: 26px;
+  }
+
+  .page-hero-text p {
+    font-size: 14px;
+  }
+
+  .legal-page {
+    padding: 20px 14px 44px;
+  }
+
+  .legal-doc {
+    padding: 18px 16px;
+  }
 }
