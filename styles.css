@@ -207,7 +207,7 @@ body {
 
 .roles.signupRoles {
   display: grid;
-   grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
   margin-bottom: 6px;
 }
@@ -2838,6 +2838,79 @@ select,
   color: #7a4a1c;
   background: #ffb254;
   border-top: 10px solid #ff7c10;
+}
+/* ===================
+FOOTER
+====================== */
+
+.hc-footer {
+  background: #f0b35b; /* warm orange */
+  border-top: 6px solid #ff7c10; /* brand accent */
+  color: rgba(31, 19, 8, 0.85); /* default text */
+  padding: 24px 20px 14px; /* compact height */
+  font-size: 13.5px;
+}
+
+.hc-footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Brand */
+.hc-footer-brand h3 {
+  color: #1f1308; /* strong heading */
+  margin-bottom: 4px;
+}
+
+.hc-footer-brand p {
+  max-width: 360px;
+  color: white;
+  line-height: 1.4;
+  margin-bottom: 12px;
+}
+
+/* Links layout */
+.hc-footer-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 18px;
+  margin: 16px 0;
+}
+
+/* Section titles */
+.hc-footer-links h4 {
+  color: #1f1308;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+/* Links */
+.hc-footer-links a {
+  display: block;
+  color: white;
+  text-decoration: none;
+  margin-bottom: 4px;
+}
+
+.hc-footer-links a:hover {
+  color: #000;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Bottom bar */
+.hc-footer-bottom {
+  border-top: 1px solid rgba(31, 19, 8, 0.25);
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Small note */
+.hc-footer-note {
+  font-size: 11.5px;
+  color: rgba(31, 19, 8, 0.7);
 }
 
 /* =========================================
