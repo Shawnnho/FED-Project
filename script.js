@@ -290,7 +290,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const role = sessionStorage.getItem("signin_role") || selectedRole;
 
     if (role === "guest") {
-      window.location.href = "home.html?mode=guest";
+      window.location.href = "index.html?mode=guest";
       return;
     }
 

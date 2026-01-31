@@ -46,18 +46,6 @@
             </div>
             <div class="roleText">Stall Holder</div>
           </button>
-
-          <button
-            type="button"
-            class="role"
-            data-role="guest"
-            aria-pressed="false"
-          >
-            <div class="roleIcon">
-              <img src="images/user (1).png" alt="Guest" />
-            </div>
-            <div class="roleText">Guest</div>
-          </button>
         </div>
 
         <form id="signupForm" class="form" novalidate>
@@ -111,13 +99,12 @@
             />
             <small id="stallNameError" class="error" aria-live="polite"></small>
 
-            <select id="stallCuisine" class="input">
-              <option value="">Cuisine Type</option>
-              <option value="Chinese">Chinese</option>
-              <option value="Malay">Malay</option>
-              <option value="Indian">Indian</option>
-              <option value="Western">Western</option>
-            </select>
+            <input
+              id="stallCuisine"
+              class="input"
+              type="text"
+              placeholder="Cuisine (e.g. Thai, Fusion, Korean BBQ)"
+            />
             <small
               id="stallCuisineError"
               class="error"

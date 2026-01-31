@@ -218,9 +218,9 @@ function validateStoreholderExtra() {
       stallNameError.textContent = "Please enter your stall name.";
     ok = false;
   }
-  if (!stallCuisine?.value) {
+  if (!stallCuisine?.value.trim()) {
     if (stallCuisineError)
-      stallCuisineError.textContent = "Please select a cuisine type.";
+      stallCuisineError.textContent = "Please enter a cuisine.";
     ok = false;
   }
 
