@@ -95,7 +95,7 @@ function cardHtml(item, userMeta) {
 
     title = `${escapeHtml(item.stallName || "Stall")} • ${starsHtml}`;
   } else {
-    title = `${escapeHtml(item.stall || "Stall")} • Complaint`;
+    title = `${escapeHtml(item.stallName || item.stall || "Stall")} • Complaint`;
   }
 
   const tags =
