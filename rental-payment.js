@@ -749,8 +749,30 @@ onAuthStateChanged(auth, async (user) => {
 
     setText("ownerName", u.name || "User");
 
-    const stallData = await getStallDoc(user.uid);
-    setText("stallName", stallData?.stallName || "—");
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return;
+
+      // 1️⃣ Get user doc
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+      if (!userSnap.exists()) return;
+
+      const u = userSnap.data();
+
+      // 2️⃣ Get stall using stallPath
+      let stallData = null;
+
+      if (u.stallPath) {
+        const stallRef = doc(db, u.stallPath);
+        const stallSnap = await getDoc(stallRef);
+        if (stallSnap.exists()) {
+          stallData = stallSnap.data();
+        }
+      }
+
+      // 3️⃣ Display stall name
+      setText("stallName", stallData?.stallName || "—");
+    });
 
     window.__payUid = user.uid;
     window.__stallData = stallData || {};

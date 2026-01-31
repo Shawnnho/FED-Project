@@ -26,14 +26,36 @@ const SUB_REVIEWS = "reviews";
 // =============================
 // HELPER
 // =============================
-function setGradeColor(el, grade) {
+function applyGradeClass(idOrEl, grade) {
+  const el =
+    typeof idOrEl === "string" ? document.getElementById(idOrEl) : idOrEl;
   if (!el) return;
 
-  const g = String(grade || "")
-    .toUpperCase()
-    .trim();
+  const g = String(grade ?? "")
+    .trim()
+    .toUpperCase();
+
+  el.classList.remove("gradeA", "gradeB", "gradeC", "gradeD", "gradeNA");
+
+  if (g === "A") el.classList.add("gradeA");
+  else if (g === "B") el.classList.add("gradeB");
+  else if (g === "C") el.classList.add("gradeC");
+  else if (g === "D") el.classList.add("gradeD");
+  else el.classList.add("gradeNA");
+}
+
+function setGrade(idOrEl, grade) {
+  const el =
+    typeof idOrEl === "string" ? document.getElementById(idOrEl) : idOrEl;
+
+  if (!el) return;
+
+  const g = String(grade ?? "")
+    .trim()
+    .toUpperCase();
 
   el.textContent = g || "—";
+
   el.classList.remove("gradeA", "gradeB", "gradeC", "gradeD", "gradeNA");
 
   if (g === "A") el.classList.add("gradeA");
@@ -319,12 +341,13 @@ function renderKpis({
   setText("completionRate", "—");
 
   // hygiene
-  setText("kpiGrade", grade || "—");
+  // hygiene
+  setGrade("kpiGrade", grade || "—");
   setText("kpiGradeWord", gradeWord || "—");
   setText("kpiGradeHint", gradeHint || "—");
 
   setText("hygWhen", "Today");
-  setText("hygGrade", grade || "—");
+  setGrade("hygGrade", grade || "—");
   setText("hygWord", gradeWord || "—");
   setText("hygHint", gradeHint || "—");
 }
@@ -510,8 +533,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
       setText("role", stall.role || "Stall Holder");
 
-      // hygiene grade pulled from stalls/{stallId}
-      const grade = String(stall.hygieneGrade || "—").toUpperCase();
+      // ✅ Match Account: read hygieneGrade from public stalls/{stallId}
+      let hygieneToShow = stall.hygieneGrade || "—";
+
+      try {
+        const pubSnap = await getDoc(doc(db, "stalls", stallId));
+        if (pubSnap.exists()) {
+          const pub = pubSnap.data() || {};
+          if (pub.hygieneGrade) hygieneToShow = pub.hygieneGrade;
+        }
+      } catch (e) {
+        console.warn("Could not read public stall hygieneGrade:", e);
+      }
+
+      const grade = String(hygieneToShow || "—")
+        .trim()
+        .toUpperCase();
 
       const gradeWord =
         grade === "A"
@@ -519,7 +556,7 @@ document.addEventListener("DOMContentLoaded", () => {
           : grade === "B"
             ? "Good"
             : grade === "C"
-              ? "Fair"
+              ? "Average"
               : grade === "D"
                 ? "Poor"
                 : "—";
@@ -527,15 +564,18 @@ document.addEventListener("DOMContentLoaded", () => {
       const gradeHint = "—";
 
       /* KPI hygiene card (top row) */
-      setGradeColor($("kpiGrade"), grade);
+      setGrade("kpiGrade", grade);
       setText("kpiGradeWord", gradeWord);
       setText("kpiGradeHint", gradeHint);
+      applyGradeClass("kpiGradeTick", grade);
+      applyGradeClass("hygPill", grade);
 
       /* Right-side hygiene overview card */
       setText("hygWhen", "Today");
-      setGradeColor($("hygGrade"), grade);
+      setGrade("hygGrade", grade);
       setText("hygWord", gradeWord);
       setText("hygHint", gradeHint);
+      applyGradeClass("hygPill", grade);
 
       const now = new Date();
       const todayStart = startOfDay(now);
