@@ -4,6 +4,8 @@ import {
   collection,
   addDoc,
   serverTimestamp,
+  getDocs,
+  query,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import {
   getStorage,
@@ -44,6 +46,8 @@ onAuthStateChanged(auth, (user) => {
 
     const emailField = document.getElementById("comp-email");
     if (emailField && user.email) emailField.value = user.email;
+
+    loadStalls();
   } else {
     alert("Please log in to submit a complaint.");
     window.location.href = "signin.html";
@@ -92,6 +96,45 @@ if (imgInput && imgPreview) {
     imgPreview.style.display = "block";
     imgPreview.onload = () => URL.revokeObjectURL(url);
   });
+}
+
+/* =========================================
+  SELECT Store LOGIC
+
+========================================= */
+async function loadStalls() {
+  const select = document.getElementById("comp-stall");
+  if (!select) return;
+
+  select.innerHTML = `<option value="" disabled selected>Loading stalls...</option>`;
+
+  try {
+    const q = query(collection(db, "stalls"));
+    const snap = await getDocs(q);
+
+    const stalls = snap.docs.map((d) => {
+      const data = d.data() || {};
+      return {
+        id: d.id,
+        name: data.stallName || data.name || d.id, // ✅ IMPORTANT FIX
+      };
+    });
+
+    stalls.sort((a, b) => a.name.localeCompare(b.name));
+
+    if (!stalls.length) {
+      select.innerHTML = `<option value="" disabled selected>No stalls found</option>`;
+      return;
+    }
+
+    select.innerHTML = `
+      <option value="" disabled selected>Select a stall</option>
+      ${stalls.map((s) => `<option value="${s.id}">${s.name}</option>`).join("")}
+    `;
+  } catch (err) {
+    console.error("Failed to load stalls:", err);
+    select.innerHTML = `<option value="" disabled selected>Failed to load stalls</option>`;
+  }
 }
 
 /* =========================================
