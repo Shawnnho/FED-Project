@@ -720,7 +720,7 @@ $("markStaffPaidBtn")?.addEventListener("click", async () => {
   }
 });
 
-// Auth
+// Auth (single listener only)
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     location.href = "signin.html";
@@ -730,6 +730,7 @@ onAuthStateChanged(auth, async (user) => {
   try {
     fillMonthSelect();
 
+    // 1) Get user doc
     const userRef = doc(db, "users", user.uid);
     const userSnap = await getDoc(userRef);
 
@@ -749,35 +750,26 @@ onAuthStateChanged(auth, async (user) => {
 
     setText("ownerName", u.name || "User");
 
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) return;
+    // 2) Get stall using stallPath
+    let stallData = {}; // ✅ define in THIS scope so below lines can use
 
-      // 1️⃣ Get user doc
-      const userRef = doc(db, "users", user.uid);
-      const userSnap = await getDoc(userRef);
-      if (!userSnap.exists()) return;
-
-      const u = userSnap.data();
-
-      // 2️⃣ Get stall using stallPath
-      let stallData = null;
-
-      if (u.stallPath) {
-        const stallRef = doc(db, u.stallPath);
-        const stallSnap = await getDoc(stallRef);
-        if (stallSnap.exists()) {
-          stallData = stallSnap.data();
-        }
+    if (u.stallPath) {
+      const stallRef = doc(db, u.stallPath); // u.stallPath like "centres/.../stalls/..."
+      const stallSnap = await getDoc(stallRef);
+      if (stallSnap.exists()) {
+        stallData = stallSnap.data() || {};
       }
+    }
 
-      // 3️⃣ Display stall name
-      setText("stallName", stallData?.stallName || "—");
-    });
+    // 3) Display stall name
+    setText("stallName", stallData.stallName || "—");
 
+    // 4) Store globals used by refresh/month change buttons
     window.__payUid = user.uid;
-    window.__stallData = stallData || {};
+    window.__stallData = stallData;
 
-    await loadPaymentSummary(user.uid, stallData || {});
+    // 5) Load page
+    await loadPaymentSummary(user.uid, stallData);
   } catch (err) {
     console.error(err);
     setStatus(`❌ Failed to load payments: ${err.code || err.message}`, true);
