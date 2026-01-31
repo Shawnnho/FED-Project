@@ -485,7 +485,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // header ids in your HTML: stallName, ownerName, role
       setText("stallName", stall.stallName || "My Stall");
-      setText("ownerName", stall.ownerName || user.email || "Owner");
+      const userSnap = await getDoc(doc(db, "users", user.uid));
+      const u = userSnap.exists() ? userSnap.data() : {};
+
+      setText("ownerName", u.name || "Owner");
+      setText("role", "Owner");
+
       setText("role", stall.role || "Stall Holder");
 
       // hygiene grade pulled from stalls/{stallId}
