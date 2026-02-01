@@ -26,36 +26,11 @@ const SUB_REVIEWS = "reviews";
 // =============================
 // HELPER
 // =============================
-function applyGradeClass(idOrEl, grade) {
-  const el =
-    typeof idOrEl === "string" ? document.getElementById(idOrEl) : idOrEl;
+function setGradeColor(el, grade) {
   if (!el) return;
-
-  const g = String(grade ?? "")
-    .trim()
-    .toUpperCase();
-
-  el.classList.remove("gradeA", "gradeB", "gradeC", "gradeD", "gradeNA");
-
-  if (g === "A") el.classList.add("gradeA");
-  else if (g === "B") el.classList.add("gradeB");
-  else if (g === "C") el.classList.add("gradeC");
-  else if (g === "D") el.classList.add("gradeD");
-  else el.classList.add("gradeNA");
-}
-
-function setGrade(idOrEl, grade) {
-  const el =
-    typeof idOrEl === "string" ? document.getElementById(idOrEl) : idOrEl;
-
-  if (!el) return;
-
-  const g = String(grade ?? "")
-    .trim()
-    .toUpperCase();
-
+  const g = String(grade || "").toUpperCase().trim();
+  
   el.textContent = g || "—";
-
   el.classList.remove("gradeA", "gradeB", "gradeC", "gradeD", "gradeNA");
 
   if (g === "A") el.classList.add("gradeA");
@@ -68,10 +43,8 @@ function setGrade(idOrEl, grade) {
 function daysUntil(ts) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-
   const target = ts.toDate();
   target.setHours(0, 0, 0, 0);
-
   const diffMs = target - today;
   return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
 }
@@ -84,20 +57,24 @@ function startOfDay(d) {
   x.setHours(0, 0, 0, 0);
   return x;
 }
+
 function endOfDay(d) {
   const x = new Date(d);
   x.setHours(23, 59, 59, 999);
   return x;
 }
+
 function startOfMonth(d) {
   const x = new Date(d);
   x.setDate(1);
   x.setHours(0, 0, 0, 0);
   return x;
 }
+
 function toTs(d) {
   return Timestamp.fromDate(d);
 }
+
 function sameDay(a, b) {
   return (
     a.getFullYear() === b.getFullYear() &&
@@ -106,33 +83,32 @@ function sameDay(a, b) {
   );
 }
 
+let nextInspectionMsg = null;
+
 // =============================
 // STALL LOOKUP (stall-holder -> stallId)
 // =============================
 async function getMyStall() {
   const user = auth.currentUser;
   if (!user) throw new Error("Not signed in");
-
+  
   // CHANGE "ownerUid" only if your stall uses different field
   const qStall = query(
     collection(db, COL_STALLS),
     where("ownerUid", "==", user.uid),
   );
   const snap = await getDocs(qStall);
+
   if (snap.empty) throw new Error("No stall found for this user");
 
   const stallDoc = snap.docs[0];
   return { stallId: stallDoc.id, ...stallDoc.data() };
 }
 
-// =============================
-// ORDERS (top-level orders/{orderId})
-// =============================
+
 function listenOrders(stallId, rangeStart, rangeEnd, cb) {
   const ordersRef = collection(db, COL_ORDERS);
 
-  // CHANGE field names if your schema differs:
-  // stallId, status, createdAt, total, items
   const qOrders = query(
     ordersRef,
     where("stallId", "==", stallId),
@@ -155,7 +131,6 @@ function calcTotals(orders) {
 }
 
 function parseHHMM(str) {
-  // "07:30" -> minutes from midnight
   const m = String(str || "").match(/^(\d{1,2}):(\d{2})$/);
   if (!m) return null;
   const hh = Number(m[1]);
@@ -165,7 +140,6 @@ function parseHHMM(str) {
 }
 
 function fmtLabel(mins) {
-  // mins from midnight -> "7AM", "12PM", "1PM"
   const hh = Math.floor(mins / 60);
   const isPM = hh >= 12;
   const hr12 = ((hh + 11) % 12) + 1;
@@ -219,7 +193,7 @@ function calcHourlySales(orders, whichDay, stall, stepMins = 60) {
   // Build labels + buckets
   const labels = [];
   const buckets = [];
-
+  
   // We want ticks like: open hour, open+step, ... up to last slot starting before close
   for (let t = startM; t <= safeEndM; t += stepMins) {
     labels.push(fmtLabel(t));
@@ -231,7 +205,7 @@ function calcHourlySales(orders, whichDay, stall, stepMins = 60) {
     const ts = o.createdAt?.toDate?.();
     if (!ts) continue;
     if (!sameDay(ts, whichDay)) continue;
-
+    
     const mins = ts.getHours() * 60 + ts.getMinutes();
     if (mins < startM || mins > safeEndM) continue;
 
@@ -248,7 +222,6 @@ function calcHourlySales(orders, whichDay, stall, stepMins = 60) {
 
 function calcTopDishes(orders) {
   const map = new Map();
-
   for (const o of orders) {
     const items = Array.isArray(o.items) ? o.items : [];
     for (const it of items) {
@@ -341,13 +314,12 @@ function renderKpis({
   setText("completionRate", "—");
 
   // hygiene
-  // hygiene
-  setGrade("kpiGrade", grade || "—");
+  setText("kpiGrade", grade || "—");
   setText("kpiGradeWord", gradeWord || "—");
   setText("kpiGradeHint", gradeHint || "—");
-
+  
   setText("hygWhen", "Today");
-  setGrade("hygGrade", grade || "—");
+  setText("hygGrade", grade || "—");
   setText("hygWord", gradeWord || "—");
   setText("hygHint", gradeHint || "—");
 }
@@ -372,7 +344,7 @@ function renderTopDishesRows(rows) {
 function renderRatingsUI({ avg, counts }) {
   setText("ratingAvg", avg ? avg.toFixed(1) : "0.0");
   setText("ratingStars", starsText(avg));
-
+  
   const bars = $("ratingBars");
   if (!bars) return;
 
@@ -452,7 +424,7 @@ function drawChart({ labels, today, yesterday, compare }) {
     const x = padL + i * stepX;
     ctx.fillText(lab, x - 14, padT + ch + 26);
   });
-
+  
   function plot(values, color) {
     ctx.strokeStyle = color;
     ctx.lineWidth = 2;
@@ -475,34 +447,36 @@ function drawChart({ labels, today, yesterday, compare }) {
 // ========================
 
 async function loadNextInspection(stallId) {
-  const nowTs = Timestamp.fromDate(new Date());
+  const today0 = new Date();
+  today0.setHours(0, 0, 0, 0);
+  const nowTs = Timestamp.fromDate(today0);
 
   const qNext = query(
     collection(db, "inspections"),
     where("stallId", "==", stallId),
     where("dateTs", ">=", nowTs),
     orderBy("dateTs", "asc"),
-    limit(1),
+    limit(1)
   );
 
   const snap = await getDocs(qNext);
 
   if (snap.empty) {
-    setText("kpiGradeHint", "No upcoming inspection");
-    setText("hygHint", "No upcoming inspection scheduled");
+    nextInspectionMsg = "No upcoming inspection scheduled";
+    setText("kpiGradeHint", nextInspectionMsg);
+    setText("hygHint", nextInspectionMsg);
     return;
   }
 
   const insp = snap.docs[0].data();
   const days = daysUntil(insp.dateTs);
 
-  let msg;
-  if (days === 0) msg = "Inspection today";
-  else if (days === 1) msg = "Inspection tomorrow";
-  else msg = `Next hygiene check in ${days} days`;
+  if (days === 0) nextInspectionMsg = "Inspection today";
+  else if (days === 1) nextInspectionMsg = "Inspection tomorrow";
+  else nextInspectionMsg = `Next hygiene check in ${days} days`;
 
-  setText("kpiGradeHint", msg);
-  setText("hygHint", msg);
+  setText("kpiGradeHint", nextInspectionMsg);
+  setText("hygHint", nextInspectionMsg);
 }
 
 // =============================
@@ -530,25 +504,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       setText("ownerName", u.name || "Owner");
       setText("role", "Owner");
-
       setText("role", stall.role || "Stall Holder");
 
-      // ✅ Match Account: read hygieneGrade from public stalls/{stallId}
-      let hygieneToShow = stall.hygieneGrade || "—";
-
-      try {
-        const pubSnap = await getDoc(doc(db, "stalls", stallId));
-        if (pubSnap.exists()) {
-          const pub = pubSnap.data() || {};
-          if (pub.hygieneGrade) hygieneToShow = pub.hygieneGrade;
-        }
-      } catch (e) {
-        console.warn("Could not read public stall hygieneGrade:", e);
-      }
-
-      const grade = String(hygieneToShow || "—")
-        .trim()
-        .toUpperCase();
+      // hygiene grade pulled from stalls/{stallId}
+      const grade = String(stall.hygieneGrade || "—").toUpperCase();
 
       const gradeWord =
         grade === "A"
@@ -556,7 +515,7 @@ document.addEventListener("DOMContentLoaded", () => {
           : grade === "B"
             ? "Good"
             : grade === "C"
-              ? "Average"
+              ? "Fair"
               : grade === "D"
                 ? "Poor"
                 : "—";
@@ -564,18 +523,15 @@ document.addEventListener("DOMContentLoaded", () => {
       const gradeHint = "—";
 
       /* KPI hygiene card (top row) */
-      setGrade("kpiGrade", grade);
+      setGradeColor($("kpiGrade"), grade);
       setText("kpiGradeWord", gradeWord);
       setText("kpiGradeHint", gradeHint);
-      applyGradeClass("kpiGradeTick", grade);
-      applyGradeClass("hygPill", grade);
 
       /* Right-side hygiene overview card */
       setText("hygWhen", "Today");
-      setGrade("hygGrade", grade);
+      setGradeColor($("hygGrade"), grade);
       setText("hygWord", gradeWord);
       setText("hygHint", gradeHint);
-      applyGradeClass("hygPill", grade);
 
       const now = new Date();
       const todayStart = startOfDay(now);
@@ -651,6 +607,11 @@ document.addEventListener("DOMContentLoaded", () => {
             gradeWord,
             gradeHint,
           });
+
+          if (nextInspectionMsg) {
+            setText("kpiGradeHint", nextInspectionMsg);
+            setText("hygHint", nextInspectionMsg);
+          }
 
           // yesterday fetch for compare line
           const ordersYesterdaySnap = await getDocs(
