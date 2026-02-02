@@ -19,13 +19,23 @@
 
       <ul class="nea-menu">
         <li class="active" onclick="switchTab('inspections')">
-          <i class="fa-solid fa-calendar-check"></i> Inspections
+          <i class="fa-solid fa-calendar-check"></i>
+          <span>Inspections</span>
+          <span id="badgeInspections" class="menu-badge" style="display: none"
+            >0</span
+          >
         </li>
+
         <li onclick="switchTab('complaints')">
-          <i class="fa-solid fa-triangle-exclamation"></i> Complaints
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>Complaints</span>
+          <span id="badgeComplaints" class="menu-badge" style="display: none"
+            >0</span
+          >
         </li>
+
         <li onclick="switchTab('grading')">
-          <i class="fa-solid fa-star"></i> Update Grades
+          <i class="fa-solid fa-star"></i> <span>Update Grades</span>
         </li>
       </ul>
 
@@ -35,6 +45,7 @@
     </nav>
 
     <main class="nea-content">
+      <!-- ================= INSPECTIONS ================= -->
       <section id="tab-inspections" class="nea-tab active">
         <div class="nea-header">
           <h2>Inspection Management</h2>
@@ -44,32 +55,154 @@
         </div>
 
         <div class="nea-card-container">
-          <h3>Upcoming & Past Inspections</h3>
+          <div class="toolbar">
+            <div class="toolbar-left">
+              <button
+                class="chip active"
+                id="inspFilterAll"
+                onclick="setInspectionFilter('all')"
+              >
+                All
+              </button>
+              <button
+                class="chip"
+                id="inspFilterUpcoming"
+                onclick="setInspectionFilter('upcoming')"
+              >
+                Upcoming
+              </button>
+              <button
+                class="chip"
+                id="inspFilterPast"
+                onclick="setInspectionFilter('past')"
+              >
+                Past
+              </button>
+            </div>
+
+            <div class="toolbar-right">
+              <input
+                id="inspSearch"
+                class="std-input small"
+                placeholder="Search stall / officer..."
+                oninput="renderInspections()"
+              />
+
+              <select
+                id="inspSort"
+                class="std-input small"
+                onchange="renderInspections()"
+              >
+                <option value="newest">Sort: Newest</option>
+                <option value="oldest">Sort: Oldest</option>
+              </select>
+            </div>
+          </div>
+
+          <h3 style="margin-top: 10px">Upcoming & Past Inspections</h3>
           <div id="inspectionList" class="nea-list">
             <p>Loading inspections...</p>
           </div>
         </div>
       </section>
 
+      <!-- ================= COMPLAINTS ================= -->
       <section id="tab-complaints" class="nea-tab">
         <div class="nea-header">
           <h2>Public Complaints</h2>
         </div>
+
         <div class="nea-card-container">
+          <div class="toolbar">
+            <div class="toolbar-left">
+              <button
+                class="chip active"
+                id="cmpFilterAll"
+                onclick="setComplaintFilter('all')"
+              >
+                All
+              </button>
+              <button
+                class="chip"
+                id="cmpFilterNew"
+                onclick="setComplaintFilter('new')"
+              >
+                New
+              </button>
+              <button
+                class="chip"
+                id="cmpFilterUnder"
+                onclick="setComplaintFilter('under_review')"
+              >
+                Under Review
+              </button>
+              <button
+                class="chip"
+                id="cmpFilterResolved"
+                onclick="setComplaintFilter('resolved')"
+              >
+                Resolved
+              </button>
+            </div>
+
+            <div class="toolbar-right">
+              <input
+                id="cmpSearch"
+                class="std-input small"
+                placeholder="Search stall / user..."
+                oninput="renderComplaints()"
+              />
+
+              <select
+                id="cmpSort"
+                class="std-input small"
+                onchange="renderComplaints()"
+              >
+                <option value="newest">Sort: Newest</option>
+                <option value="oldest">Sort: Oldest</option>
+              </select>
+            </div>
+          </div>
+
           <div id="complaintList" class="nea-list">
             <p>Loading complaints...</p>
           </div>
         </div>
       </section>
 
+      <!-- ================= GRADING ================= -->
       <section id="tab-grading" class="nea-tab">
         <div class="nea-header">
           <h2>Update Hygiene Grades</h2>
         </div>
 
+        <!-- Hygiene Overview -->
+        <div class="nea-card-container" style="margin-bottom: 18px">
+          <h3>Hygiene Overview</h3>
+          <div class="overview-grid">
+            <div class="overview-box">Total <span id="ovTotal">-</span></div>
+            <div class="overview-box">A <span id="ovA">-</span></div>
+            <div class="overview-box">B <span id="ovB">-</span></div>
+            <div class="overview-box">C <span id="ovC">-</span></div>
+            <div class="overview-box">D <span id="ovD">-</span></div>
+            <div class="overview-box">
+              Not graded <span id="ovNone">-</span>
+            </div>
+          </div>
+        </div>
+
         <div class="grading-wrapper">
           <div class="nea-form-card">
             <label>Select Stall to Grade</label>
+
+            <input
+              id="gradeSearch"
+              class="std-input"
+              placeholder="Search stall name..."
+              oninput="filterGradeDropdown()"
+              style="margin-bottom: 10px"
+            />
+
             <select
               id="gradeStallSelect"
               class="std-input"
@@ -101,6 +234,7 @@
               <button class="grade-btn" onclick="selectGrade('C')">C</button>
               <button class="grade-btn" onclick="selectGrade('D')">D</button>
             </div>
+
             <input type="hidden" id="selectedGrade" />
 
             <button
@@ -115,6 +249,7 @@
       </section>
     </main>
 
+    <!-- ================= MODAL ================= -->
     <div id="scheduleModal" class="nea-modal">
       <div class="modal-content">
         <h3>Schedule Inspection</h3>
