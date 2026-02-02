@@ -430,10 +430,8 @@ onAuthStateChanged(auth, async (user) => {
       // Mark used in Firestore
       await markVoucherUsed(user.uid, docId);
 
-      // Refresh UI
-      const vouchers = await loadUserVouchers(user.uid);
-      renderVoucherModal(vouchers);
-      await updateRedeemedCount(user.uid);
+      // ✅ go straight to cart page
+      window.location.href = "cart.html";
     });
 
     // UI populate

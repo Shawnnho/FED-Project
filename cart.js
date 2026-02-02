@@ -47,7 +47,6 @@ const userDocRef = (uid) => doc(db, "users", uid);
 const cartDocRef = (uid) => doc(db, "carts", uid);
 
 /* ------------------------------ Promo (Firestore) --------------------------------*/
-const PROMO_KEY = "hawkerpoint_applied_promo"; // we store promo document ID
 let appliedPromo = null;
 
 const promoColRef = () => collection(db, "promotions");
@@ -97,27 +96,7 @@ function inferMinSpend(promo) {
   return m ? Number(m[1]) : 0;
 }
 
-async function loadAppliedPromoFromStorage() {
-  const stored = localStorage.getItem(PROMO_KEY) || "";
-  if (!stored) {
-    appliedPromo = null;
-    return null;
-  }
-
-  const snap = await getDoc(promoDocRef(stored));
-  if (snap.exists()) {
-    appliedPromo = { id: snap.id, ...snap.data() };
-    return appliedPromo;
-  }
-
-  // fallback (if older code stored promo CODE instead of promo ID)
-  const byCode = await getPromoByCode(stored);
-  appliedPromo = byCode;
-  return byCode;
-}
-
-function clearAppliedPromo(message = "") {
-  localStorage.removeItem(PROMO_KEY);
+async function clearAppliedPromo(message = "") {
   appliedPromo = null;
 
   const label = document.getElementById("promoCodeLabel");
@@ -125,6 +104,43 @@ function clearAppliedPromo(message = "") {
 
   const msg = document.getElementById("redeemMsg");
   if (msg && message) msg.textContent = message;
+
+  // ✅ also clear on user doc if signed in
+  if (currentUser) {
+    try {
+      await saveAppliedPromoToUser(currentUser.uid, null);
+    } catch (e) {
+      console.warn("Failed to clear promo on user doc:", e);
+    }
+  }
+}
+
+/* ------------------------------ Promo persistence (user doc) --------------------------------*/
+async function saveAppliedPromoToUser(uid, promo) {
+  const payload = promo
+    ? {
+        appliedPromo: {
+          promoId: promo.id,
+          code: promo.code || "",
+          appliedAt: serverTimestamp(),
+        },
+      }
+    : { appliedPromo: null };
+
+  await setDoc(userDocRef(uid), payload, { merge: true });
+}
+
+async function loadAppliedPromoFromUser(uid) {
+  const snap = await getDoc(userDocRef(uid));
+  if (!snap.exists()) return null;
+
+  const ap = snap.data().appliedPromo;
+  if (!ap || !ap.promoId) return null;
+
+  const promoSnap = await getDoc(promoDocRef(ap.promoId));
+  if (!promoSnap.exists()) return null;
+
+  return { id: promoSnap.id, ...promoSnap.data() };
 }
 
 async function loadSavedAddress(uid) {
@@ -370,6 +386,9 @@ async function render() {
   const subText = document.getElementById("cartSub");
 
   const cart = await readCart();
+  const promoBox = document.getElementById("promoBox");
+  if (promoBox) promoBox.style.display = currentUser ? "" : "none";
+
   const count = calcCount(cart);
 
   updateBadges(count);
@@ -389,6 +408,9 @@ async function render() {
     payBox && (payBox.style.display = "none");
     proceedBtn && (proceedBtn.style.display = "none");
     fulfillBox && (fulfillBox.style.display = "none");
+
+    await clearAppliedPromo();
+
     return;
   }
 
@@ -516,10 +538,6 @@ async function render() {
   // ===============================
   let promoDiscount = 0;
 
-  if (!appliedPromo) {
-    await loadAppliedPromoFromStorage();
-  }
-
   const promoLabelEl = document.getElementById("promoCodeLabel");
   if (promoLabelEl) promoLabelEl.textContent = appliedPromo?.code || "None";
 
@@ -528,11 +546,25 @@ async function render() {
     if (expMs && Date.now() > expMs) {
       clearAppliedPromo("Promo expired and was removed.");
     } else {
-      if (appliedPromo.type === "cash") {
+      const type = String(appliedPromo.type || "cash").toLowerCase();
+
+      if (type === "cash") {
         promoDiscount = inferCashValue(appliedPromo);
       }
+
+      if (type === "percent") {
+        const pct =
+          Number(
+            appliedPromo.percent ?? appliedPromo.discount ?? appliedPromo.value,
+          ) || 0;
+
+        promoDiscount = subtotal * (pct / 100);
+      }
+
+      // Safety cap: discount cannot exceed subtotal
+      promoDiscount = Math.min(promoDiscount, subtotal);
     }
-  }
+  } 
 
   // ===============================
   // Delivery fee (realistic simulation)
@@ -651,6 +683,12 @@ document.addEventListener("click", async (e) => {
   const input = document.getElementById("redeemInput");
   const msg = document.getElementById("redeemMsg");
 
+  // ✅ Guests cannot redeem promo codes
+  if (!currentUser) {
+    if (msg) msg.textContent = "Please sign in to use promo codes.";
+    return;
+  }
+
   const code = (input?.value || "").trim().toUpperCase();
   if (!code) {
     if (msg) msg.textContent = "Please enter a promo code.";
@@ -682,6 +720,39 @@ document.addEventListener("click", async (e) => {
 
     // compute subtotal (for min spend)
     const cart = await readCart();
+
+    // ------------------ Stall + Item restricted promo ------------------
+
+    // 1️⃣ Enforce stall restriction
+    if (promo.stallId) {
+      const cartStallIds = Array.from(
+        new Set(cart.map((it) => it.stallId).filter(Boolean)),
+      );
+
+      if (!cartStallIds.includes(promo.stallId)) {
+        if (msg)
+          msg.textContent =
+            "This promo is only valid for Tiong Bahru Chicken Rice.";
+        return;
+      }
+    }
+
+    // 2️⃣ Enforce required item keyword (e.g. Chicken Rice)
+    if (promo.requiredKeyword) {
+      const keyword = promo.requiredKeyword.toLowerCase();
+
+      const hasRequiredItem = cart.some((it) => {
+        const name = String(it.name ?? it.itemName ?? "").toLowerCase();
+        return name.includes(keyword);
+      });
+
+      if (!hasRequiredItem) {
+        if (msg)
+          msg.textContent = "Add Chicken Rice to your cart to use this promo.";
+        return;
+      }
+    }
+
     let subtotal = 0;
     cart.forEach((it) => {
       const qty = Number(it.qty ?? it.quantity ?? 1) || 1;
@@ -724,8 +795,12 @@ document.addEventListener("click", async (e) => {
     });
 
     // store promoId for render()
-    localStorage.setItem(PROMO_KEY, promo.id);
     appliedPromo = promo;
+
+    // ✅ persist promo per user
+    if (currentUser) {
+      await saveAppliedPromoToUser(currentUser.uid, promo);
+    }
 
     if (msg) msg.textContent = `Promo "${promo.code}" applied!`;
     render();
@@ -736,9 +811,97 @@ document.addEventListener("click", async (e) => {
   }
 });
 
+async function consumeVoucherHandoffFromAccount() {
+  if (!currentUser) return;
+
+  const code = (localStorage.getItem("hawkerpoint_applied_promo") || "")
+    .trim()
+    .toUpperCase();
+
+  if (!code) return;
+
+  try {
+    const promo = await getPromoByCode(code);
+    if (!promo) {
+      // If voucher code doesn't exist in promotions, just clear the handoff
+      localStorage.removeItem("hawkerpoint_applied_promo");
+      localStorage.removeItem("hawkerpoint_applied_voucher_docid");
+      return;
+    }
+
+    // Optional: expiry check
+    const expMs = toMs(promo.expiresAt);
+    if (expMs && Date.now() > expMs) {
+      await clearAppliedPromo("Promo expired and was removed.");
+      localStorage.removeItem("hawkerpoint_applied_promo");
+      localStorage.removeItem("hawkerpoint_applied_voucher_docid");
+      return;
+    }
+
+    // ✅ ADD THIS WHOLE BLOCK HERE (before appliedPromo = promo)
+    await runTransaction(db, async (tx) => {
+      const pRef = promoDocRef(promo.id);
+      const pSnap = await tx.get(pRef);
+      if (!pSnap.exists()) throw new Error("Promo no longer exists.");
+
+      const latest = pSnap.data();
+      const latestLeft = Number(latest.redemptionsLeft);
+
+      if (Number.isFinite(latestLeft) && latestLeft <= 0) {
+        throw new Error("This promo is fully redeemed.");
+      }
+
+      const claimOnce = Boolean(latest.claimOnce);
+      if (claimOnce && currentUser) {
+        const cRef = promoClaimRef(currentUser.uid, promo.id);
+        const cSnap = await tx.get(cRef);
+        if (cSnap.exists())
+          throw new Error("You have already claimed this promo.");
+        tx.set(cRef, { claimedAt: serverTimestamp(), code: latest.code });
+      }
+
+      if (Number.isFinite(latestLeft)) {
+        tx.update(pRef, { redemptionsLeft: latestLeft - 1 });
+      }
+    });
+
+    // ✅ Apply promo in cart
+    appliedPromo = promo;
+
+    // ✅ Persist on user doc so it survives refresh
+    await saveAppliedPromoToUser(currentUser.uid, promo);
+
+    // ✅ Clear the handoff so it applies only once
+    localStorage.removeItem("hawkerpoint_applied_promo");
+    localStorage.removeItem("hawkerpoint_applied_voucher_docid");
+
+    // (Optional) UI message if you're on cart page
+    const msg = document.getElementById("redeemMsg");
+    if (msg) msg.textContent = `Promo "${promo.code}" applied from vouchers.`;
+  } catch (e) {
+    console.warn("Voucher handoff apply failed:", e);
+
+    localStorage.removeItem("hawkerpoint_applied_promo");
+    localStorage.removeItem("hawkerpoint_applied_voucher_docid");
+  }
+}
+
 /* ------------------------------ Auth state: migrate + rerender --------------------------------*/
 onAuthStateChanged(auth, async (u) => {
   currentUser = u;
+  // ✅ Load applied promo for this user (account only)
+  if (u) {
+    await consumeVoucherHandoffFromAccount();
+    try {
+      appliedPromo = await loadAppliedPromoFromUser(u.uid);
+    } catch (e) {
+      console.warn("Failed to load applied promo:", e);
+      appliedPromo = null;
+    }
+  } else {
+    appliedPromo = null;
+  }
+
   // ✅ auto-fill saved address if exists
   if (u) {
     try {

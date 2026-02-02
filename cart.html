@@ -104,11 +104,7 @@
                     Postal Code*
                     <span class="req" id="reqPostal" hidden>Required</span>
                   </label>
-                  <input
-                    id="delPostal"
-                    type="text"
-                    placeholder="e.g. 560123"
-                  />
+                  <input id="delPostal" type="text" placeholder="e.g. 560123" />
                 </div>
 
                 <div class="field">
@@ -116,11 +112,7 @@
                     Unit*
                     <span class="req" id="reqUnit" hidden>Required</span>
                   </label>
-                  <input
-                    id="delUnit"
-                    type="text"
-                    placeholder="e.g. 10-123"
-                  />
+                  <input id="delUnit" type="text" placeholder="e.g. 10-123" />
                 </div>
 
                 <div class="field field--full saveAddrRow">
@@ -128,11 +120,7 @@
                     <input id="saveAddrChk" type="checkbox" />
                     <span>Save address for future deliveries</span>
                   </label>
-                  <div
-                    id="saveAddrHint"
-                    class="saveAddrStatus"
-                    hidden
-                  ></div>
+                  <div id="saveAddrHint" class="saveAddrStatus" hidden></div>
                 </div>
               </div>
             </div>
@@ -162,9 +150,11 @@
         <!-- RIGHT COLUMN -->
         <aside class="cartRight">
           <div class="orderPanel" id="orderPanel">
-
             <!-- PROMO CODE BOX (ABOVE SUMMARY) -->
-            <section class="promoRedeemWrap promoRedeemWrap--cart">
+            <section
+              id="promoBox"
+              class="promoRedeemWrap promoRedeemWrap--cart"
+            >
               <div class="promoRedeemCard promoRedeemCard--cart">
                 <div class="promoRedeemLeft">
                   <h3>Have a promo code?</h3>
@@ -178,7 +168,11 @@
                     placeholder="ENTER PROMO CODE"
                     autocomplete="off"
                   />
-                  <button id="redeemBtn" class="viewBtn promoRedeemBtn" type="button">
+                  <button
+                    id="redeemBtn"
+                    class="viewBtn promoRedeemBtn"
+                    type="button"
+                  >
                     Redeem <span class="arrow">›</span>
                   </button>
                 </div>
@@ -186,7 +180,7 @@
                 <p id="redeemMsg" class="promoRedeemMsg" aria-live="polite"></p>
               </div>
             </section>
-            
+
             <section class="cartSummary" id="cartSummary">
               <div class="cartSumRow">
                 <span>Subtotal</span>
