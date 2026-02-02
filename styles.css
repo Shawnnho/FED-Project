@@ -888,15 +888,18 @@ body.menuOpen {
   font-size: 14px;
 }
 
-.grade.A {
-  background: #dc2626;
-}
-.grade.B {
+.grade.A, .gradeA {
   background: #16a34a;
 }
-.grade.C {
-  background: #7c2d12;
-} /* brown like your mock */
+.grade.B, .gradeB {
+  background: #2f6bff;
+}
+.grade.C, .gradeC {
+  background: #ca8a04;
+}
+.grade.D, .gradeD {
+  background: #dc2626;
+}
 
 /* Description */
 .desc {
@@ -5890,6 +5893,49 @@ button:active {
   opacity: 0.95;
 }
 
+/* Upcoming Inspection Card */
+.upcomingCard {
+  border: 2px solid #f7a036;
+  background: #fffaf0;
+}
+
+.upcomingRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.upcomingDate {
+  font-size: 20px;
+  font-weight: 900;
+  color: #c2780e;
+}
+
+.upcomingTag {
+  background: #fef3c7;
+  color: #92400e;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 800;
+  font-size: 12px;
+}
+
+.upcomingOfficer {
+  font-size: 14px;
+  font-weight: 700;
+  color: #555;
+  margin: 0 0 8px;
+}
+
+.upcomingHint {
+  font-size: 12px;
+  color: #666;
+  margin: 0;
+  line-height: 1.4;
+  font-style: italic;
+}
+
 /* License Info */
 .licenseRow {
   display: flex;
@@ -5911,6 +5957,21 @@ button:active {
   border-radius: 6px;
   font-weight: 800;
   font-size: 12px;
+}
+
+.licenseTag.active {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.licenseTag.warning {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.licenseTag.expired {
+  background: #fee2e2;
+  color: #b91c1c;
 }
 
 .licenseBar {
@@ -6323,9 +6384,10 @@ button:active {
   font-weight: 900;
   font-size: 16px;
 }
-.badgeRed { background: #ff0000; }
-.badgeGreen { background: #00c853; }
-.badgeOrange { background: #ff9800; }
+.badgeRed { background: #dc2626; }
+.badgeGreen { background: #16a34a; }
+.badgeOrange { background: #ca8a04; }
+.badgeBlue { background: #2f6bff; }
 
 /* Mobile Cards */
 .hhMobileList {
@@ -6343,8 +6405,10 @@ button:active {
   border-left-style: solid;
 }
 
-.borderRed { border-left-color: #ff0000; }
-.borderGreen { border-left-color: #00c853; }
+.borderRed { border-left-color: #dc2626; }
+.borderGreen { border-left-color: #16a34a; }
+.borderOrange { border-left-color: #ca8a04; }
+.borderBlue { border-left-color: #2f6bff; }
 
 .mcHead {
   display: flex;

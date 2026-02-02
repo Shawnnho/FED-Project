@@ -86,35 +86,95 @@ async function loadComplaints() {
 // --- 3. INSPECTIONS LOGIC ---
 async function loadInspections() {
   const list = document.getElementById("inspectionList");
+  const filter = document.getElementById("inspectionFilter")?.value || "all";
   list.innerHTML = "Loading...";
 
   try {
-    const q = query(collection(db, "inspections"), orderBy("date", "desc"));
+    let q = query(collection(db, "inspections"), orderBy("dateTs", "desc"));
     const snap = await getDocs(q);
 
     if (snap.empty) {
-      list.innerHTML = "<p>No inspections scheduled.</p>";
+      list.innerHTML = "<p>No inspections found.</p>";
       return;
     }
 
-    list.innerHTML = snap.docs.map(doc => {
+    // Filter by status
+    const filtered = snap.docs.filter(doc => {
+      const status = doc.data().status || "scheduled";
+      if (filter === "all") return true;
+      return status === filter;
+    });
+
+    if (filtered.length === 0) {
+      list.innerHTML = `<p>No ${filter} inspections found.</p>`;
+      return;
+    }
+
+    list.innerHTML = filtered.map(doc => {
       const d = doc.data();
+      const status = d.status || "scheduled";
+      const isCompleted = status === "completed";
+
+      let badgeClass = "green";
+      let badgeText = "Scheduled";
+      if (status === "completed") {
+        badgeClass = "red";
+        badgeText = "Completed";
+      } else if (status === "cancelled") {
+        badgeClass = "badge-orange";
+        badgeText = "Cancelled";
+      }
+
+      let extraInfo = "";
+      let actions = "";
+
+      if (isCompleted) {
+        // Show score and grade
+        extraInfo = `
+          <div class="score-display">
+            <span>Score: ${d.score}/100</span>
+            <span class="score-badge ${d.grade}">${d.grade}</span>
+          </div>
+          ${d.remarks ? `<p style="margin-top: 8px; font-size: 13px; color: #555;"><strong>Remarks:</strong> ${d.remarks}</p>` : ""}
+          ${d.breakdown ? `
+            <details style="margin-top: 8px;">
+              <summary style="cursor: pointer; font-size: 13px; color: #e67e22;">View Score Breakdown</summary>
+              <div class="breakdown-display">
+                <div class="breakdown-item"><span>Food Hygiene</span><span>${d.breakdown.foodHygiene || 0}%</span></div>
+                <div class="breakdown-item"><span>Personal Hygiene</span><span>${d.breakdown.personalHygiene || 0}%</span></div>
+                <div class="breakdown-item"><span>Equipment</span><span>${d.breakdown.equipment || 0}%</span></div>
+                <div class="breakdown-item"><span>Premises</span><span>${d.breakdown.premises || 0}%</span></div>
+              </div>
+            </details>
+          ` : ""}
+        `;
+      } else if (status === "scheduled") {
+        // Add complete button for scheduled inspections
+        actions = `
+          <div class="inspection-actions">
+            <button class="action-btn complete" onclick="openCompleteModalForInspection('${doc.id}', '${d.stallId}', '${d.stallName}', '${d.date}', '${d.officer}')">Complete</button>
+          </div>
+        `;
+      }
+
       return `
         <div class="nea-item">
           <div class="item-main">
             <h4>${d.stallName}</h4>
-            <span class="badge green">Scheduled</span>
+            <span class="badge ${badgeClass}">${badgeText}</span>
           </div>
           <p>Officer: ${d.officer}</p>
+          ${extraInfo}
           <div class="item-meta">
-            <span>Scheduled: ${d.date}</span>
+            <span>Date: ${d.date}</span>
           </div>
+          ${actions}
         </div>
       `;
     }).join("");
   } catch (err) {
     console.error(err);
-    list.innerHTML = "<p>No inspections found.</p>";
+    list.innerHTML = "<p>Error loading inspections.</p>";
   }
 }
 
@@ -229,7 +289,7 @@ window.submitGradeUpdate = async () => {
       hygieneGrade: newGrade,
       lastInspection: serverTimestamp()
     });
-    
+
     // Update the display immediately without reloading
     document.getElementById("currentGradeDisplay").textContent = newGrade;
     stallDataCache[stallId].hygieneGrade = newGrade; // Update cache
@@ -241,6 +301,187 @@ window.submitGradeUpdate = async () => {
     console.error("Error updating grade:", err);
     msg.style.color = "red";
     msg.textContent = "Error: Could not update grade.";
+  }
+};
+
+// --- 6. COMPLETE INSPECTION LOGIC ---
+
+// Grade calculation based on score
+function calculateGradeFromScore(score) {
+  if (score >= 85) return "A";
+  if (score >= 70) return "B";
+  if (score >= 55) return "C";
+  return "D";
+}
+
+// Open complete modal (for new inspection)
+window.openCompleteModal = () => {
+  document.getElementById("completeModal").style.display = "flex";
+  loadStallsForDropdowns();
+
+  // Set default date to today
+  document.getElementById("compDate").value = new Date().toISOString().split('T')[0];
+
+  // Reset form
+  document.getElementById("compStall").value = "";
+  document.getElementById("compOfficer").value = "";
+  document.getElementById("compScore").value = "";
+  document.getElementById("compFoodHygiene").value = "";
+  document.getElementById("compPersonalHygiene").value = "";
+  document.getElementById("compEquipment").value = "";
+  document.getElementById("compPremises").value = "";
+  document.getElementById("compRemarks").value = "";
+  document.getElementById("compCurrentGrade").textContent = "-";
+  document.getElementById("compCalculatedGrade").textContent = "-";
+
+  // Add score input listener for grade calculation
+  document.getElementById("compScore").oninput = updateCalculatedGrade;
+};
+
+window.closeCompleteModal = () => {
+  document.getElementById("completeModal").style.display = "none";
+};
+
+// Open complete modal for existing scheduled inspection
+window.openCompleteModalForInspection = (inspectionId, stallId, stallName, date, officer) => {
+  window.openCompleteModal();
+  document.getElementById("compStall").value = stallId;
+  document.getElementById("compDate").value = date;
+  document.getElementById("compOfficer").value = officer;
+  updateCurrentGradeForCompletion();
+
+  // Store inspection ID to update it instead of creating new
+  window.completingInspectionId = inspectionId;
+};
+
+// Update current grade display in completion modal
+window.updateCurrentGradeForCompletion = () => {
+  const select = document.getElementById("compStall");
+  const display = document.getElementById("compCurrentGrade");
+  const stallId = select.value;
+
+  if (stallDataCache[stallId]) {
+    const grade = stallDataCache[stallId].hygieneGrade;
+    display.textContent = (grade === "" || !grade) ? "Not Graded" : grade;
+  } else {
+    display.textContent = "-";
+  }
+};
+
+// Update calculated grade as score changes
+function updateCalculatedGrade() {
+  const score = parseInt(document.getElementById("compScore").value);
+  const display = document.getElementById("compCalculatedGrade");
+
+  if (isNaN(score)) {
+    display.textContent = "-";
+    return;
+  }
+
+  if (score < 0 || score > 100) {
+    display.textContent = "Invalid (0-100)";
+    display.style.color = "red";
+    return;
+  }
+
+  const grade = calculateGradeFromScore(score);
+  display.textContent = grade;
+  display.style.color = "";
+
+  // Color based on grade
+  if (grade === "A") display.style.color = "#16a34a";
+  else if (grade === "B") display.style.color = "#2f6bff";
+  else if (grade === "C") display.style.color = "#ca8a04";
+  else display.style.color = "#dc2626";
+}
+
+// Submit completed inspection
+window.submitCompletion = async () => {
+  const stallId = document.getElementById("compStall").value;
+  const date = document.getElementById("compDate").value;
+  const officer = document.getElementById("compOfficer").value;
+  const score = parseInt(document.getElementById("compScore").value);
+  const foodHygiene = parseInt(document.getElementById("compFoodHygiene").value) || 0;
+  const personalHygiene = parseInt(document.getElementById("compPersonalHygiene").value) || 0;
+  const equipment = parseInt(document.getElementById("compEquipment").value) || 0;
+  const premises = parseInt(document.getElementById("compPremises").value) || 0;
+  const remarks = document.getElementById("compRemarks").value;
+
+  // Validation
+  if (!stallId || !date || !officer) {
+    alert("Please fill in Stall, Date, and Officer Name.");
+    return;
+  }
+
+  if (isNaN(score) || score < 0 || score > 100) {
+    alert("Please enter a valid score between 0 and 100.");
+    return;
+  }
+
+  // Validate breakdown scores
+  if (foodHygiene < 0 || foodHygiene > 100 ||
+      personalHygiene < 0 || personalHygiene > 100 ||
+      equipment < 0 || equipment > 100 ||
+      premises < 0 || premises > 100) {
+    alert("Breakdown scores must be between 0 and 100.");
+    return;
+  }
+
+  const grade = calculateGradeFromScore(score);
+  const stallName = stallDataCache[stallId]?.name || "Unknown";
+
+  try {
+    // If completing an existing scheduled inspection
+    if (window.completingInspectionId) {
+      // Update the existing inspection record
+      const inspectionRef = doc(db, "inspections", window.completingInspectionId);
+      await updateDoc(inspectionRef, {
+        status: "completed",
+        score,
+        grade,
+        remarks,
+        breakdown: { foodHygiene, personalHygiene, equipment, premises },
+        dateTs: new Date(date)
+      });
+      window.completingInspectionId = null;
+    } else {
+      // Create new completed inspection record
+      const dateTs = new Date(date);
+      await addDoc(collection(db, "inspections"), {
+        stallId,
+        stallName,
+        date,
+        dateTs,
+        officer,
+        status: "completed",
+        score,
+        grade,
+        remarks,
+        breakdown: { foodHygiene, personalHygiene, equipment, premises },
+        createdAt: serverTimestamp()
+      });
+    }
+
+    // Update stall's current grade
+    const stallRef = doc(db, "stalls", stallId);
+    await updateDoc(stallRef, {
+      hygieneGrade: grade,
+      lastInspection: serverTimestamp()
+    });
+
+    // Update cache
+    if (stallDataCache[stallId]) {
+      stallDataCache[stallId].hygieneGrade = grade;
+    }
+
+    closeCompleteModal();
+    loadInspections();
+
+    alert(`Inspection completed! Grade: ${grade} (${score}/100)`);
+
+  } catch (err) {
+    console.error("Error completing inspection:", err);
+    alert("Error completing inspection. Please try again.");
   }
 };
 
