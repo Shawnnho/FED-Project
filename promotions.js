@@ -137,7 +137,7 @@ if (IS_PROMO_PAGE) {
 
   // ---- FILTERS ----
   function matches(p) {
-    // ✅ auto-hide expired promos
+    // auto-hide expired promos
     if (isExpired(p)) return false;
 
     const q = (promoSearch.value || "").trim().toLowerCase();
@@ -160,7 +160,7 @@ if (IS_PROMO_PAGE) {
     const mode = sortFilter.value;
 
     if (mode === "expSoon") {
-      // ✅ sort by live days left
+      // sort by live days left
       return [...arr].sort((a, b) => daysLeft(a) - daysLeft(b));
     }
 

@@ -18,7 +18,7 @@ import {
   onAuthStateChanged,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-/* ✅ Firebase Config */
+/* Firebase Config */
 const firebaseConfig = {
   apiKey: "AIzaSyC-NTWADB-t1OGl7NbdyMVXjpVjnqjpTXg",
   authDomain: "fedproject-8d254.firebaseapp.com",
@@ -34,7 +34,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-// ✅ Global user variable to ensure we capture the login state correctly
+// Global user variable to ensure we capture the login state correctly
 let currentUser = null;
 
 // Listen for login state
@@ -42,7 +42,7 @@ onAuthStateChanged(auth, (user) => {
   currentUser = user;
 
   if (user) {
-    console.log("✅ Complaint Page: User detected:", user.email);
+    console.log("Complaint Page: User detected:", user.email);
 
     const emailField = document.getElementById("comp-email");
     if (emailField && user.email) emailField.value = user.email;
@@ -116,7 +116,7 @@ async function loadStalls() {
       const data = d.data() || {};
       return {
         id: d.id,
-        name: data.stallName || data.name || d.id, // ✅ IMPORTANT FIX
+        name: data.stallName || data.name || d.id, 
       };
     });
 

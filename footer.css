@@ -528,3 +528,315 @@ HERO: better responsive behaviour
     padding: 18px 16px;
   }
 }
+/* =====================
+HELP CENTRE + CONTACT US (single clean block)
+===================== */
+
+/* shared link style */
+.helpInlineLink {
+  color: #ff7c10;
+  font-weight: 800;
+  text-decoration: none;
+}
+.helpInlineLink:hover {
+  text-decoration: underline;
+}
+
+/* ---------- HELP CENTRE (search + chips + accordion) ---------- */
+
+.helpControls {
+  display: grid;
+  gap: 12px;
+  margin: 14px 0 16px;
+}
+
+/* search input */
+.helpInput {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  outline: none;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.helpInput:focus {
+  border-color: rgba(255, 124, 16, 0.55);
+  box-shadow: 0 0 0 4px rgba(255, 124, 16, 0.12);
+}
+
+/* filter chips */
+.helpFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.chip {
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: #fff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.chip:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.chip.isActive {
+  border-color: rgba(255, 124, 16, 0.55);
+  background: rgba(255, 124, 16, 0.12);
+}
+
+/* FAQ list */
+.faqList {
+  display: grid;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+/* each FAQ card — you can use about-card on it too */
+.faqItem {
+  text-align: left; /* important because about-card is centered in your pages */
+}
+
+/* question button */
+.faqQ {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+  text-align: left;
+}
+
+/* + / – icon bubble */
+.faqIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  flex: 0 0 auto;
+}
+
+/* answer */
+.faqA {
+  margin-top: 10px;
+  line-height: 1.75;
+  color: rgba(0, 0, 0, 0.72);
+}
+
+/* ---------- CONTACT US (form) ---------- */
+
+.contactForm {
+  margin-top: 12px;
+  text-align: left;
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.label {
+  font-weight: 900;
+}
+
+.input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  outline: none;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.input:focus {
+  border-color: rgba(255, 124, 16, 0.55);
+  box-shadow: 0 0 0 4px rgba(255, 124, 16, 0.12);
+}
+
+.err {
+  min-height: 16px;
+  font-size: 12.5px;
+  color: rgba(200, 0, 0, 0.85);
+  font-weight: 800;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.btnPrimary {
+  border: 0;
+  background: #ff7c10;
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.btnPrimary:hover {
+  filter: brightness(0.95);
+}
+
+.btnGhost {
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  background: #fff;
+  color: rgba(0, 0, 0, 0.75);
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-weight: 900;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+.btnGhost:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.successBox {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(0, 160, 80, 0.12);
+  border: 1px solid rgba(0, 160, 80, 0.22);
+  font-weight: 900;
+}
+
+@media (max-width: 640px) {
+  .grid2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Simple accordion styling (safe, minimal) */
+.faq-btn {
+  width: 100%;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 18px;
+  font-weight: 800;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.faq-content {
+  margin-top: 10px;
+  display: none;
+  line-height: 1.7;
+}
+
+.faq-btn span {
+  font-size: 20px;
+  font-weight: 900;
+}
+
+/* Info tooltip (ⓘ) for Help Centre */
+
+.helpTitleWithTip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.infoTip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+
+  font-size: 13px;
+  font-weight: 900;
+  cursor: default;
+
+  background: rgba(0, 0, 0, 0.08);
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.infoTip:hover {
+  background: rgba(255, 124, 16, 0.15);
+  color: #ff7c10;
+}
+
+/* Tooltip box */
+.infoTipBox {
+  position: absolute;
+  top: 140%;
+  left: 50%;
+  transform: translateX(-50%);
+
+  min-width: 220px;
+  padding: 10px 12px;
+  border-radius: 10px;
+
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(0, 0, 0, 0.8);
+
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 10;
+}
+
+/* Small arrow */
+.infoTipBox::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: #fff transparent transparent transparent;
+}
+
+/* Show on hover */
+.infoTip:hover .infoTipBox {
+  opacity: 1;
+}

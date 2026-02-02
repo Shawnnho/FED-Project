@@ -28,8 +28,10 @@ const SUB_REVIEWS = "reviews";
 // =============================
 function setGradeColor(el, grade) {
   if (!el) return;
-  const g = String(grade || "").toUpperCase().trim();
-  
+  const g = String(grade || "")
+    .toUpperCase()
+    .trim();
+
   el.textContent = g || "—";
   el.classList.remove("gradeA", "gradeB", "gradeC", "gradeD", "gradeNA");
 
@@ -91,7 +93,7 @@ let nextInspectionMsg = null;
 async function getMyStall() {
   const user = auth.currentUser;
   if (!user) throw new Error("Not signed in");
-  
+
   // CHANGE "ownerUid" only if your stall uses different field
   const qStall = query(
     collection(db, COL_STALLS),
@@ -104,7 +106,6 @@ async function getMyStall() {
   const stallDoc = snap.docs[0];
   return { stallId: stallDoc.id, ...stallDoc.data() };
 }
-
 
 function listenOrders(stallId, rangeStart, rangeEnd, cb) {
   const ordersRef = collection(db, COL_ORDERS);
@@ -186,14 +187,13 @@ function calcHourlySales(orders, whichDay, stall, stepMins = 60) {
   const startM = openM ?? 7 * 60;
   const endM = closeM ?? 21 * 60;
 
-  // If close <= open (overnight), we’ll treat as same-day end; simplest fix:
   // you can expand this later if you really support overnight stalls.
   const safeEndM = endM > startM ? endM : startM + 60;
 
   // Build labels + buckets
   const labels = [];
   const buckets = [];
-  
+
   // We want ticks like: open hour, open+step, ... up to last slot starting before close
   for (let t = startM; t <= safeEndM; t += stepMins) {
     labels.push(fmtLabel(t));
@@ -205,7 +205,7 @@ function calcHourlySales(orders, whichDay, stall, stepMins = 60) {
     const ts = o.createdAt?.toDate?.();
     if (!ts) continue;
     if (!sameDay(ts, whichDay)) continue;
-    
+
     const mins = ts.getHours() * 60 + ts.getMinutes();
     if (mins < startM || mins > safeEndM) continue;
 
@@ -317,7 +317,7 @@ function renderKpis({
   setText("kpiGrade", grade || "—");
   setText("kpiGradeWord", gradeWord || "—");
   setText("kpiGradeHint", gradeHint || "—");
-  
+
   setText("hygWhen", "Today");
   setText("hygGrade", grade || "—");
   setText("hygWord", gradeWord || "—");
@@ -344,7 +344,7 @@ function renderTopDishesRows(rows) {
 function renderRatingsUI({ avg, counts }) {
   setText("ratingAvg", avg ? avg.toFixed(1) : "0.0");
   setText("ratingStars", starsText(avg));
-  
+
   const bars = $("ratingBars");
   if (!bars) return;
 
@@ -424,7 +424,7 @@ function drawChart({ labels, today, yesterday, compare }) {
     const x = padL + i * stepX;
     ctx.fillText(lab, x - 14, padT + ch + 26);
   });
-  
+
   function plot(values, color) {
     ctx.strokeStyle = color;
     ctx.lineWidth = 2;
@@ -451,30 +451,70 @@ async function loadNextInspection(stallId) {
   today0.setHours(0, 0, 0, 0);
   const nowTs = Timestamp.fromDate(today0);
 
+  // 1) UPCOMING SCHEDULED (ignore cancelled/completed)
   const qNext = query(
     collection(db, "inspections"),
     where("stallId", "==", stallId),
+    where("status", "==", "scheduled"),
     where("dateTs", ">=", nowTs),
     orderBy("dateTs", "asc"),
-    limit(1)
+    limit(1),
   );
 
-  const snap = await getDocs(qNext);
+  const nextSnap = await getDocs(qNext);
 
-  if (snap.empty) {
-    nextInspectionMsg = "No upcoming inspection scheduled";
+  if (!nextSnap.empty) {
+    const insp = nextSnap.docs[0].data();
+    const days = daysUntil(insp.dateTs);
+
+    if (days === 0) nextInspectionMsg = "Inspection today";
+    else if (days === 1) nextInspectionMsg = "Inspection tomorrow";
+    else nextInspectionMsg = `Next hygiene check in ${days} days`;
+
     setText("kpiGradeHint", nextInspectionMsg);
     setText("hygHint", nextInspectionMsg);
     return;
   }
 
-  const insp = snap.docs[0].data();
-  const days = daysUntil(insp.dateTs);
+  // 2) No upcoming scheduled -> show LAST COMPLETED instead
+  const qDone = query(
+    collection(db, "inspections"),
+    where("stallId", "==", stallId),
+    where("status", "==", "completed"),
+    orderBy("dateTs", "desc"),
+    limit(1),
+  );
 
-  if (days === 0) nextInspectionMsg = "Inspection today";
-  else if (days === 1) nextInspectionMsg = "Inspection tomorrow";
-  else nextInspectionMsg = `Next hygiene check in ${days} days`;
+  const doneSnap = await getDocs(qDone);
 
+  if (!doneSnap.empty) {
+    const done = doneSnap.docs[0].data();
+
+    // days since completed (use dateTs if exists)
+    const doneDate = done.dateTs?.toDate ? done.dateTs.toDate() : null;
+
+    if (doneDate) {
+      const d0 = new Date(doneDate);
+      d0.setHours(0, 0, 0, 0);
+
+      const diffMs = today0 - d0;
+      const daysAgo = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+
+      if (daysAgo === 0) nextInspectionMsg = "Inspection completed today";
+      else if (daysAgo === 1)
+        nextInspectionMsg = "Inspection completed yesterday";
+      else nextInspectionMsg = `Last inspection completed ${daysAgo} days ago`;
+    } else {
+      nextInspectionMsg = "Last inspection completed";
+    }
+
+    setText("kpiGradeHint", nextInspectionMsg);
+    setText("hygHint", nextInspectionMsg);
+    return;
+  }
+
+  // 3) Nothing found
+  nextInspectionMsg = "No upcoming inspection scheduled";
   setText("kpiGradeHint", nextInspectionMsg);
   setText("hygHint", nextInspectionMsg);
 }

@@ -13,7 +13,7 @@ import {
  * - If guest tries to use search/filter/sort/location -> show locked screen (like your design)
  *************************************************/
 
-// ✅ GUEST MODE
+// GUEST MODE
 const params = new URLSearchParams(window.location.search);
 const isGuest = params.get("mode") === "guest";
 
@@ -174,7 +174,7 @@ function renderCuisineOptions() {
   });
 }
 
-// ✅ helper: keep guest mode when navigating
+// helper: keep guest mode when navigating
 function withGuestMode(url) {
   if (!isGuest) return url;
   return url.includes("?") ? `${url}&mode=guest` : `${url}?mode=guest`;
@@ -233,7 +233,7 @@ function createCard(stall) {
 ================================ */
 
 function applyFilters() {
-  // ✅ if guest tries to use filters, show locked view and stop
+  // if guest tries to use filters, show locked view and stop
   if (guestTriedToFilter()) return;
 
   const q = els.q.value.trim().toLowerCase();
@@ -309,7 +309,7 @@ function renderList(data, sortValue) {
   // NORMAL LIST
   data.forEach((s) => els.list.appendChild(createCard(s)));
 
-  // ✅ Bottom reset button ONLY if filters are active
+  // Bottom reset button ONLY if filters are active
   if (showReset) {
     els.list.insertAdjacentHTML(
       "beforeend",

@@ -3,7 +3,7 @@
  * - Loads user profile from Firestore users/{uid}
  * - Edit Profile (name + phone)
  * - Change Password (send reset email)
- * - ✅ Preferences (load + save)
+ * - Preferences (load + save)
  *************************************************/
 
 import {
@@ -39,7 +39,7 @@ import {
   updateDoc,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* ✅ Use SAME config as signup/login */
+/* Firebase Config */
 const firebaseConfig = {
   apiKey: "AIzaSyC-NTWADB-t1OGl7NbdyMVXjpVjnqjpTXg",
   authDomain: "fedproject-8d254.firebaseapp.com",
@@ -76,7 +76,7 @@ const viewVouchersBtn = document.getElementById("viewVouchersBtn");
 const notifCount = document.getElementById("notifCount");
 const mNotifCount = document.getElementById("mNotifCount");
 
-/* ✅ Preferences DOM (from account.html) */
+/* Preferences DOM (from account.html) */
 const prefCuisineEls = Array.from(document.querySelectorAll(".prefCuisine"));
 const prefNotifEls = Array.from(document.querySelectorAll(".prefNotif"));
 const savePrefBtn = document.getElementById("savePrefBtn");
@@ -122,7 +122,7 @@ function roleLabel(r) {
 }
 
 /* =========================
-   ✅ Preferences helpers (SAFE)
+   Preferences helpers (SAFE)
    Fixes: "object is not iterable"
 ========================= */
 function toArraySafe(v) {
@@ -368,7 +368,7 @@ onAuthStateChanged(auth, async (user) => {
       return;
     }
     // =========================
-    // ✅ VOUCHERS (Popup + Firestore)
+    // VOUCHERS (Popup + Firestore)
     // =========================
     await updateRedeemedCount(user.uid);
 
@@ -447,7 +447,7 @@ onAuthStateChanged(auth, async (user) => {
         : "—";
 
     // =========================
-    // ✅ FAVOURITES (Saved Stores)
+    // FAVOURITES (Saved Stores)
     // =========================
     const savedStoresEl = document.getElementById("savedStores");
     const favs = Array.isArray(data?.favourites) ? data.favourites : [];
@@ -476,14 +476,14 @@ onAuthStateChanged(auth, async (user) => {
     applyBadge(0);
 
     /* =========================
-       ✅ LOAD PREFERENCES into checkboxes
+       LOAD PREFERENCES into checkboxes
     ========================= */
     const prefs = data?.preferences || {};
     setCheckedByValues(prefCuisineEls, prefs.cuisines);
     setCheckedByValues(prefNotifEls, prefs.notifications);
 
     /* =========================
-       ✅ SAVE PREFERENCES button
+       SAVE PREFERENCES button
     ========================= */
     savePrefBtn?.addEventListener("click", async () => {
       try {
@@ -626,7 +626,7 @@ onAuthStateChanged(auth, async (user) => {
             }
 
             try {
-              // ✅ Sends verification email to NEW address
+              // Sends verification email to NEW address
               await verifyBeforeUpdateEmail(user, newEmail);
 
               err.style.color = "#1b5e20";
@@ -662,7 +662,7 @@ onAuthStateChanged(auth, async (user) => {
               email: newEmail || user.email || "",
               updatedAt: serverTimestamp(),
 
-              // ✅ ONLY save avatar if user uploaded one
+              // ONLY save avatar if user uploaded one
               ...(avatarUrlToSave ? { avatarUrl: avatarUrlToSave } : {}),
             },
             { merge: true },
@@ -762,11 +762,11 @@ onAuthStateChanged(auth, async (user) => {
           }
 
           try {
-            // ✅ Re-authenticate
+            // Re-authenticate
             const cred = EmailAuthProvider.credential(user.email, password);
             await reauthenticateWithCredential(user, cred);
 
-            // ✅ Mark deactivated in Firestore
+            //  Mark deactivated in Firestore
             await setDoc(
               doc(db, "users", user.uid),
               { deactivated: true, deactivatedAt: serverTimestamp() },
@@ -775,7 +775,7 @@ onAuthStateChanged(auth, async (user) => {
 
             setStatus("✅ Account deactivated. Logging you out…");
 
-            // ✅ Log out and redirect
+            // Log out and redirect
             setTimeout(async () => {
               try {
                 await signOut(auth);

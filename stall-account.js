@@ -63,7 +63,7 @@ function canPublishStall(data) {
     return "Prep time (min & max) is required";
   if (!data.imageUrl && !data.img) return "Stall image is required";
 
-  return null; // ✅ ok to publish
+  return null; 
 }
 
 /* =========================
@@ -269,7 +269,7 @@ function wireEditStallDetails(user) {
       ""
     ).trim();
 
-    // ✅ Create modal and CAPTURE overlay here
+    // Create modal and CAPTURE overlay here
     const { overlay } = openModal({
       title: "Edit Stall Details",
       primaryText: "Save",
@@ -423,7 +423,7 @@ function wireEditStallDetails(user) {
 
           await uploadBytes(fileRef, imageFile);
           imageUrl = await getDownloadURL(fileRef);
-          // ✅ after upload, show the REAL download URL preview
+          // after upload, show the REAL download URL preview
           prev.src = imageUrl;
           prev.style.display = "block";
         }
@@ -488,19 +488,19 @@ function wireEditStallDetails(user) {
 
     const fileInput = overlay.querySelector("#mImageFile");
 
-    // ✅ Prefill ON OPEN (not on Save)
+    // Prefill ON OPEN (not on Save)
     overlay.querySelector("#mDesc").value = stallCache?.desc || "";
     overlay.querySelector("#mPrepMin").value = stallCache?.prepMin ?? "";
     overlay.querySelector("#mPrepMax").value = stallCache?.prepMax ?? "";
 
-    // ✅ Preview existing image (if any)
+    // Preview existing image (if any)
     const prev = overlay.querySelector("#mImagePreview");
     const currentImg = stallCache?.imageUrl || stallCache?.img || "";
     if (currentImg) {
       prev.src = currentImg;
       prev.style.display = "block";
     }
-    // ✅ Live preview when user selects a new file
+    // Live preview when user selects a new file
     fileInput?.addEventListener("change", () => {
       const f = fileInput.files?.[0];
       if (!f) return;
@@ -591,14 +591,14 @@ onAuthStateChanged(auth, async (user) => {
 
   try {
     // users/{uid}
-    wireReviewBadgeDashboardWay(user.uid); // ✅ ADD HERE
+    wireReviewBadgeDashboardWay(user.uid); 
     const userRef = doc(db, "users", user.uid);
     const userSnap = await getDoc(userRef);
     if (!userSnap.exists()) return;
 
     const u = userSnap.data();
 
-    // ✅ If already deactivated, block and kick out (same as account.js)
+    // If already deactivated, block and kick out (same as account.js)
     if (u?.deactivated) {
       alert("This account has been deactivated.");
       await signOut(auth);
@@ -606,7 +606,7 @@ onAuthStateChanged(auth, async (user) => {
       return;
     }
 
-    // ✅ Deactivate popup (same flow as account.js)
+    // Deactivate popup (same flow as account.js)
     $("deactivateBtn")?.addEventListener("click", () => {
       // Only allow for email/password accounts
       const isPasswordUser = user.providerData.some(
@@ -647,18 +647,18 @@ onAuthStateChanged(auth, async (user) => {
           }
 
           try {
-            // ✅ Re-authenticate
+            // Re-authenticate
             const cred = EmailAuthProvider.credential(user.email, password);
             await reauthenticateWithCredential(user, cred);
 
-            // ✅ Mark deactivated in Firestore
+            // Mark deactivated in Firestore
             await setDoc(
               doc(db, "users", user.uid),
               { deactivated: true, deactivatedAt: serverTimestamp() },
               { merge: true },
             );
 
-            // ✅ Log out + redirect
+            // Log out + redirect
             setTimeout(async () => {
               try {
                 await signOut(auth);
@@ -717,7 +717,7 @@ onAuthStateChanged(auth, async (user) => {
     setText("role2", "Store Owner");
     setImg("avatar", u.avatarUrl || "images/defaultprofile.png");
 
-    // ✅ stall doc (DB-based via storeholder-context)
+    // stall doc (DB-based via storeholder-context)
     const ctx = await getStoreholderCtx(user.uid);
     if (!ctx || !ctx.centreId) {
       console.warn("No centre linked to this storeholder");
@@ -770,7 +770,7 @@ onAuthStateChanged(auth, async (user) => {
     setText("operatingHours", s.operatingHours || "—");
     setText("stallDesc", s.desc || "—");
 
-    // ✅ hygiene grade is stored in top-level stalls/{stallId} (NEA updates there)
+    // hygiene grade is stored in top-level stalls/{stallId} (NEA updates there)
     let hygieneToShow = s.hygieneGrade;
 
     try {
@@ -1043,7 +1043,7 @@ onAuthStateChanged(auth, async (user) => {
       });
     });
 
-    // ✅ wire edit stall AFTER stallRef + stallCache are ready
+    // wire edit stall AFTER stallRef + stallCache are ready
     wireEditStallDetails(user);
   } catch (err) {
     console.error("stall-account.js error:", err);
