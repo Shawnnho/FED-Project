@@ -330,14 +330,14 @@ document.addEventListener("click", async (e) => {
   const code = btn.dataset.code;
   if (!code) return;
 
-  // ✅ Logged out = can see promos but cannot claim
+  // Logged out = can see promos but cannot claim
   if (!currentUid) {
     showDToast("Please sign in to claim this promotion.");
     setTimeout(() => (window.location.href = "signin.html"), 650);
     return;
   }
 
-  // ✅ Logged in = save claimed promo
+  // Logged in = save claimed promo
   const userRef = doc(db, "users", currentUid);
 
   const snap = await getDoc(userRef);

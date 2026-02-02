@@ -345,7 +345,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const code = err?.code || "";
       const email = emailOrPhone.value.trim();
 
-      // ✅ If auth fails, still check if this email belongs to a deactivated account
+      // If auth fails, still check if this email belongs to a deactivated account
       if (
         code === "auth/invalid-credential" ||
         code === "auth/user-not-found"

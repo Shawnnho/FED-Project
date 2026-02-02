@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Help Centre | HawkerPoint</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="footer.css" />
+  </head>
+
+  <body>
+    <!-- TOP BAR (matches your About Us format) -->
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="index.html" aria-label="Hawker Point Home">
+          <img src="images/logo.png" alt="HawkerPoint" class="brand-logo" />
+        </a>
+
+        <nav class="nav" aria-label="Primary navigation">
+          <a class="pill cartPill" href="cart.html">
+            Cart <span id="cartCount" class="cartBadge isZero">0</span>
+          </a>
+          <a class="pill" href="signin.html">Log In</a>
+          <a
+            class="pill active"
+            href="signup.html"
+            style="background: #df8f3b; color: white"
+            >Sign up for free today</a
+          >
+        </nav>
+
+        <button
+          id="menuBtn"
+          class="menuBtn"
+          type="button"
+          aria-label="Open menu"
+          aria-expanded="false"
+        >
+          ☰
+        </button>
+      </div>
+
+      <div id="navBackdrop" class="navBackdrop"></div>
+      <nav id="navMobile" class="navMobile" aria-label="Mobile navigation">
+        <a class="mLink" href="cart.html">
+          Cart <span id="cartCountMobile" class="cartBadge isZero">0</span>
+        </a>
+        <a
+          class="mLink active"
+          href="signup.html"
+          style="background: #df8f3b; color: white"
+          >Sign up for free today</a
+        >
+        <a class="mLink" href="signin.html">Sign in</a>
+      </nav>
+    </header>
+
+    <!-- HERO -->
+    <section class="page-hero">
+      <img
+        src="images/Lau_Pa_Sat_satay_street.jpg"
+        alt="Hawker centre in Singapore"
+      />
+      <div class="page-hero-text">
+        <h1>Help Centre</h1>
+        <p>
+          Search or filter by category, then click a question to view the
+          answer.
+        </p>
+      </div>
+    </section>
+
+    <br />
+
+    <main>
+      <!-- Intro card -->
+      <div class="about-card">
+        <h3>Need help?</h3>
+        <p>
+          Start by searching below, or tap a category to filter. If you still
+          need assistance, reach us via
+          <a class="helpInlineLink" href="contact.html">Contact Us</a>.
+        </p>
+      </div>
+
+      <!-- Search + Filters (required by your current help.js) -->
+      <div class="about-card">
+        <h3 class="helpTitleWithTip">
+          Search and filter
+          <span class="infoTip">
+            ⓘ
+            <span class="infoTipBox">
+              Try searching keywords like <b>order</b>, <b>inspection</b>,
+              <b>hygiene</b>, <b>review</b>, or <b>login</b>.
+            </span>
+          </span>
+        </h3>
+
+        <div class="helpControls">
+          <input
+            id="faqSearch"
+            class="helpInput"
+            type="search"
+            placeholder="Search (e.g. order, hygiene, inspection, review, login)…"
+            autocomplete="off"
+          />
+
+          <div
+            class="helpFilters"
+            role="group"
+            aria-label="FAQ category filter"
+          >
+            <button class="chip isActive" data-cat="all" type="button">
+              All
+            </button>
+            <button class="chip" data-cat="account" type="button">
+              Account
+            </button>
+            <button class="chip" data-cat="customers" type="button">
+              Customers
+            </button>
+            <button class="chip" data-cat="stallholders" type="button">
+              Stallholders
+            </button>
+            <button class="chip" data-cat="nea" type="button">NEA</button>
+            <button class="chip" data-cat="payments" type="button">
+              Payments
+            </button>
+            <button class="chip" data-cat="support" type="button">
+              Support
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- FAQ LIST (required by your current help.js) -->
+      <section
+        id="faqList"
+        class="faqList"
+        aria-label="Frequently asked questions"
+      >
+        <!-- ACCOUNT -->
+        <div
+          class="about-card faqItem"
+          data-cat="account"
+          data-keywords="sign up signup register account role guest, customer stallholder"
+        >
+          <button class="faqQ" type="button" aria-expanded="false">
+            <span>How do I create an account?</span>
+            <span class="faqIcon" aria-hidden="true">+</span>
+          </button>
+          <div class="faqA" hidden>
+            Click <b>Sign Up</b> and choose your role (Guest, Customer,
+            Stallholder). After signing up, you'll be brought to the correct
+            dashboard.
+          </div>
+        </div>
+
+        <div
+          class="about-card faqItem"
+          data-cat="account"
+          data-keywords="login sign in cannot sign in password forgot reset"
+        >
+          <button class="faqQ" type="button" aria-expanded="false">
+            <span>I can't log in. What should I do?</span>
+            <span class="faqIcon" aria-hidden="true">+</span>
+          </button>
+          <div class="faqA" hidden>
+            Double-check your email and password. If you forgot your password,
+            use the password recovery option on the login page.
+          </div>
+        </div>
+
+        <!-- CUSTOMERS -->
+        <div
+          class="about-card faqItem"
+          data-cat="customers"
+          data-keywords="browse stalls menu centre centres hawker"
+        >
+          <button class="faqQ" type="button" aria-expanded="false">
+            <span>How do I browse stalls and menus?</span>
+            <span class="faqIcon" aria-hidden="true">+</span>
+          </button>
+          <div class="faqA" hidden>
+            Go to Centres, choose a hawker centre, then select a stall to view
+            its menu, details, and hygiene grade.
+          </div>
+        </div>
+
+        <div
+          class="about-card faqItem"
+          data-cat="customers"
+          data-keywords="order status track orders cart checkout"
+        >
+          <button class="faqQ" type="button" aria-expanded="false">
+            <span>Where can I see my order status?</span>
+            <span class="faqIcon" aria-hidden="true">+</span>
+          </button>
+          <div class="faqA" hidden>
+            After placing an order, go to your Orders page to view the latest
+            status and details.
+          </div>
+        </div>
+
+        <div
+          class="about-card faqItem"
+          data-cat="customers"
+          data-keywords="review feedback rating comment"
+        >
+          <button class="faqQ" type="button" aria-expanded="false">
+            <span>How do I leave feedback or a review?</span>
+            <span class="faqIcon" aria-hidden="true">+</span>
+          </button>
+          <div class="faqA" hidden>
+            After your experience, submit feedback from the feedback/review
+            section. Reviews help stallholders improve and help other customers
+            decide.
+          </div>
+        </div>
+
+        <!-- STALLHOLDERS -->
+        <div
+          class="about-card faqItem"
+          data-cat="stallholders"
+          data-keywords="manage stall menu items update profile details"
+        >
+          <button class="faqQ" type="button" aria-expanded="false">
+            <span>How do I manage my stall and menu?</span>
+            <span class="faqIcon" aria-hidden="true">+</span>
+          </button>
+          <div class="faqA" hidden>
+            Use your Stallholder dashboard to update stall information and menu
+            items. Changes help customers see your latest offerings.
+          </div>
+        </div>
+
+        <div
+          class="about-card faqItem"
+          data-cat="stallholders"
+          data-keywords="orders incoming accept prepare complete"
+        >
+          <button class="faqQ" type="button" aria-expanded="false">
+            <span>How do I view incoming orders?</span>
+            <span class="faqIcon" aria-hidden="true">+</span>
+          </button>
+          <div class="faqA" hidden>
+            Go to your dashboard/orders section to see new orders and manage
+            their progress.
+          </div>
+        </div>
+
+        <!-- NEA -->
+        <div
+          class="about-card faqItem"
+          data-cat="nea"
+          data-keywords="inspection schedule nea upcoming completed cancelled"
+        >
+          <button class="faqQ" type="button" aria-expanded="false">
+            <span>How do inspections work?</span>
+            <span class="faqIcon" aria-hidden="true">+</span>
+          </button>
+          <div class="faqA" hidden>
+            Inspections may be scheduled in advance. After an inspection is
+            completed, hygiene results can be recorded and shown for public
+            awareness.
+          </div>
+        </div>
+
+        <div
+          class="about-card faqItem"
+          data-cat="nea"
+          data-keywords="hygiene grade a b c d excellent good average poor"
+        >
+          <button class="faqQ" type="button" aria-expanded="false">
+            <span>What do hygiene grades mean?</span>
+            <span class="faqIcon" aria-hidden="true">+</span>
+          </button>
+          <div class="faqA" hidden>
+            Hygiene grades help customers make informed decisions. A better
+            grade generally indicates stronger hygiene standards.
+          </div>
+        </div>
+
+        <!-- PAYMENTS -->
+        <div
+          class="about-card faqItem"
+          data-cat="payments"
+          data-keywords="payment pay checkout bill charges"
+        >
+          <button class="faqQ" type="button" aria-expanded="false">
+            <span>How do payments work?</span>
+            <span class="faqIcon" aria-hidden="true">+</span>
+          </button>
+          <div class="faqA" hidden>
+            Payments are made during checkout. Always review your order and
+            total amount before confirming.
+          </div>
+        </div>
+
+        <!-- SUPPORT -->
+        <div
+          class="about-card faqItem"
+          data-cat="support"
+          data-keywords="contact support message help cannot find answer"
+        >
+          <button class="faqQ" type="button" aria-expanded="false">
+            <span>I still need help. Who can I contact?</span>
+            <span class="faqIcon" aria-hidden="true">+</span>
+          </button>
+          <div class="faqA" hidden>
+            Use <a class="helpInlineLink" href="contact.html">Contact Us</a> to
+            send a message. Include your role and a clear description so we can
+            help faster.
+          </div>
+        </div>
+      </section>
+
+      <!-- end card -->
+      <div class="about-card">
+        <h3>Tip</h3>
+        <p>
+          Try searching for keywords like <b>order</b>, <b>inspection</b>,
+          <b>hygiene</b>, <b>review</b>, or <b>login</b>.
+        </p>
+      </div>
+    </main>
+
+    <!-- JS -->
+    <script src="help.js"></script>
+
+    <!-- FOOTER (matches your About Us format) -->
+    <footer class="hc-footer">
+      <div class="hc-footer-inner">
+        <div class="hc-footer-brand">
+          <h3>HawkerPoint</h3>
+          <p>Empowering Hawkers. Serving Communities.</p>
+        </div>
+
+        <div class="hc-footer-links">
+          <div>
+            <h4>Platform</h4>
+            <a href="about.html">About Us</a>
+            <a href="how-it-works.html">How It Works</a>
+            <a href="centres.html">Centres</a>
+          </div>
+
+          <div>
+            <h4>For Stallholders</h4>
+            <a href="signup.html">Register Stall</a>
+            <a href="pricing.html">Pricing</a>
+          </div>
+
+          <div>
+            <h4>Support</h4>
+            <a href="help.html">Help Centre</a>
+            <a href="contact.html">Contact Us</a>
+            <a href="feedback.html">Feedback</a>
+          </div>
+
+          <div>
+            <h4>Legal</h4>
+            <a href="privacy.html">Privacy Policy</a>
+            <a href="terms-of-service.html">Terms of Service</a>
+          </div>
+        </div>
+
+        <div class="hc-footer-bottom">
+          <p>&copy; 2026 HawkerPoint. All rights reserved.</p>
+          <p class="hc-footer-note">
+            Hygiene grades and inspection data are displayed for public
+            awareness purposes.
+          </p>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

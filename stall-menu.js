@@ -397,7 +397,7 @@ onAuthStateChanged(auth, async (user) => {
     "menu",
   );
 
-  // ✅ ADD ITEM (with optional image)
+  // ADD ITEM (with optional image)
   saveBtn?.addEventListener("click", async () => {
     const name = nameInput.value.trim();
     const price = parseMoney(priceInput.value);
@@ -466,7 +466,7 @@ onAuthStateChanged(auth, async (user) => {
         emptyState.hidden = false;
 
         if (isFirst) {
-          openAddModal(); // ✅ auto pop-up
+          openAddModal(); 
         }
         return;
       }
@@ -492,7 +492,7 @@ onAuthStateChanged(auth, async (user) => {
           const available = it.available !== false;
           const img = it.imageUrl ? esc(it.imageUrl) : "images/defaultfood.png";
 
-          // ✅ This matches your CSS expectation: menuCard + menuImgWrap + menuInfo
+          // This matches your CSS expectation: menuCard + menuImgWrap + menuInfo
           return `
             <article class="menuCard" data-id="${id}" data-avail="${available ? "1" : "0"}">
               <div class="menuImgWrap">

@@ -1,7 +1,6 @@
 /*************************************************
  * stall.js (module)
  * - Loads stall UI from local array
- * - ✅ Add/Remove Favourite (Firestore users/{uid}.favourites)
  *************************************************/
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -23,7 +22,7 @@ import {
   limit,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* ✅ SAME config as your other pages */
+/* Firebase Config */
 const firebaseConfig = {
   apiKey: "AIzaSyC-NTWADB-t1OGl7NbdyMVXjpVjnqjpTXg",
   authDomain: "fedproject-8d254.firebaseapp.com",
@@ -143,7 +142,7 @@ onSnapshot(stallRef, (snap) => {
 });
 
 // =========================
-// ✅ Favourite (Firestore)
+// Favourite (Firestore)
 // =========================
 function setFavUI(isFav) {
   if (!favBtn) return;

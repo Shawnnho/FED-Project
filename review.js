@@ -27,11 +27,11 @@ import {
   onAuthStateChanged,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-/* ✅ SAME config as your other pages */
+
 const firebaseConfig = {
-  apiKey: "AIzaSyC-NTWADB-t1OGl7NbdyMVXjpVjnqjpTXg", // <--- THIS
-  authDomain: "fedproject-8d254.firebaseapp.com", // <--- THIS
-  projectId: "fedproject-8d254", // <--- THIS
+  apiKey: "AIzaSyC-NTWADB-t1OGl7NbdyMVXjpVjnqjpTXg", 
+  authDomain: "fedproject-8d254.firebaseapp.com", 
+  projectId: "fedproject-8d254", 
   storageBucket: "fedproject-8d254.firebasestorage.app",
   messagingSenderId: "477538553634",
   appId: "1:477538553634:web:a14b93bbd93d33b9281f7b",
@@ -313,15 +313,15 @@ window.submitReview = async function submitReview() {
       const ratingTotal = Number(data.ratingTotal || 0);
       const ratingCount = Number(data.ratingCount || 0);
 
-      // ✅ Save review document
+      // Save review document
       tx.set(reviewRef, {
         rating: selectedRating,
         text: input.value.trim(),
         stallId: stallId,
         stallName: stallName,
 
-        // ✅ Firebase Auth (safe)
-        // ✅ Firebase Auth (Fixed)
+        // Firebase Auth (safe)
+        // Firebase Auth (Fixed)
         // Always save the ID so it shows in YOUR history, but keep name Anonymous
         userId: currentUser?.uid || null,
         userName: isAnonymous()
@@ -334,7 +334,7 @@ window.submitReview = async function submitReview() {
         createdAt: serverTimestamp(),
       });
 
-      // ✅ Update aggregate rating
+      // Update aggregate rating
       tx.set(
         stallRef,
         {

@@ -15,7 +15,7 @@ import {
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* ✅ SAME config as your other pages */
+
 const firebaseConfig = {
   apiKey: "AIzaSyC-NTWADB-t1OGl7NbdyMVXjpVjnqjpTXg",
   authDomain: "fedproject-8d254.firebaseapp.com",
@@ -161,7 +161,7 @@ function renderCards(items) {
 
     card.style.cursor = "pointer";
 
-    // ✅ If the card has an image, clicking it should open modal (NOT go stall page)
+    // If the card has an image, clicking it should open modal (NOT go stall page)
     const imgEl = card.querySelector(".fbReviewImg");
     if (imgEl) {
       imgEl.style.cursor = "zoom-in";
@@ -279,7 +279,7 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && imgModal && !imgModal.hidden) closeImgModal();
 });
 
-/* ✅ IMPORTANT:
+/* IMPORTANT:
    Your fbCard click navigates to stall page.
    So when user clicks the image, stop that navigation and open modal.
 */

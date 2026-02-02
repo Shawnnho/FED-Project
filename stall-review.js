@@ -138,7 +138,7 @@ function render() {
 
   const { avg, count } = calcSummary(list);
 
-  // ✅ nicer empty state: don't show "0.0" summary when no reviews
+  // nicer empty state: don't show "0.0" summary when no reviews
   if (count === 0) {
     setBadge(0, false);
     sumEl.innerHTML = `

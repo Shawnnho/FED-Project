@@ -626,9 +626,8 @@ body.menuOpen {
   overflow: hidden;
 }
 
-/* ✅ MOBILE BREAKPOINT: switch to hamburger */
+/* MOBILE BREAKPOINT: switch to hamburger */
 @media (max-width: 720px) {
-  /* stop your old wrap behaviour on mobile */
   .topbar-inner {
     flex-wrap: nowrap;
   }
@@ -2432,8 +2431,8 @@ select,
   box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
   margin-bottom: 28px;
 
-  max-width: 880px; /* ✅ wider */
-  width: 96%; /* ✅ ensures it can expand */
+  max-width: 880px; 
+  width: 96%; 
   margin-left: 0;
   margin-right: auto;
 }
@@ -2551,7 +2550,7 @@ select,
   }
 
   .page.stallPage .favWrap {
-    position: static; /* ✅ stop floating/absolute on mobile */
+    position: static; 
     display: flex;
     align-items: center;
     gap: 10px;
@@ -2806,7 +2805,7 @@ select,
   background: rgba(0, 0, 0, 0.45);
 }
 
-/* ✅ centered card */
+/* centered card */
 .hpVoucherCard {
   position: absolute;
   left: 50%;
@@ -3500,7 +3499,7 @@ FOOTER
   gap: 14px;
 }
 
-/* ✅ BIGGER MENU ITEM CARD (this is what you asked) */
+/* BIGGER MENU ITEM CARD (this is what you asked) */
 .menuCard {
   width: 100%;
   max-width: 640px;
@@ -3954,7 +3953,7 @@ FOOTER
 /* ===== Featured row (horizontal) ===== */
 /* wider container */
 .discoverPage .featuredWrap {
-  max-width: 1180px; /* ✅ wider than 720 */
+  max-width: 1180px; 
   margin: 14px auto 0;
   padding: 0 22px; /* use more side space */
 }
@@ -3979,7 +3978,7 @@ FOOTER
 /* bigger cards on desktop, still responsive */
 .discoverPage .featuredCard {
   flex: 0 0 auto;
-  width: min(520px, 88vw); /* ✅ bigger on desktop */
+  width: min(520px, 88vw); 
   background: rgba(255, 255, 255, 0.92);
   border: 1px solid rgba(0, 0, 0, 0.12);
   border-radius: 16px;
@@ -3997,11 +3996,11 @@ FOOTER
   background: #fff;
   background-size: cover;
   background-position: center;
-  background-image: none; /* ✅ not hardcoded */
+  background-image: none; 
 }
 .discoverPage .featuredImg.alt,
 .discoverPage .featuredImg.alt2 {
-  background-image: none; /* ✅ not hardcoded */
+  background-image: none; 
 }
 
 .discoverPage .featuredBody {

@@ -10,7 +10,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* ✅ SAME config as your other files */
+/* SAME config as your other files */
 const firebaseConfig = {
   apiKey: "AIzaSyC-NTWADB-t1OGl7NbdyMVXjpVjnqjpTXg",
   authDomain: "fedproject-8d254.firebaseapp.com",
@@ -196,7 +196,7 @@ async function render() {
   payBox && (payBox.style.display = "");
   proceedBtn && (proceedBtn.style.display = "");
 
-  // ✅ Requirement: by default (every time you open cart), no payment method selected
+  // Requirement: by default (every time you open cart), no payment method selected
   clearPaySelection();
 
   let subtotal = 0;
@@ -321,7 +321,7 @@ document.addEventListener("click", async (e) => {
 onAuthStateChanged(auth, async (u) => {
   currentUser = u;
 
-  // ✅ migrate guest localStorage cart into account cart once
+  // migrate guest localStorage cart into account cart once
   if (u) {
     const local = readLocalCart();
     if (local.length) {

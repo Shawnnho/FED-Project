@@ -374,7 +374,7 @@ function computeOverdue(dueDate, status) {
 }
 
 async function ensureBillDocExists(uid, month) {
-  // If user hasn’t created bill yet, create a blank template (real-life: invoice generated)
+  // If user havnt created bill yet, create a blank template (real-life: invoice generated)
   const ref = doc(db, "stalls", uid, "operatorBills", month);
   const snap = await getDoc(ref);
   if (snap.exists()) return;
@@ -406,7 +406,7 @@ async function loadPaymentSummary(uid, stallData) {
 
   setStatus("Loading payment summary…");
 
-  // Ensure a bill doc exists so your UI doesn’t look “empty”
+  // Ensure a bill doc exists 
   await ensureBillDocExists(uid, month);
 
   // Read operator + staff + payments
@@ -751,7 +751,7 @@ onAuthStateChanged(auth, async (user) => {
     setText("ownerName", u.name || "User");
 
     // 2) Get stall using stallPath
-    let stallData = {}; // ✅ define in THIS scope so below lines can use
+    let stallData = {};
 
     if (u.stallPath) {
       const stallRef = doc(db, u.stallPath); // u.stallPath like "centres/.../stalls/..."
