@@ -216,8 +216,8 @@ function renderBreakdown(breakdown) {
 
   breakdownList.innerHTML = categories.map(cat => {
     const score = breakdown[cat.key] || 0;
-    // Color logic: <85 yellow-green, else green
-    const color = score < 90 ? "#ccfb2e" : "#00c853";
+    const grade = calculateGrade(score);
+    const color = getGradeColor(grade);
 
     return `
       <div class="bdRow">

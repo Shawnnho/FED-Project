@@ -334,12 +334,14 @@ async function loadInspectionData(stallId, currentGrade) {
       });
 
     // Get trend data (last 5 inspections, reversed for oldest to newest)
-    const trendData = inspections.slice(0, 5).reverse().map(insp => ({
-      year: String(new Date(insp.dateTs).getFullYear()),
-      score: insp.score,
-      grade: insp.grade,
-      date: formatDate(insp.dateTs)
-    }));
+    const trendData = inspections.slice(0, 5).reverse().map(insp => {
+      const date = insp.dateTs?.toDate ? insp.dateTs.toDate() : new Date(insp.dateTs || 0);
+      return {
+        year: String(date.getFullYear()),
+        score: insp.score,
+        grade: insp.grade,
+      };
+    });
 
     // Get history data (all inspections, already sorted newest first)
     const historyData = inspections.map(insp => ({
