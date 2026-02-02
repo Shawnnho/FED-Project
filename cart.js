@@ -7,8 +7,23 @@
  *************************************************/
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  serverTimestamp,
+  collection,
+  query,
+  where,
+  getDocs,
+  limit,
+  runTransaction,
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* ✅ SAME config as your other files */
 const firebaseConfig = {
@@ -31,6 +46,87 @@ const userDocRef = (uid) => doc(db, "users", uid);
 
 const cartDocRef = (uid) => doc(db, "carts", uid);
 
+/* ------------------------------ Promo (Firestore) --------------------------------*/
+const PROMO_KEY = "hawkerpoint_applied_promo"; // we store promo document ID
+let appliedPromo = null;
+
+const promoColRef = () => collection(db, "promotions");
+const promoDocRef = (promoId) => doc(db, "promotions", promoId);
+
+// users/{uid}/promoClaims/{promoId}
+const promoClaimRef = (uid, promoId) =>
+  doc(db, "users", uid, "promoClaims", promoId);
+
+async function getPromoByCode(codeRaw) {
+  const code = String(codeRaw || "")
+    .trim()
+    .toUpperCase();
+  if (!code) return null;
+
+  const q = query(promoColRef(), where("code", "==", code), limit(1));
+  const snap = await getDocs(q);
+  if (snap.empty) return null;
+
+  const d = snap.docs[0];
+  return { id: d.id, ...d.data() };
+}
+
+function toMs(ts) {
+  if (!ts) return null;
+  if (typeof ts.toMillis === "function") return ts.toMillis();
+  const t = new Date(ts).getTime();
+  return Number.isFinite(t) ? t : null;
+}
+
+// If you didn't store cashOff/minSpend fields, we try to parse "$5" / "$20" from title/desc
+function inferCashValue(promo) {
+  const explicit = Number(promo.cashOff ?? promo.value ?? promo.amount);
+  if (Number.isFinite(explicit) && explicit > 0) return explicit;
+
+  const text = `${promo.title || ""} ${promo.desc || ""}`;
+  const m = text.match(/\$(\d+(?:\.\d+)?)/);
+  return m ? Number(m[1]) : 0;
+}
+
+function inferMinSpend(promo) {
+  const explicit = Number(promo.minSpend ?? promo.minSubtotal);
+  if (Number.isFinite(explicit) && explicit >= 0) return explicit;
+
+  const text = `${promo.desc || ""}`;
+  const m = text.match(/\$([0-9]+(?:\.[0-9]+)?)/);
+  return m ? Number(m[1]) : 0;
+}
+
+async function loadAppliedPromoFromStorage() {
+  const stored = localStorage.getItem(PROMO_KEY) || "";
+  if (!stored) {
+    appliedPromo = null;
+    return null;
+  }
+
+  const snap = await getDoc(promoDocRef(stored));
+  if (snap.exists()) {
+    appliedPromo = { id: snap.id, ...snap.data() };
+    return appliedPromo;
+  }
+
+  // fallback (if older code stored promo CODE instead of promo ID)
+  const byCode = await getPromoByCode(stored);
+  appliedPromo = byCode;
+  return byCode;
+}
+
+function clearAppliedPromo(message = "") {
+  localStorage.removeItem(PROMO_KEY);
+  appliedPromo = null;
+
+  const label = document.getElementById("promoCodeLabel");
+  if (label) label.textContent = "None";
+
+  const msg = document.getElementById("redeemMsg");
+  if (msg && message) msg.textContent = message;
+}
+
 async function loadSavedAddress(uid) {
   const snap = await getDoc(userDocRef(uid));
   if (!snap.exists()) return null;
@@ -41,7 +137,7 @@ async function saveAddressToUser(uid, addressObj) {
   await setDoc(
     userDocRef(uid),
     { savedAddress: { ...addressObj, updatedAt: serverTimestamp() } },
-    { merge: true }
+    { merge: true },
   );
 }
 
@@ -73,7 +169,7 @@ async function writeCloudCart(uid, cart) {
   await setDoc(
     cartDocRef(uid),
     { items: cart, updatedAt: serverTimestamp() },
-    { merge: true }
+    { merge: true },
   );
 }
 
@@ -106,15 +202,17 @@ function setAddrHint(msg = "", show = true) {
 
 function validateDeliveryFields() {
   const addressEl = document.getElementById("delAddress");
-  const postalEl  = document.getElementById("delPostal");
-  const unitEl    = document.getElementById("delUnit");
+  const postalEl = document.getElementById("delPostal");
+  const unitEl = document.getElementById("delUnit");
 
   const address = addressEl.value.trim();
-  const postal  = postalEl.value.trim();
-  const unit    = unitEl.value.trim();
+  const postal = postalEl.value.trim();
+  const unit = unitEl.value.trim();
 
   // reset visuals
-  [addressEl, postalEl, unitEl].forEach(el => el.classList.remove("isInvalid"));
+  [addressEl, postalEl, unitEl].forEach((el) =>
+    el.classList.remove("isInvalid"),
+  );
   showReq("reqAddress", false);
   showReq("reqPostal", false);
   showReq("reqUnit", false);
@@ -186,7 +284,8 @@ function mergeCarts(existing = [], incoming = []) {
       const addQty = Number(x.qty ?? 1) || 1;
       cur.qty = (Number(cur.qty ?? 1) || 1) + addQty;
 
-      const unit = Number(cur.unitPrice ?? cur.basePrice ?? cur.price ?? 0) || 0;
+      const unit =
+        Number(cur.unitPrice ?? cur.basePrice ?? cur.price ?? 0) || 0;
       cur.totalPrice = unit * (Number(cur.qty ?? 1) || 1);
 
       map.set(k, cur);
@@ -209,7 +308,8 @@ function syncProceedBtn() {
   const selectedPay = Boolean(getSelectedPayMethod());
 
   const fulfillment =
-    document.querySelector('input[name="fulfillment"]:checked')?.value || "pickup";
+    document.querySelector('input[name="fulfillment"]:checked')?.value ||
+    "pickup";
 
   let deliveryOk = true;
   if (fulfillment === "delivery") {
@@ -247,7 +347,6 @@ document.addEventListener("input", (e) => {
 });
 
 function calcDeliveryFee(subtotal) {
-  
   let fee = 2.5;
 
   // Free delivery for larger orders
@@ -255,14 +354,13 @@ function calcDeliveryFee(subtotal) {
 
   // Optional: small peak surcharge (keep it simple)
   const now = new Date();
-  const hour = now.getHours(); 
+  const hour = now.getHours();
   const isPeak = (hour >= 11 && hour < 14) || (hour >= 18 && hour < 21);
 
   if (fee > 0 && isPeak) fee += 1.0;
 
   return Number(fee.toFixed(2));
 }
-
 
 /* ------------------------------ Render cart page --------------------------------*/
 async function render() {
@@ -313,7 +411,8 @@ async function render() {
     const addons = Array.isArray(it.addons) ? it.addons : [];
     const required = Array.isArray(it.required) ? it.required : [];
 
-    const unitPrice = Number(it.unitPrice ?? it.basePrice ?? it.price ?? 0) || 0;
+    const unitPrice =
+      Number(it.unitPrice ?? it.basePrice ?? it.price ?? 0) || 0;
     const line = Number(it.totalPrice) || unitPrice * qty;
 
     subtotal += line;
@@ -367,77 +466,99 @@ async function render() {
     list.appendChild(card);
   });
 
-// ===============================
-// Small Order Fee Logic (min $15, capped at $4)
-// ===============================
-const MIN_SUBTOTAL = 15;
-const MAX_SMALL_FEE = 4;
+  // ===============================
+  // Small Order Fee Logic (min $15, capped at $4)
+  // ===============================
+  const MIN_SUBTOTAL = 15;
+  const MAX_SMALL_FEE = 4;
 
-// Get fulfillment choice
-const fulfillment =
-  document.querySelector('input[name="fulfillment"]:checked')?.value || "pickup";
+  // Get fulfillment choice
+  const fulfillment =
+    document.querySelector('input[name="fulfillment"]:checked')?.value ||
+    "pickup";
 
-// Show / hide delivery address fields
-const deliveryFields = document.getElementById("deliveryFields");
-if (deliveryFields) {
-  deliveryFields.hidden = fulfillment !== "delivery";
-}
-
-// Only apply fee for delivery when subtotal is below minimum
-let smallOrderFee = 0;
-if (fulfillment === "delivery" && subtotal < MIN_SUBTOTAL) {
-  const diff = MIN_SUBTOTAL - subtotal;
-  smallOrderFee = Math.min(diff, MAX_SMALL_FEE);
-  smallOrderFee = Number(smallOrderFee.toFixed(2));
-}
-
-const showSmall = fulfillment === "delivery" && subtotal < MIN_SUBTOTAL;
-
-// message
-const smallOrderMsg = document.getElementById("smallOrderMsg");
-if (smallOrderMsg) {
-  smallOrderMsg.hidden = !showSmall;
-  if (showSmall) {
-    smallOrderMsg.textContent =
-      `Orders below $${money(MIN_SUBTOTAL)} incur a small order fee (capped at $${money(MAX_SMALL_FEE)}).`;
+  // Show / hide delivery address fields
+  const deliveryFields = document.getElementById("deliveryFields");
+  if (deliveryFields) {
+    deliveryFields.hidden = fulfillment !== "delivery";
   }
-}
 
-// divider
-const smallOrderDivider = document.getElementById("smallOrderDivider");
-if (smallOrderDivider) smallOrderDivider.hidden = !showSmall;
+  // Only apply fee for delivery when subtotal is below minimum
+  let smallOrderFee = 0;
+  if (fulfillment === "delivery" && subtotal < MIN_SUBTOTAL) {
+    const diff = MIN_SUBTOTAL - subtotal;
+    smallOrderFee = Math.min(diff, MAX_SMALL_FEE);
+    smallOrderFee = Number(smallOrderFee.toFixed(2));
+  }
 
-// remove row border ONLY when message is shown (prevents double lines)
-const smallOrderRow = document.getElementById("smallOrderRow");
-if (smallOrderRow) smallOrderRow.classList.toggle("noBorder", showSmall);
+  const showSmall = fulfillment === "delivery" && subtotal < MIN_SUBTOTAL;
+
+  // message
+  const smallOrderMsg = document.getElementById("smallOrderMsg");
+  if (smallOrderMsg) {
+    smallOrderMsg.hidden = !showSmall;
+    if (showSmall) {
+      smallOrderMsg.textContent = `Orders below $${money(MIN_SUBTOTAL)} incur a small order fee (capped at $${money(MAX_SMALL_FEE)}).`;
+    }
+  }
+
+  // divider
+  const smallOrderDivider = document.getElementById("smallOrderDivider");
+  if (smallOrderDivider) smallOrderDivider.hidden = !showSmall;
+
+  // remove row border ONLY when message is shown (prevents double lines)
+  const smallOrderRow = document.getElementById("smallOrderRow");
+  if (smallOrderRow) smallOrderRow.classList.toggle("noBorder", showSmall);
 
   // Promo (placeholder – real logic comes next)
+  // ===============================
+  // Promo (Firestore)
+  // ===============================
   let promoDiscount = 0;
-  const promoCode = localStorage.getItem("hawkerpoint_applied_promo") || "";
-  document.getElementById("promoCodeLabel").textContent = promoCode || "None";
 
-    // ===============================
-    // Delivery fee (realistic simulation)
-    // ===============================
-    let deliveryFee = 0;
+  if (!appliedPromo) {
+    await loadAppliedPromoFromStorage();
+  }
 
-    if (fulfillment === "delivery") {
-      deliveryFee = calcDeliveryFee(subtotal);
+  const promoLabelEl = document.getElementById("promoCodeLabel");
+  if (promoLabelEl) promoLabelEl.textContent = appliedPromo?.code || "None";
+
+  if (appliedPromo) {
+    const expMs = toMs(appliedPromo.expiresAt);
+    if (expMs && Date.now() > expMs) {
+      clearAppliedPromo("Promo expired and was removed.");
+    } else {
+      if (appliedPromo.type === "cash") {
+        promoDiscount = inferCashValue(appliedPromo);
+      }
     }
+  }
 
-    // ===============================
-    // Update Summary UI
-    // ===============================
-    document.getElementById("sumSubtotal").textContent = money(subtotal);
-    document.getElementById("sumPromo").textContent = money(promoDiscount);
-    document.getElementById("sumSmallFee").textContent = money(smallOrderFee);
-    document.getElementById("sumDelivery").textContent = money(deliveryFee);
+  // ===============================
+  // Delivery fee (realistic simulation)
+  // ===============================
+  let deliveryFee = 0;
 
-    const total = Math.max(0, subtotal - promoDiscount + smallOrderFee + deliveryFee);
-    document.getElementById("sumTotal").textContent = money(total);
+  if (fulfillment === "delivery") {
+    deliveryFee = calcDeliveryFee(subtotal);
+  }
 
-    // Keep button in correct state after render
-    syncProceedBtn();
+  // ===============================
+  // Update Summary UI
+  // ===============================
+  document.getElementById("sumSubtotal").textContent = money(subtotal);
+  document.getElementById("sumPromo").textContent = money(promoDiscount);
+  document.getElementById("sumSmallFee").textContent = money(smallOrderFee);
+  document.getElementById("sumDelivery").textContent = money(deliveryFee);
+
+  const total = Math.max(
+    0,
+    subtotal - promoDiscount + smallOrderFee + deliveryFee,
+  );
+  document.getElementById("sumTotal").textContent = money(total);
+
+  // Keep button in correct state after render
+  syncProceedBtn();
 }
 
 /* ------------------------------ Qty buttons (cart page) --------------------------------*/
@@ -451,7 +572,8 @@ document.addEventListener("click", async (e) => {
     }
 
     const fulfillment =
-      document.querySelector('input[name="fulfillment"]:checked')?.value || "pickup";
+      document.querySelector('input[name="fulfillment"]:checked')?.value ||
+      "pickup";
 
     // If delivery is selected, validate delivery fields
     if (fulfillment === "delivery") {
@@ -465,7 +587,7 @@ document.addEventListener("click", async (e) => {
 
       // Save address ONLY if checkbox is checked
       const saveChecked = Boolean(
-        document.getElementById("saveAddrChk")?.checked
+        document.getElementById("saveAddrChk")?.checked,
       );
 
       if (saveChecked) {
@@ -512,11 +634,106 @@ document.addEventListener("click", async (e) => {
   }
 
   // Recompute totalPrice if unitPrice exists
-  const unit = Number(cart[i]?.unitPrice ?? cart[i]?.basePrice ?? cart[i]?.price ?? 0) || 0;
+  const unit =
+    Number(cart[i]?.unitPrice ?? cart[i]?.basePrice ?? cart[i]?.price ?? 0) ||
+    0;
   if (cart[i]) cart[i].totalPrice = unit * (Number(cart[i].qty ?? 1) || 1);
 
   await saveCart(cart);
   render();
+});
+
+/* ------------------------------ Redeem promo --------------------------------*/
+document.addEventListener("click", async (e) => {
+  const btn = e.target.closest("#redeemBtn");
+  if (!btn) return;
+
+  const input = document.getElementById("redeemInput");
+  const msg = document.getElementById("redeemMsg");
+
+  const code = (input?.value || "").trim().toUpperCase();
+  if (!code) {
+    if (msg) msg.textContent = "Please enter a promo code.";
+    return;
+  }
+
+  try {
+    if (msg) msg.textContent = "Checking promo...";
+
+    const promo = await getPromoByCode(code);
+    if (!promo) {
+      if (msg) msg.textContent = "Invalid promo code.";
+      return;
+    }
+
+    // expiry check
+    const expMs = toMs(promo.expiresAt);
+    if (expMs && Date.now() > expMs) {
+      if (msg) msg.textContent = "This promo has expired.";
+      return;
+    }
+
+    // redemption check
+    const left = Number(promo.redemptionsLeft);
+    if (Number.isFinite(left) && left <= 0) {
+      if (msg) msg.textContent = "This promo is fully redeemed.";
+      return;
+    }
+
+    // compute subtotal (for min spend)
+    const cart = await readCart();
+    let subtotal = 0;
+    cart.forEach((it) => {
+      const qty = Number(it.qty ?? it.quantity ?? 1) || 1;
+      const unit = Number(it.unitPrice ?? it.basePrice ?? it.price ?? 0) || 0;
+      subtotal += qty * unit;
+    });
+
+    const minSpend = inferMinSpend(promo);
+    if (minSpend > 0 && subtotal < minSpend) {
+      if (msg)
+        msg.textContent = `Minimum spend $${minSpend.toFixed(2)} required.`;
+      return;
+    }
+
+    // ✅ transaction: decrement redemptionsLeft + claimOnce enforcement (if signed in)
+    await runTransaction(db, async (tx) => {
+      const pRef = promoDocRef(promo.id);
+      const pSnap = await tx.get(pRef);
+      if (!pSnap.exists()) throw new Error("Promo no longer exists.");
+
+      const latest = pSnap.data();
+      const latestLeft = Number(latest.redemptionsLeft);
+
+      if (Number.isFinite(latestLeft) && latestLeft <= 0) {
+        throw new Error("This promo is fully redeemed.");
+      }
+
+      const claimOnce = Boolean(latest.claimOnce);
+      if (claimOnce && currentUser) {
+        const cRef = promoClaimRef(currentUser.uid, promo.id);
+        const cSnap = await tx.get(cRef);
+        if (cSnap.exists())
+          throw new Error("You have already claimed this promo.");
+        tx.set(cRef, { claimedAt: serverTimestamp(), code: latest.code });
+      }
+
+      if (Number.isFinite(latestLeft)) {
+        tx.update(pRef, { redemptionsLeft: latestLeft - 1 });
+      }
+    });
+
+    // store promoId for render()
+    localStorage.setItem(PROMO_KEY, promo.id);
+    appliedPromo = promo;
+
+    if (msg) msg.textContent = `Promo "${promo.code}" applied!`;
+    render();
+  } catch (err) {
+    console.error(err);
+    if (msg)
+      msg.textContent = err?.message || "Could not apply promo. Try again.";
+  }
 });
 
 /* ------------------------------ Auth state: migrate + rerender --------------------------------*/
