@@ -23,6 +23,7 @@ import {
   getDocs,
   limit,
   runTransaction,
+  addDoc,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* ✅ SAME config as your other files */
@@ -41,6 +42,14 @@ const db = getFirestore(app);
 
 const CART_KEY = "hp_cart";
 let currentUser = null;
+
+let lastPricing = {
+  subtotal: 0,
+  promoDiscount: 0,
+  smallOrderFee: 0,
+  deliveryFee: 0,
+  total: 0,
+};
 
 const userDocRef = (uid) => doc(db, "users", uid);
 
@@ -387,7 +396,6 @@ async function render() {
 
   const cart = await readCart();
   const promoBox = document.getElementById("promoBox");
-  if (promoBox) promoBox.style.display = currentUser ? "" : "none";
 
   const count = calcCount(cart);
 
@@ -404,6 +412,7 @@ async function render() {
 
   if (cart.length === 0) {
     empty && (empty.hidden = false);
+    promoBox && (promoBox.style.display = "none");
     summary && (summary.style.display = "none");
     payBox && (payBox.style.display = "none");
     proceedBtn && (proceedBtn.style.display = "none");
@@ -415,6 +424,7 @@ async function render() {
   }
 
   empty && (empty.hidden = true);
+  promoBox && (promoBox.style.display = currentUser ? "" : "none");
   summary && (summary.style.display = "");
   payBox && (payBox.style.display = "");
   proceedBtn && (proceedBtn.style.display = "");
@@ -589,6 +599,14 @@ async function render() {
   );
   document.getElementById("sumTotal").textContent = money(total);
 
+  lastPricing = {
+    subtotal,
+    promoDiscount,
+    smallOrderFee,
+    deliveryFee,
+    total,
+  };
+
   // Keep button in correct state after render
   syncProceedBtn();
 }
@@ -607,20 +625,22 @@ document.addEventListener("click", async (e) => {
       document.querySelector('input[name="fulfillment"]:checked')?.value ||
       "pickup";
 
-    // If delivery is selected, validate delivery fields
+    // ✅ Validate delivery ONCE and store addressObj
+    let addressObj = null;
+
     if (fulfillment === "delivery") {
-      const { ok, addressObj } = validateDeliveryFields();
-      if (!ok) {
+      const v = validateDeliveryFields();
+      if (!v.ok) {
         document
           .getElementById("fulfillBox")
           ?.scrollIntoView({ behavior: "smooth", block: "start" });
         return;
       }
 
-      // Save address ONLY if checkbox is checked
-      const saveChecked = Boolean(
-        document.getElementById("saveAddrChk")?.checked,
-      );
+      addressObj = v.addressObj;
+
+      // ✅ Save address ONLY if checkbox is checked (delivery only)
+      const saveChecked = Boolean(document.getElementById("saveAddrChk")?.checked);
 
       if (saveChecked) {
         if (!currentUser) {
@@ -641,8 +661,80 @@ document.addEventListener("click", async (e) => {
       }
     }
 
-    // continue checkout
-    alert(`Proceeding with payment method: ${method}`);
+    // ✅ Require signed-in user for checkout
+    if (!currentUser) {
+      alert("Please sign in to checkout.");
+      return;
+    }
+
+    const cart = await readCart();
+    if (!cart.length) {
+      alert("Your cart is empty.");
+      return;
+    }
+
+    const items = cart.map((it) => {
+      const qty = Number(it.qty ?? 1) || 1;
+      const unitPrice = Number(it.unitPrice ?? 0) || 0;
+
+      return {
+        stallId: it.stallId || null,
+        itemId: it.itemId || null,
+        name: it.name || "Item",
+        img: it.img || "",
+        qty,
+        unitPrice: Number(unitPrice.toFixed(2)),
+        lineTotal: Number((qty * unitPrice).toFixed(2)),
+        note: it.note || "",
+        addons: Array.isArray(it.addons) ? it.addons : [],
+        required: Array.isArray(it.required) ? it.required : [],
+      };
+    });
+
+    const orderPayload = {
+      userId: currentUser.uid,
+      createdAt: serverTimestamp(),
+      status: "pending_payment",
+      items,
+      fulfillment: {
+        type: fulfillment,
+        address: fulfillment === "delivery" ? addressObj : null,
+      },
+      payment: {
+        method,
+        paidAt: null,
+        ref: "",
+      },
+      promo: {
+        promoId: appliedPromo?.id || null,
+        code: appliedPromo?.code || "NONE",
+        discount: Number((lastPricing.promoDiscount || 0).toFixed(2)),
+      },
+      pricing: {
+        subtotal: Number((lastPricing.subtotal || 0).toFixed(2)),
+        smallOrderFee: Number((lastPricing.smallOrderFee || 0).toFixed(2)),
+        deliveryFee: Number((lastPricing.deliveryFee || 0).toFixed(2)),
+        total: Number((lastPricing.total || 0).toFixed(2)),
+      },
+    };
+
+    try {
+      const orderRef = await addDoc(collection(db, "orders"), orderPayload);
+      const orderId = orderRef.id;
+
+      await saveCart([]);
+      await clearAppliedPromo();
+
+      
+      if (method === "cash") window.location.href = `cash.html?orderId=${orderId}`;
+      else if (method === "paynow_nets") window.location.href = `qr.html?orderId=${orderId}`;
+      else window.location.href = `card.html?orderId=${orderId}`;
+
+    } catch (err) {
+      console.error(err);
+      alert("Could not create order. Try again.");
+    }
+
     return;
   }
 
