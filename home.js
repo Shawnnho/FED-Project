@@ -6,6 +6,13 @@ import {
   getDocs,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+import {
+  getAuth,
+  signOut,
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+const auth = getAuth();
+
 /*************************************************
  * home.js - Stall Listing + Filters + Guest Mode (FULL)
  * - Guest mode: home.html?mode=guest
@@ -34,41 +41,32 @@ function applyGuestModeUI() {
   });
 }
 
-document.querySelectorAll(".viewBtn").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    const id = btn.dataset.id;
-    window.location.href = `stall.html?id=${id}`;
-  });
-});
+function wireAccountLinkForGuest() {
+  document.addEventListener(
+    "click",
+    (e) => {
+      if (!isGuest) return;
 
-applyGuestModeUI();
-document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll('a[href="account.html"]').forEach((link) => {
-    link.addEventListener("click", (e) => {
-      if (isGuest) {
-        e.preventDefault();
-        window.location.href = "signin.html";
-      }
-    });
-  });
-});
+      const link = e.target.closest(
+        'a[href*="account.html"], a[data-guest-account="1"]',
+      );
+      if (!link) return;
+
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      window.location.href = "signin.html?from=guest";
+    },
+    true,
+  );
+}
+
 /* ===============================
    DATA
 ================================ */
 
 let stalls = [];
 
-const els = {
-  list: document.getElementById("list"),
-  subline: document.getElementById("subline"),
-  q: document.getElementById("q"),
-  cuisine: document.getElementById("cuisine"),
-  grade: document.getElementById("grade"),
-  sort: document.getElementById("sort"),
-  location: document.getElementById("location"),
-  emptyState: document.getElementById("emptyState"),
-  resetBtn: document.getElementById("resetFiltersBtn"),
-};
+let els = {};
 
 async function loadHomeStalls() {
   const q = query(collection(db, "stalls"), where("active", "==", true));
@@ -112,7 +110,7 @@ function renderGuestLockedView() {
         Reset Filters
       </button>
 
-      <a class="resetBtn guestCTA secondary" href="signup.html">
+      <a class="resetBtn guestCTA secondary" href="${withGuestMode("signup.html")}">
         Register
       </a>
     </div>
@@ -337,29 +335,67 @@ function hasActiveFilters() {
 /* ===============================
    RESET BUTTON HANDLING
 ================================ */
+function wireHomeListeners() {
+  // reset filters button inside list
+  els.list.addEventListener("click", (e) => {
+    const btn = e.target.closest('[data-action="reset-filters"]');
+    if (!btn) return;
 
-els.list.addEventListener("click", (e) => {
-  const btn = e.target.closest('[data-action="reset-filters"]');
-  if (!btn) return;
+    resetAllFilters();
+    applyFilters();
+  });
 
-  resetAllFilters();
-  applyFilters();
-});
+  // filter/search inputs
+  ["input", "change"].forEach((evt) => {
+    els.q.addEventListener(evt, applyFilters);
+    els.location.addEventListener(evt, applyFilters);
+  });
+
+  els.cuisine.addEventListener("change", applyFilters);
+  els.grade.addEventListener("change", applyFilters);
+  els.sort.addEventListener("change", applyFilters);
+}
+
+function forceAccountLinksToSigninForGuest() {
+  if (!isGuest) return;
+
+  // Desktop + Mobile account links
+  document
+    .querySelectorAll('a[href="account.html"], a[href*="account.html"]')
+    .forEach((a) => {
+      a.setAttribute("href", withGuestMode("signin.html"));
+      a.setAttribute("data-guest-account", "1");
+    });
+}
 
 /* ===============================
    INIT
 ================================ */
+function initHome() {
+  if (isGuest) {
+    signOut(auth);
+  }
+  // Grab DOM elements ONLY after DOM is ready
+  els = {
+    list: document.getElementById("list"),
+    subline: document.getElementById("subline"),
+    q: document.getElementById("q"),
+    cuisine: document.getElementById("cuisine"),
+    grade: document.getElementById("grade"),
+    sort: document.getElementById("sort"),
+    location: document.getElementById("location"),
+    emptyState: document.getElementById("emptyState"),
+    resetBtn: document.getElementById("resetFiltersBtn"),
+  };
 
-loadHomeStalls();
-/* ===============================
-   LISTENERS
-================================ */
+  applyGuestModeUI();
+  wireAccountLinkForGuest();
+  wireHomeListeners();
+  loadHomeStalls();
+}
 
-// Guest lock is handled inside applyFilters()
-["input", "change"].forEach((evt) => {
-  els.q.addEventListener(evt, applyFilters);
-  els.location.addEventListener(evt, applyFilters);
-});
-els.cuisine.addEventListener("change", applyFilters);
-els.grade.addEventListener("change", applyFilters);
-els.sort.addEventListener("change", applyFilters);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initHome);
+} else {
+  initHome();
+}

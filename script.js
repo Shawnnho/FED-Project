@@ -45,6 +45,9 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+const params = new URLSearchParams(window.location.search);
+const fromGuest = params.get("from") === "guest";
+
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("loginForm");
   const emailOrPhone = document.getElementById("emailOrPhone");
@@ -95,6 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
      Auth state (block deactivated)
   ============================== */
   onAuthStateChanged(auth, async (user) => {
+    if (fromGuest) return; // ✅ allow signin page to stay
     if (!user || isLoggingIn) return;
 
     try {
