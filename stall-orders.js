@@ -16,6 +16,11 @@ import {
 const db = getFirestore();
 const $ = (id) => document.getElementById(id);
 
+function setText(id, val) {
+  const el = $(id);
+  if (el) el.textContent = val ?? "—";
+}
+
 function money(n) {
   const v = Number(n || 0);
   return `$${v.toFixed(2)}`;
@@ -169,12 +174,30 @@ function renderOrderCard(orderId, o, opts = {}) {
   `;
 }
 
-async function getMyStallId(uid) {
-  const snap = await getDoc(doc(db, "users", uid));
-  if (!snap.exists()) throw new Error("users/{uid} not found.");
-  const u = snap.data();
-  if (!u.stallId) throw new Error("users/{uid} missing stallId.");
-  return u.stallId;
+/* ===== Read user -> stall info (same idea as dashboard) ===== */
+async function getMyStallInfo(uid) {
+  const userSnap = await getDoc(doc(db, "users", uid));
+  if (!userSnap.exists()) throw new Error("users/{uid} not found.");
+
+  const u = userSnap.data() || {};
+  const stallId = u.stallId;
+  if (!stallId) throw new Error("users/{uid} missing stallId.");
+
+  const centreId = u.centreId;
+  if (!centreId) throw new Error("users/{uid} missing centreId.");
+
+  // This is your HTML header fields
+  setText("ownerName", u.name || "—");
+
+  // Fetch stall name
+  const stallSnap = await getDoc(
+    doc(db, "centres", centreId, "stalls", stallId),
+  );
+  const stallName = stallSnap.exists()
+    ? stallSnap.data()?.stallName || "—"
+    : "Stall not found";
+
+  return { stallId, stallName };
 }
 
 async function loadUnpaidCash(stallId) {
@@ -202,6 +225,18 @@ async function loadPaid(stallId) {
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 
+async function loadCompleted(stallId) {
+  const q = query(
+    collection(db, "orders"),
+    where("stallId", "==", stallId),
+    where("status", "==", "completed"),
+    orderBy("createdAt", "desc"),
+    limit(50),
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
 async function confirmCashPaid(orderId) {
   await updateDoc(doc(db, "orders", orderId), {
     status: "paid",
@@ -216,36 +251,51 @@ async function main() {
   const paidMeta = $("paidMeta");
   const unpaidEmpty = $("unpaidEmpty");
   const paidEmpty = $("paidEmpty");
+  const completedList = $("completedList");
+  const completedMeta = $("completedMeta");
+  const completedEmpty = $("completedEmpty");
 
   async function refresh(stallId) {
-    const [unpaid, paid] = await Promise.all([
+    const [unpaid, paid, completed] = await Promise.all([
       loadUnpaidCash(stallId),
       loadPaid(stallId),
+      loadCompleted(stallId),
     ]);
 
     unpaidMeta.textContent = `${unpaid.length}`;
     paidMeta.textContent = `${paid.length}`;
+    completedMeta.textContent = `${completed.length}`;
 
     unpaidEmpty.style.display = unpaid.length ? "none" : "block";
     paidEmpty.style.display = paid.length ? "none" : "block";
+    completedEmpty.style.display = completed.length ? "none" : "block";
 
     unpaidList.innerHTML = unpaid
       .map((o) => renderOrderCard(o.id, o, { showConfirmCashBtn: true }))
       .join("");
+
     paidList.innerHTML = paid.map((o) => renderOrderCard(o.id, o)).join("");
+
+    completedList.innerHTML = completed
+      .map((o) => renderOrderCard(o.id, o))
+      .join("");
   }
 
   unpaidList?.addEventListener("click", async (e) => {
     const btn = e.target.closest("[data-confirm-cash]");
     if (!btn) return;
+
     const orderId = btn.getAttribute("data-confirm-cash");
     btn.disabled = true;
     btn.textContent = "Confirming...";
+
     try {
       await confirmCashPaid(orderId);
+
       const user = auth.currentUser;
       if (!user) return;
-      const stallId = await getMyStallId(user.uid);
+
+      const { stallId } = await getMyStallInfo(user.uid);
       await refresh(stallId);
     } catch (err) {
       console.error(err);
@@ -253,15 +303,18 @@ async function main() {
     }
   });
 
-  auth.on_AuthStateChanged?.(() => {}); // no-op safeguard
-
   auth.onAuthStateChanged(async (user) => {
     if (!user) {
       window.location.href = "index.html";
       return;
     }
+
     try {
-      const stallId = await getMyStallId(user.uid);
+      const { stallId, stallName } = await getMyStallInfo(user.uid);
+
+      // ✅ IMPORTANT: your HTML uses id="stallName"
+      setText("stallName", stallName);
+
       await refresh(stallId);
     } catch (err) {
       console.error(err);

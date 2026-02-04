@@ -94,17 +94,24 @@ async function getMyStall() {
   const user = auth.currentUser;
   if (!user) throw new Error("Not signed in");
 
-  // CHANGE "ownerUid" only if your stall uses different field
-  const qStall = query(
-    collection(db, COL_STALLS),
-    where("ownerUid", "==", user.uid),
-  );
-  const snap = await getDocs(qStall);
+  const userSnap = await getDoc(doc(db, "users", user.uid));
+  if (!userSnap.exists()) throw new Error("users/{uid} not found");
 
-  if (snap.empty) throw new Error("No stall found for this user");
+  const u = userSnap.data();
+  if (!u.stallId) throw new Error("users/{uid} missing stallId");
 
-  const stallDoc = snap.docs[0];
-  return { stallId: stallDoc.id, ...stallDoc.data() };
+  // Prefer stallPath if you have it, else build from centreId
+  const stallRef = u.stallPath
+    ? doc(db, u.stallPath)
+    : doc(db, "centres", u.centreId, "stalls", u.stallId);
+
+  const stallSnap = await getDoc(stallRef);
+  if (!stallSnap.exists()) throw new Error("Stall doc not found");
+
+  return {
+    stallId: stallRef.id,
+    ...stallSnap.data(),
+  };
 }
 
 function listenOrders(stallId, rangeStart, rangeEnd, cb) {
@@ -113,7 +120,7 @@ function listenOrders(stallId, rangeStart, rangeEnd, cb) {
   const qOrders = query(
     ordersRef,
     where("stallId", "==", stallId),
-    where("status", "==", "completed"),
+    where("status", "in", ["paid", "preparing", "ready", "completed"]),
     where("createdAt", ">=", toTs(rangeStart)),
     where("createdAt", "<=", toTs(rangeEnd)),
     orderBy("createdAt", "asc"),
@@ -127,7 +134,9 @@ function listenOrders(stallId, rangeStart, rangeEnd, cb) {
 
 function calcTotals(orders) {
   let totalSales = 0;
-  for (const o of orders) totalSales += Number(o.total || 0);
+  for (const o of orders) {
+    totalSales += Number(o.pricing?.total ?? o.total ?? 0);
+  }
   return { totalSales, totalOrders: orders.length };
 }
 
@@ -148,10 +157,6 @@ function fmtLabel(mins) {
 }
 
 function getHoursForDate(stall, dateObj) {
-  // Supports:
-  // - stall.openTime / stall.closeTime
-  // - stall.operatingHours.{mon..sun}.{open,close}
-
   // Option B per-day
   const oh = stall.operatingHours;
   if (oh && typeof oh === "object") {
@@ -214,7 +219,7 @@ function calcHourlySales(orders, whichDay, stall, stepMins = 60) {
       Math.floor((mins - startM) / stepMins),
     );
 
-    buckets[idx] += Number(o.total || 0);
+    buckets[idx] += Number(o.pricing?.total ?? o.total ?? 0);
   }
 
   return { labels, data: buckets };
@@ -228,7 +233,7 @@ function calcTopDishes(orders) {
       // CHANGE if your item shape differs
       const name = String(it.name || "Unknown");
       const qty = Number(it.qty ?? 1);
-      const price = Number(it.price ?? 0);
+      const price = Number(it.unitPrice ?? it.price ?? 0);
       const sales = qty * price;
 
       if (!map.has(name)) map.set(name, { name, orders: 0, sales: 0 });
@@ -248,7 +253,7 @@ function calcTopDishes(orders) {
 // REVIEWS (stalls/{stallId}/reviews)
 // =============================
 function listenReviews(stallId, cb) {
-  const reviewsRef = collection(db, COL_STALLS, stallId, SUB_REVIEWS);
+  const reviewsRef = collection(db, "stalls", stallId, "reviews");
   const qRev = query(reviewsRef, orderBy("createdAt", "desc"));
   return onSnapshot(qRev, (snap) => {
     const reviews = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
@@ -480,7 +485,7 @@ async function loadNextInspection(stallId) {
   const qDone = query(
     collection(db, "inspections"),
     where("stallId", "==", stallId),
-    where("status", "==", "completed"),
+    where("status", "in", ["paid", "preparing", "ready", "completed"]),
     orderBy("dateTs", "desc"),
     limit(1),
   );
@@ -517,6 +522,31 @@ async function loadNextInspection(stallId) {
   nextInspectionMsg = "No upcoming inspection scheduled";
   setText("kpiGradeHint", nextInspectionMsg);
   setText("hygHint", nextInspectionMsg);
+}
+
+async function resolveTopLevelStallId(stallIdFromCentre, stallData) {
+  // 1) If stalls/{id} exists, use it
+  const direct = await getDoc(doc(db, "stalls", stallIdFromCentre));
+  if (direct.exists()) return stallIdFromCentre;
+
+  // 2) Otherwise, find it by centreId + stallName (matches your premade stalls)
+  const centreId =
+    stallData.centreId || stallData.centre || stallData.hawkerCentreId;
+  const stallName = stallData.stallName || stallData.name;
+
+  if (!centreId || !stallName) return stallIdFromCentre;
+
+  const q = query(
+    collection(db, "stalls"),
+    where("centreId", "==", centreId),
+    where("stallName", "==", stallName),
+    limit(1),
+  );
+
+  const snap = await getDocs(q);
+  if (!snap.empty) return snap.docs[0].id;
+
+  return stallIdFromCentre;
 }
 
 // =============================
@@ -616,74 +646,128 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       // orders today listener
-      if (unsubOrders) unsubOrders();
-      unsubOrders = listenOrders(
-        stallId,
-        todayStart,
-        todayEnd,
-        async (ordersToday) => {
-          const { totalSales: salesToday, totalOrders: ordersTodayCount } =
-            calcTotals(ordersToday);
+      // ----------------------------
+      // FILTERED ORDERS LISTENER
+      // ----------------------------
+      let rangeStart = todayStart;
+      let rangeEnd = todayEnd;
 
-          // month revenue (one-time fetch)
-          const ordersMonthSnap = await getDocs(
-            query(
-              collection(db, COL_ORDERS),
-              where("stallId", "==", stallId),
-              where("status", "==", "completed"),
-              where("createdAt", ">=", toTs(monthStart)),
-              where("createdAt", "<=", toTs(monthEnd)),
-              orderBy("createdAt", "asc"),
-            ),
-          );
-          const ordersMonth = ordersMonthSnap.docs.map((d) => d.data());
-          const { totalSales: revenueMonth } = calcTotals(ordersMonth);
+      function getRangeFromPreset(preset) {
+        const base = new Date(); // local time
+        if (preset === "yesterday") {
+          const d = new Date(base);
+          d.setDate(d.getDate() - 1);
+          return { start: startOfDay(d), end: endOfDay(d), label: "Yesterday" };
+        }
+        if (preset === "last7") {
+          const end = endOfDay(base);
+          const start = startOfDay(new Date(base));
+          start.setDate(start.getDate() - 6); // last 7 days incl today
+          return { start, end, label: "Last 7 days" };
+        }
+        // default: today
+        return { start: startOfDay(base), end: endOfDay(base), label: "Today" };
+      }
 
-          renderKpis({
-            salesToday,
-            ordersToday: ordersTodayCount,
-            revenueMonth,
-            grade,
-            gradeWord,
-            gradeHint,
-          });
+      async function resubscribeOrders() {
+        if (unsubOrders) unsubOrders();
 
-          if (nextInspectionMsg) {
-            setText("kpiGradeHint", nextInspectionMsg);
-            setText("hygHint", nextInspectionMsg);
-          }
+        unsubOrders = listenOrders(
+          stallId,
+          rangeStart,
+          rangeEnd,
+          async (ordersInRange) => {
+            const { totalSales, totalOrders } = calcTotals(ordersInRange);
 
-          // yesterday fetch for compare line
-          const ordersYesterdaySnap = await getDocs(
-            query(
-              collection(db, COL_ORDERS),
-              where("stallId", "==", stallId),
-              where("status", "==", "completed"),
-              where("createdAt", ">=", toTs(yStart)),
-              where("createdAt", "<=", toTs(yEnd)),
-              orderBy("createdAt", "asc"),
-            ),
-          );
-          const ordersYesterday = ordersYesterdaySnap.docs.map((d) => d.data());
+            // ✅ Make KPIs follow the filter too
+            renderKpis({
+              salesToday: totalSales,
+              ordersToday: totalOrders,
+              revenueMonth: totalSales, // (optional) change if you want “month” to stay month
+              grade,
+              gradeWord,
+              gradeHint,
+            });
 
-          const hToday = calcHourlySales(ordersToday, now, stall, 60);
-          const hYest = calcHourlySales(ordersYesterday, y, stall, 60);
+            if (nextInspectionMsg) {
+              setText("kpiGradeHint", nextInspectionMsg);
+              setText("hygHint", nextInspectionMsg);
+            }
 
-          drawChart({
-            labels: hToday.labels,
-            today: hToday.data,
-            yesterday: hYest.data,
-            compare,
-          });
+            // comparison line = previous period (only if compare is on)
+            let ySeries = [];
+            if (compare) {
+              const days = Math.max(
+                1,
+                Math.round(
+                  (endOfDay(rangeEnd) - startOfDay(rangeStart)) /
+                    (1000 * 60 * 60 * 24),
+                ) + 1,
+              );
+              const prevEnd = new Date(rangeStart);
+              prevEnd.setMilliseconds(prevEnd.getMilliseconds() - 1);
+              const prevStart = new Date(prevEnd);
+              prevStart.setDate(prevStart.getDate() - (days - 1));
 
-          // top dishes (today)
-          renderTopDishesRows(calcTopDishes(ordersToday));
-        },
-      );
+              const prevSnap = await getDocs(
+                query(
+                  collection(db, COL_ORDERS),
+                  where("stallId", "==", stallId),
+                  where("status", "in", [
+                    "paid",
+                    "preparing",
+                    "ready",
+                    "completed",
+                  ]),
+                  where("createdAt", ">=", toTs(startOfDay(prevStart))),
+                  where("createdAt", "<=", toTs(endOfDay(prevEnd))),
+                  orderBy("createdAt", "asc"),
+                ),
+              );
+              ySeries = prevSnap.docs.map((d) => d.data());
+            }
+
+            const hNow = calcHourlySales(ordersInRange, rangeStart, stall, 60);
+            const hPrev = compare
+              ? calcHourlySales(ySeries, new Date(rangeStart), stall, 60)
+              : { data: [] };
+
+            drawChart({
+              labels: hNow.labels,
+              today: hNow.data,
+              yesterday: hPrev.data,
+              compare,
+            });
+
+            renderTopDishesRows(calcTopDishes(ordersInRange));
+          },
+        );
+      }
+
+      // =============================
+      // DATE PRESET HANDLER
+      // =============================
+      const presetEl = $("datePreset");
+
+      function applyPreset() {
+        if (!presetEl) return;
+
+        const { start, end } = getRangeFromPreset(presetEl.value);
+        rangeStart = start;
+        rangeEnd = end;
+
+        resubscribeOrders();
+      }
+
+      presetEl?.addEventListener("change", applyPreset);
+      applyPreset(); // ✅ initial load
 
       // reviews listener
       if (unsubReviews) unsubReviews();
-      unsubReviews = listenReviews(stallId, (reviews) => {
+      const reviewsStallId = await resolveTopLevelStallId(stallId, stall);
+
+      if (unsubReviews) unsubReviews();
+      unsubReviews = listenReviews(reviewsStallId, (reviews) => {
         renderRatingsUI(calcRatings(reviews));
       });
     } catch (err) {

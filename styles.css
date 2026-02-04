@@ -5431,3 +5431,24 @@ hr {
   font-size: 20px;
   font-weight: bold;
 }
+
+/* === Store page hygiene grade (scoped, same logic as stall-holder) === */
+body.storePage #stallGrade.gradeA {
+  background: #d32f2f;
+  color: #fff;
+}
+
+body.storePage #stallGrade.gradeB {
+  background: #7cb342;
+  color: #fff;
+}
+
+body.storePage #stallGrade.gradeC {
+  background: #a67942;
+  color: #fff;
+}
+
+body.storePage #stallGrade.gradeD {
+  background: #9ca3af;
+  color: #fff;
+}

@@ -746,8 +746,13 @@ document.addEventListener("click", async (e) => {
         );
 
         const orderPayload = {
-          stallId: sid, // ✅ THIS is the key fix
+          stallId: sid,
           userId: currentUser.uid,
+
+          customerUid: currentUser.uid,
+          customerName: currentUser.displayName || currentUser.email || "Guest",
+          customerEmail: currentUser.email || "",
+
           createdAt: serverTimestamp(),
           status: isCash ? "pending_payment" : "paid",
 
@@ -790,7 +795,7 @@ document.addEventListener("click", async (e) => {
       if (createdOrderIds.length === 1) {
         const orderId = createdOrderIds[0];
         if (method === "cash")
-          window.location.href = `cash.html?orderId=${orderId}`;
+          window.location.href = `orders.html?orderId=${orderId}`;
         else if (method === "paynow_nets")
           window.location.href = `qr.html?orderId=${orderId}`;
         else window.location.href = `card.html?orderId=${orderId}`;

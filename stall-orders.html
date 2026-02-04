@@ -144,54 +144,36 @@
             </div>
           </div>
 
+          <!-- Completed Orders -->
+          <div class="legal-card" style="margin-top: 14px">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              <div style="font-weight: 900">Completed Orders</div>
+              <div class="pill" id="completedMeta">0</div>
+            </div>
+
+            <div
+              id="completedEmpty"
+              class="legal-muted"
+              style="margin-top: 10px; display: none"
+            >
+              No completed orders yet.
+            </div>
+
+            <div id="completedList" style="margin-top: 10px"></div>
+          </div>
+
           <!-- Toast -->
           <div class="toast" id="toast" aria-live="polite"></div>
         </section>
       </div>
     </main>
 
-    <!-- ================= PAGE LOGIC ================= -->
     <script type="module" src="stall-orders.js"></script>
-
-    <!-- ================= USER NAME + LOGOUT ================= -->
-    <script type="module">
-      import { auth } from "./firebase.js";
-      import { signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-      import {
-        getFirestore,
-        doc,
-        getDoc,
-      } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-      const db = getFirestore();
-      const $ = (id) => document.getElementById(id);
-
-      function showToast(msg) {
-        const t = $("toast");
-        if (!t) return;
-        t.textContent = msg;
-        t.classList.add("show");
-        setTimeout(() => t.classList.remove("show"), 1800);
-      }
-
-      auth.onAuthStateChanged(async (user) => {
-        if (!user) return;
-        try {
-          const snap = await getDoc(doc(db, "users", user.uid));
-          if (snap.exists()) {
-            const u = snap.data();
-            $("ownerName").textContent = u.name || u.email || "Account";
-          }
-        } catch {
-          $("ownerName").textContent = "Account";
-        }
-      });
-
-      $("logoutBtn").addEventListener("click", async () => {
-        await signOut(auth);
-        showToast("Logged out");
-        window.location.href = "index.html";
-      });
-    </script>
   </body>
 </html>

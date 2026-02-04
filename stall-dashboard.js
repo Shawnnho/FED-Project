@@ -1,7 +1,5 @@
 // stall-dashboard.js (FULL FIXED)
 // - Removes broken storeholder-context lines
-// - Loads real orders from Firestore:
-//   centres/{centreId}/stalls/{uid}/orders
 // - Updates stats + table + bulk status update
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -74,6 +72,24 @@ function listenReviewBadge(stallUid) {
 /* helpers */
 const $ = (id) => document.getElementById(id);
 
+// =========================
+// CUSTOMER NAME LOOKUP (CACHE)
+// =========================
+const customerCache = new Map();
+
+async function getCustomerName(uid) {
+  if (!uid) return "—";
+  if (customerCache.has(uid)) return customerCache.get(uid);
+
+  const snap = await getDoc(doc(db, "users", uid));
+  const name = snap.exists()
+    ? snap.data()?.name || snap.data()?.email || "—"
+    : "—";
+
+  customerCache.set(uid, name);
+  return name;
+}
+
 /* ===== REVIEW LAST-SEEN HELPERS ===== */
 function storageKey(uid) {
   return `hp:lastSeenReviewMs:${uid}`;
@@ -135,12 +151,20 @@ function prettyStatus(s) {
 
 function normStatus(s) {
   const v = String(s || "").toLowerCase();
+
+  // map real order statuses -> dashboard tabs
+  if (v === "pending_payment") return "pending";
+  if (v === "paid" || v === "preparing" || v === "ready") return "in-progress";
+  if (v === "completed") return "completed";
+  if (v === "cancelled") return "cancelled";
+
+  // keep existing normalization
   if (v === "inprogress" || v === "in_progress") return "in-progress";
   return v;
 }
 
 /* UI state */
-let activeStatus = "pending"; // default tab
+let activeStatus = ""; // default tab
 let allOrders = []; // latest snapshot
 let unsubOrders = null; // to clean up listener
 
@@ -204,7 +228,9 @@ function renderOrdersTable() {
         <input type="checkbox" class="orderCheck" data-oid="${o.docId}" />
       </td>
       <td style="padding:10px;">${o.id}</td>
-      <td style="padding:10px;">${o.customer}</td>
+      <td style="padding:10px;">
+  <span data-customer-uid="${o.customer}">${o.customer}</span>
+</td>
       <td style="padding:10px;"><span class="prep ${prettyStatus(o.status)}">${prettyStatus(o.status)}</span>
 </td>
       <td style="padding:10px;">${o.item}</td>
@@ -217,6 +243,20 @@ function renderOrdersTable() {
     `;
     body.appendChild(tr);
   }
+
+  // Replace customer UID with real name (must run AFTER rows are rendered)
+  document
+    .querySelectorAll("#ordersBody [data-customer-uid]")
+    .forEach(async (el) => {
+      const uid = el.getAttribute("data-customer-uid");
+      if (!uid || uid === "—") return;
+
+      // UID is long; real names are short
+      if (uid.length < 20) return;
+
+      const name = await getCustomerName(uid);
+      el.textContent = name;
+    });
 }
 
 /* Convert Firestore order doc -> UI row */
@@ -224,16 +264,27 @@ function mapOrderDoc(d) {
   const data = d.data() || {};
   const status = normStatus(data.status);
 
-  // Order ID shown in UI: prefer data.orderId / data.orderNo / fallback to doc id
+  // Display order id
   const displayId =
     data.orderId ||
     data.orderNo ||
     (d.id.length > 10 ? `#${d.id.slice(0, 6)}` : `#${d.id}`);
 
-  // Customer: prefer customerName / name / email
-  const customer = data.customerName || data.name || data.customerEmail || "—";
+  const customer =
+    data.customerName ||
+    data.customer?.name ||
+    data.customer?.displayName ||
+    data.customerEmail ||
+    data.customer?.email ||
+    data.email ||
+    data.name ||
+    data.uid ||
+    data.userId ||
+    data.customerUid ||
+    data.customerId ||
+    "—";
 
-  // Items: support array items [{name, qty}] or string
+  // ✅ Item summary (support your stall-orders items shape)
   let itemSummary = "—";
   if (Array.isArray(data.items) && data.items.length) {
     const first = data.items[0];
@@ -249,11 +300,14 @@ function mapOrderDoc(d) {
     itemSummary = data.item;
   }
 
-  // Amount: prefer total / amount / subtotal
+  // ✅ Amount (your stall-orders uses pricing.total)
+  const pricing = data.pricing || {};
   const amount =
+    Number(pricing.total) ||
     Number(data.totalAmount) ||
     Number(data.total) ||
     Number(data.amount) ||
+    Number(pricing.subtotal) ||
     Number(data.subtotal) ||
     0;
 
@@ -271,19 +325,15 @@ function mapOrderDoc(d) {
 /* =========================
    FIRESTORE: listen to orders
 ========================= */
-function listenOrders(centreId, ownerUid) {
-  // orders path: centres/{centreId}/stalls/{ownerUid}/orders
-  const ordersCol = collection(
-    db,
-    "centres",
-    centreId,
-    "stalls",
-    ownerUid,
-    "orders",
+function listenOrdersTopLevel(stallId) {
+  const ordersCol = collection(db, "orders");
+  const q = query(
+    ordersCol,
+    where("stallId", "==", stallId),
+    orderBy("createdAt", "desc"),
+    limit(50),
   );
-  const q = query(ordersCol, orderBy("createdAt", "desc"), limit(50));
 
-  // clean previous
   if (typeof unsubOrders === "function") unsubOrders();
 
   unsubOrders = onSnapshot(
@@ -300,13 +350,6 @@ function listenOrders(centreId, ownerUid) {
       }
 
       renderOrdersTable();
-
-      newOnes.forEach((o) => {
-        const row = document
-          .querySelector(`[data-oid="${o.docId}"]`)
-          ?.closest("tr");
-        row?.classList.add("orderNew");
-      });
     },
     (err) => {
       console.error("Orders snapshot error:", err);
@@ -321,7 +364,7 @@ function listenOrders(centreId, ownerUid) {
 /* =========================
    BULK UPDATE STATUS
 ========================= */
-async function bulkUpdateStatus(centreId, ownerUid, newStatus) {
+async function bulkUpdateStatus(newStatus) {
   const checks = Array.from(document.querySelectorAll(".orderCheck:checked"));
   if (checks.length === 0) {
     alert("Select at least 1 order first.");
@@ -338,15 +381,8 @@ async function bulkUpdateStatus(centreId, ownerUid, newStatus) {
     const docId = cb.dataset.oid;
     if (!docId) continue;
 
-    const ref = doc(
-      db,
-      "centres",
-      centreId,
-      "stalls",
-      ownerUid,
-      "orders",
-      docId,
-    );
+    const ref = doc(db, "orders", docId);
+
     batch.update(ref, {
       status: newStatus,
       updatedAt: serverTimestamp(),
@@ -385,6 +421,18 @@ $("bulkCheckAll")?.addEventListener("change", (e) => {
   document.querySelectorAll(".orderCheck").forEach((cb) => {
     cb.checked = on;
   });
+});
+
+// View Order button (table) — EVENT DELEGATION
+$("ordersBody")?.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-view]");
+  if (!btn) return;
+
+  const orderId = btn.getAttribute("data-view");
+  if (!orderId) return;
+
+  // Go to your working order details page
+  window.location.href = `stall-orders.html?orderId=${encodeURIComponent(orderId)}`;
 });
 
 // Logout
@@ -432,7 +480,7 @@ onAuthStateChanged(auth, async (user) => {
     listenReviewBadge(user.uid);
 
     // centres/{centreId}/stalls/{uid}
-    const stallRef = doc(db, "centres", centreId, "stalls", user.uid);
+    const stallRef = doc(db, "centres", centreId, "stalls", u.stallId);
     const stallSnap = await getDoc(stallRef);
 
     if (stallSnap.exists()) {
@@ -446,7 +494,7 @@ onAuthStateChanged(auth, async (user) => {
     $("bulkApplyBtn")?.addEventListener("click", async () => {
       const sel = $("bulkActionSelect")?.value || "";
       try {
-        await bulkUpdateStatus(centreId, user.uid, sel);
+        await bulkUpdateStatus(sel);
       } catch (err) {
         console.error(err);
         alert("Bulk update failed. Check Firestore rules.");
@@ -454,7 +502,12 @@ onAuthStateChanged(auth, async (user) => {
     });
 
     // Start listening to real orders
-    listenOrders(centreId, user.uid);
+    const stallId = u.stallId;
+    if (!stallId) {
+      setText("stallName", "No stall linked");
+      return;
+    }
+    listenOrdersTopLevel(stallId);
   } catch (err) {
     console.error("stall-dashboard.js error:", err);
     const body = $("ordersBody");
