@@ -525,28 +525,32 @@ async function loadNextInspection(stallId) {
 }
 
 async function resolveTopLevelStallId(stallIdFromCentre, stallData) {
+  // ✅ 0) Explicit mapping if present
+  if (stallData?.publicStallId) return stallData.publicStallId;
+
   // 1) If stalls/{id} exists, use it
   const direct = await getDoc(doc(db, "stalls", stallIdFromCentre));
   if (direct.exists()) return stallIdFromCentre;
 
-  // 2) Otherwise, find it by centreId + stallName (matches your premade stalls)
+  // 2) Match by centreId + stallName
   const centreId =
     stallData.centreId || stallData.centre || stallData.hawkerCentreId;
   const stallName = stallData.stallName || stallData.name;
 
-  if (!centreId || !stallName) return stallIdFromCentre;
+  if (centreId && stallName) {
+    const q = query(
+      collection(db, "stalls"),
+      where("centreId", "==", centreId),
+      where("stallName", "==", stallName),
+      limit(1),
+    );
 
-  const q = query(
-    collection(db, "stalls"),
-    where("centreId", "==", centreId),
-    where("stallName", "==", stallName),
-    limit(1),
-  );
+    const snap = await getDocs(q);
+    if (!snap.empty) return snap.docs[0].id;
+  }
 
-  const snap = await getDocs(q);
-  if (!snap.empty) return snap.docs[0].id;
-
-  return stallIdFromCentre;
+  // ❌ NEVER fall back to centre stall id
+  return null;
 }
 
 // =============================
@@ -763,13 +767,22 @@ document.addEventListener("DOMContentLoaded", () => {
       applyPreset(); // ✅ initial load
 
       // reviews listener
+      // reviews listener
       if (unsubReviews) unsubReviews();
       const reviewsStallId = await resolveTopLevelStallId(stallId, stall);
 
-      if (unsubReviews) unsubReviews();
-      unsubReviews = listenReviews(reviewsStallId, (reviews) => {
-        renderRatingsUI(calcRatings(reviews));
-      });
+      if (reviewsStallId) {
+        unsubReviews = listenReviews(reviewsStallId, (reviews) => {
+          renderRatingsUI(calcRatings(reviews));
+        });
+      } else {
+        // no valid public stall id -> show empty state safely
+        renderRatingsUI({
+          avg: 0,
+          counts: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
+          total: 0,
+        });
+      }
     } catch (err) {
       console.error(err);
       alert(`Analytics failed: ${err.message}`);
