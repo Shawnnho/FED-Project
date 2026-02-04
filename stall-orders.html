@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Hawker Point — Stall Orders</title>
+
+    <!-- Base styles -->
+    <link rel="stylesheet" href="styles.css" />
+    <!-- Stall holder layout -->
+    <link rel="stylesheet" href="stall-holder.css" />
+  </head>
+
+  <body class="stallHolder">
+    <!-- ================= HEADER (same style as your pages) ================= -->
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="stall-dashboard.html" aria-label="Hawker Point">
+          <img src="images/logo.png" alt="Hawker Point" class="brand-logo" />
+        </a>
+
+        <div class="shStallTitle" id="stallName">—</div>
+
+        <div class="shTopRight">
+          <button class="shUserBtn" type="button">
+            <span id="ownerName">—</span>
+            <span class="shMuted">(Owner)</span>
+          </button>
+
+          <button id="logoutBtn" class="pill shLogout" type="button">
+            Logout
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ================= PAGE LAYOUT (THIS IS THE IMPORTANT PART) ================= -->
+    <main class="shPage">
+      <div class="shLayout">
+        <!-- ===== Sidebar (same as account page) ===== -->
+        <aside class="shSide">
+          <center><h2>Dashboard</h2></center>
+          <a class="shNav" href="stall-dashboard.html">
+            <span>Dashboard</span>
+          </a>
+
+          <a class="shNav active" href="stall-orders.html">
+            <span>Order</span>
+            <span class="shBadge" id="orderBadge"></span>
+          </a>
+
+          <a class="shNav" href="stall-menu.html">
+            <span>Menu</span>
+          </a>
+
+          <a class="shNav" href="stall-review.html">
+            <span>Review</span>
+            <span class="shBadge" id="reviewBadge"></span>
+          </a>
+
+          <a class="shNav" href="stall-analytics.html">
+            <span>Analytics</span>
+            <span class="shBadge" id="analyticsBadge"></span>
+          </a>
+
+          <a class="shNav" href="stall-hygiene.html">
+            <span>Hygiene</span>
+            <span class="shBadge" id="hygieneBadge"></span>
+          </a>
+
+          <a class="shNav" href="stall-account.html">
+            <span>Account</span>
+          </a>
+          <div class="shSideDivider"></div>
+          <a class="shNav" href="rental-payment.html">
+            <span>Manage Payment</span>
+          </a>
+        </aside>
+
+        <!-- ============ CONTENT ============ -->
+        <section class="shContent">
+          <!-- Header -->
+          <div class="shHead">
+            <h1>Orders</h1>
+            <p>
+              Cash orders require confirmation. Paid orders should be prepared
+              immediately.
+            </p>
+          </div>
+
+          <!-- ============ UNPAID CASH ============ -->
+          <div
+            class="legal-card"
+            style="padding: 14px; border-radius: 16px; margin: 12px 0"
+          >
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 10px;
+              "
+            >
+              <h2 style="margin: 0">Unpaid (Cash Pending)</h2>
+              <span class="legal-muted" id="unpaidMeta">—</span>
+            </div>
+
+            <div id="unpaidList"></div>
+
+            <div
+              id="unpaidEmpty"
+              class="legal-muted"
+              style="display: none; margin-top: 10px"
+            >
+              No unpaid cash orders.
+            </div>
+          </div>
+
+          <!-- ============ PAID ORDERS ============ -->
+          <div
+            class="legal-card"
+            style="padding: 14px; border-radius: 16px; margin: 12px 0"
+          >
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 10px;
+              "
+            >
+              <h2 style="margin: 0">Paid Orders (Cook These)</h2>
+              <span class="legal-muted" id="paidMeta">—</span>
+            </div>
+
+            <div id="paidList"></div>
+
+            <div
+              id="paidEmpty"
+              class="legal-muted"
+              style="display: none; margin-top: 10px"
+            >
+              No paid orders yet.
+            </div>
+          </div>
+
+          <!-- Toast -->
+          <div class="toast" id="toast" aria-live="polite"></div>
+        </section>
+      </div>
+    </main>
+
+    <!-- ================= PAGE LOGIC ================= -->
+    <script type="module" src="stall-orders.js"></script>
+
+    <!-- ================= USER NAME + LOGOUT ================= -->
+    <script type="module">
+      import { auth } from "./firebase.js";
+      import { signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+      import {
+        getFirestore,
+        doc,
+        getDoc,
+      } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+      const db = getFirestore();
+      const $ = (id) => document.getElementById(id);
+
+      function showToast(msg) {
+        const t = $("toast");
+        if (!t) return;
+        t.textContent = msg;
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 1800);
+      }
+
+      auth.onAuthStateChanged(async (user) => {
+        if (!user) return;
+        try {
+          const snap = await getDoc(doc(db, "users", user.uid));
+          if (snap.exists()) {
+            const u = snap.data();
+            $("ownerName").textContent = u.name || u.email || "Account";
+          }
+        } catch {
+          $("ownerName").textContent = "Account";
+        }
+      });
+
+      $("logoutBtn").addEventListener("click", async () => {
+        await signOut(auth);
+        showToast("Logged out");
+        window.location.href = "index.html";
+      });
+    </script>
+  </body>
+</html>

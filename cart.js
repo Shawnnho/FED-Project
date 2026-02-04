@@ -320,6 +320,16 @@ function mergeCarts(existing = [], incoming = []) {
   return Array.from(map.values());
 }
 
+function round2(n) {
+  return Number(Number(n || 0).toFixed(2));
+}
+
+function calcSubtotal(stallItems) {
+  return round2(
+    stallItems.reduce((sum, it) => sum + Number(it.lineTotal || 0), 0),
+  );
+}
+
 /* ------------------------------ Payment method + Proceed button --------------------------------*/
 function getSelectedPayMethod() {
   const checked = document.querySelector('input[name="payMethod"]:checked');
@@ -574,7 +584,7 @@ async function render() {
       // Safety cap: discount cannot exceed subtotal
       promoDiscount = Math.min(promoDiscount, subtotal);
     }
-  } 
+  }
 
   // ===============================
   // Delivery fee (realistic simulation)
@@ -640,7 +650,9 @@ document.addEventListener("click", async (e) => {
       addressObj = v.addressObj;
 
       // ✅ Save address ONLY if checkbox is checked (delivery only)
-      const saveChecked = Boolean(document.getElementById("saveAddrChk")?.checked);
+      const saveChecked = Boolean(
+        document.getElementById("saveAddrChk")?.checked,
+      );
 
       if (saveChecked) {
         if (!currentUser) {
@@ -690,49 +702,105 @@ document.addEventListener("click", async (e) => {
         required: Array.isArray(it.required) ? it.required : [],
       };
     });
+    // ✅ Split cart into multiple orders (one order per stall)
+    const itemsByStall = new Map();
+    for (const it of items) {
+      const sid = it.stallId;
+      if (!sid) continue;
+      if (!itemsByStall.has(sid)) itemsByStall.set(sid, []);
+      itemsByStall.get(sid).push(it);
+    }
 
-    const orderPayload = {
-      userId: currentUser.uid,
-      createdAt: serverTimestamp(),
-      status: "pending_payment",
-      items,
-      fulfillment: {
-        type: fulfillment,
-        address: fulfillment === "delivery" ? addressObj : null,
-      },
-      payment: {
-        method,
-        paidAt: null,
-        ref: "",
-      },
-      promo: {
-        promoId: appliedPromo?.id || null,
-        code: appliedPromo?.code || "NONE",
-        discount: Number((lastPricing.promoDiscount || 0).toFixed(2)),
-      },
-      pricing: {
-        subtotal: Number((lastPricing.subtotal || 0).toFixed(2)),
-        smallOrderFee: Number((lastPricing.smallOrderFee || 0).toFixed(2)),
-        deliveryFee: Number((lastPricing.deliveryFee || 0).toFixed(2)),
-        total: Number((lastPricing.total || 0).toFixed(2)),
-      },
-    };
+    const stallIds = Array.from(itemsByStall.keys());
+    if (stallIds.length === 0) {
+      alert("Your cart is empty.");
+      return;
+    }
+
+    const isCash = method === "cash";
+    const createdOrderIds = [];
 
     try {
-      const orderRef = await addDoc(collection(db, "orders"), orderPayload);
-      const orderId = orderRef.id;
+      for (const sid of stallIds) {
+        const stallItems = itemsByStall.get(sid);
 
+        // ---- pricing per stall ----
+        const subtotal = stallItems.reduce(
+          (sum, it) => sum + Number(it.lineTotal || 0),
+          0,
+        );
+
+        const smallOrderFee =
+          fulfillment === "delivery" && subtotal < 15
+            ? Math.min(15 - subtotal, 4)
+            : 0;
+
+        const deliveryFee =
+          fulfillment === "delivery" ? calcDeliveryFee(subtotal) : 0;
+
+        const promoDiscount = Number((appliedPromo?.discount || 0).toFixed(2));
+
+        const total = Math.max(
+          0,
+          subtotal - promoDiscount + smallOrderFee + deliveryFee,
+        );
+
+        const orderPayload = {
+          stallId: sid, // ✅ THIS is the key fix
+          userId: currentUser.uid,
+          createdAt: serverTimestamp(),
+          status: isCash ? "pending_payment" : "paid",
+
+          items: stallItems,
+
+          fulfillment: {
+            type: fulfillment,
+            address: fulfillment === "delivery" ? addressObj : null,
+          },
+
+          payment: {
+            method,
+            paidAt: isCash ? null : serverTimestamp(),
+            ref: "",
+          },
+
+          promo: {
+            promoId: appliedPromo?.id || null,
+            code: appliedPromo?.code || "NONE",
+            discount: Number(promoDiscount.toFixed(2)),
+          },
+
+          pricing: {
+            subtotal: Number(subtotal.toFixed(2)),
+            smallOrderFee: Number(smallOrderFee.toFixed(2)),
+            deliveryFee: Number(deliveryFee.toFixed(2)),
+            total: Number(total.toFixed(2)),
+          },
+        };
+
+        const ref = await addDoc(collection(db, "orders"), orderPayload);
+        createdOrderIds.push(ref.id);
+      }
+
+      // clear cart after ALL orders created
       await saveCart([]);
       await clearAppliedPromo();
 
-      
-      if (method === "cash") window.location.href = `cash.html?orderId=${orderId}`;
-      else if (method === "paynow_nets") window.location.href = `qr.html?orderId=${orderId}`;
-      else window.location.href = `card.html?orderId=${orderId}`;
-
+      // redirect logic
+      if (createdOrderIds.length === 1) {
+        const orderId = createdOrderIds[0];
+        if (method === "cash")
+          window.location.href = `cash.html?orderId=${orderId}`;
+        else if (method === "paynow_nets")
+          window.location.href = `qr.html?orderId=${orderId}`;
+        else window.location.href = `card.html?orderId=${orderId}`;
+      } else {
+        alert(`Created ${createdOrderIds.length} orders (one per stall).`);
+        window.location.href = `orders.html`; // customer order history
+      }
     } catch (err) {
       console.error(err);
-      alert("Could not create order. Try again.");
+      alert("Could not create order(s). Try again.");
     }
 
     return;

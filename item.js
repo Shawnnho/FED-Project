@@ -1,4 +1,3 @@
-
 function slugify(str) {
   return String(str)
     .toLowerCase()
@@ -23,15 +22,13 @@ function writeCart(cart) {
   localStorage.setItem("hp_cart", JSON.stringify(cart));
 }
 
-
 const menuByStall = {
   "ahmad-nasi-lemak": [
     {
       name: "Nasi Lemak",
       price: 7.0,
       img: "images/stalls/nasilemak.jpg",
-      desc:
-        "Fragrant coconut rice served with sambal, crispy anchovies, peanuts, egg, and cucumber. Simple, satisfying, and a local favourite.",
+      desc: "Fragrant coconut rice served with sambal, crispy anchovies, peanuts, egg, and cucumber. Simple, satisfying, and a local favourite.",
       addons: [
         { id: "more-rice", label: "More Rice", price: 0.5 },
         { id: "more-chicken", label: "More Chicken", price: 2.0 },
@@ -89,8 +86,7 @@ const menuByStall = {
       name: "Chicken Rice",
       price: 5.0,
       img: "images/stalls/chickenrice.png",
-      desc:
-        "Tender steamed chicken served with fragrant rice, paired with chilli and ginger sauce. Simple, comforting, and always a classic.",
+      desc: "Tender steamed chicken served with fragrant rice, paired with chilli and ginger sauce. Simple, comforting, and always a classic.",
       addons: [
         { id: "more-rice", label: "More Rice", price: 0.7 },
         { id: "more-chicken", label: "More Chicken", price: 1.2 },
@@ -365,88 +361,91 @@ const menuByStall = {
   ],
 
   "kopi-fellas": [
-  {
-    name: "Kopi O",
-    price: 2.0,
-    img: "images/kopi-o.png",
-    desc: "Strong traditional black coffee with no milk.",
-    addons: [
-      { id: "less-sugar", label: "Less Sugar", price: 0 },
-      { id: "more-ice", label: "More Ice", price: 0 },
-    ],
-    requiredGroups: [
-      {
-        id: "temp",
-        title: "Temperature (Required)",
-        options: [
-          { id: "hot", label: "Hot", price: 0 },
-          { id: "iced", label: "Iced", price: 0 },
-        ],
-      },
-    ],
-  },
+    {
+      name: "Kopi O",
+      price: 2.0,
+      img: "images/kopi-o.png",
+      desc: "Strong traditional black coffee with no milk.",
+      addons: [
+        { id: "less-sugar", label: "Less Sugar", price: 0 },
+        { id: "more-ice", label: "More Ice", price: 0 },
+      ],
+      requiredGroups: [
+        {
+          id: "temp",
+          title: "Temperature (Required)",
+          options: [
+            { id: "hot", label: "Hot", price: 0 },
+            { id: "iced", label: "Iced", price: 0 },
+          ],
+        },
+      ],
+    },
 
-  {
-    name: "Kopi C",
-    price: 2.3,
-    img: "images/kopi-c.png",
-    desc: "Coffee with evaporated milk, smooth and rich.",
-    addons: [{ id: "extra-milk", label: "Extra Milk", price: 0.3 }],
-    requiredGroups: [],
-  },
+    {
+      name: "Kopi C",
+      price: 2.3,
+      img: "images/kopi-c.png",
+      desc: "Coffee with evaporated milk, smooth and rich.",
+      addons: [{ id: "extra-milk", label: "Extra Milk", price: 0.3 }],
+      requiredGroups: [],
+    },
 
-  {
-    name: "Teh Peng",
-    price: 2.5,
-    img: "images/teh-peng.png",
-    desc: "Iced milk tea, refreshing and sweet.",
-    addons: [{ id: "less-sugar", label: "Less Sugar", price: 0 }],
-    requiredGroups: [],
-  },
+    {
+      name: "Teh Peng",
+      price: 2.5,
+      img: "images/teh-peng.png",
+      desc: "Iced milk tea, refreshing and sweet.",
+      addons: [{ id: "less-sugar", label: "Less Sugar", price: 0 }],
+      requiredGroups: [],
+    },
 
-  {
-    name: "Yuan Yang",
-    price: 2.8,
-    img: "images/yuan-yang.png",
-    desc: "A local favourite—coffee and tea mixed together.",
-    addons: [{ id: "extra-ice", label: "More Ice", price: 0 }],
-    requiredGroups: [],
-  },
+    {
+      name: "Yuan Yang",
+      price: 2.8,
+      img: "images/yuan-yang.png",
+      desc: "A local favourite—coffee and tea mixed together.",
+      addons: [{ id: "extra-ice", label: "More Ice", price: 0 }],
+      requiredGroups: [],
+    },
 
-  {
-    name: "Ice Milo",
-    price: 3.0,
-    img: "images/ice-milo.png",
-    desc: "Cold chocolate malt drink.",
-    addons: [{ id: "extra-milo", label: "Extra Milo", price: 0.5 }],
-    requiredGroups: [],
-  },
+    {
+      name: "Ice Milo",
+      price: 3.0,
+      img: "images/ice-milo.png",
+      desc: "Cold chocolate malt drink.",
+      addons: [{ id: "extra-milo", label: "Extra Milo", price: 0.5 }],
+      requiredGroups: [],
+    },
 
-  {
-    name: "Honey Lemon",
-    price: 3.1,
-    img: "images/honey-lemon.png",
-    desc: "A mixing of fresh lemon juice and honey into cold water.",
-    addons: [{ id: "extra-ice", label: "More Ice", price: 0 }],
-    requiredGroups: [],
-  },
-],
-
+    {
+      name: "Honey Lemon",
+      price: 3.1,
+      img: "images/honey-lemon.png",
+      desc: "A mixing of fresh lemon juice and honey into cold water.",
+      addons: [{ id: "extra-ice", label: "More Ice", price: 0 }],
+      requiredGroups: [],
+    },
+  ],
 };
 
 /* ===== READ URL ===== */
 const params = new URLSearchParams(window.location.search);
-const stallId = params.get("stall");
+const centreId = params.get("centre"); // e.g. "tiong-bahru"
+const stallDocId = params.get("stallDoc"); // e.g. "CLjvGdNwGcYMcfBtIiPIEeMk55z2"
 const itemSlug = params.get("item");
+const stallKey = centreId; // used for your hardcoded menuByStall lookup
 
-if (!stallId || !itemSlug || !menuByStall[stallId]) {
-  // if missing, go back safely
+if (!stallKey || !itemSlug || !menuByStall[stallKey]) {
   window.location.href = "home.html";
 }
 
-const item = (menuByStall[stallId] || []).find((x) => slugify(x.name) === itemSlug);
+const item = (menuByStall[stallKey] || []).find(
+  (x) => slugify(x.name) === itemSlug,
+);
+
 if (!item) {
-  window.location.href = `menu.html?id=${encodeURIComponent(stallId)}`;
+  window.location.href = `menu.html?id=${encodeURIComponent(stallKey)}`;
 }
 
 /* ===== DOM ===== */
@@ -495,7 +494,8 @@ function renderAddons() {
 
   // If no addons + no required groups, show empty message (optional)
   const hasAddons = Array.isArray(item.addons) && item.addons.length > 0;
-  const hasRequired = Array.isArray(item.requiredGroups) && item.requiredGroups.length > 0;
+  const hasRequired =
+    Array.isArray(item.requiredGroups) && item.requiredGroups.length > 0;
 
   // We will render required groups ABOVE addons to match your screenshot style.
   if (hasRequired) {
@@ -636,7 +636,7 @@ updateTotal();
 
 /* ===== NAV ===== */
 closeBtn.addEventListener("click", () => {
-  window.location.href = `menu.html?id=${encodeURIComponent(stallId)}`;
+  window.location.href = `menu.html?id=${encodeURIComponent(stallKey)}`;
 });
 
 /* ===== QTY ===== */
@@ -679,7 +679,10 @@ addToCartBtn.addEventListener("click", () => {
   });
 
   const cartItem = {
-    stallId,
+    centreId: stallKey,
+    stallId: stallDocId || stallKey,
+    stallPath: stallDocId ? `centres/${stallKey}/stalls/${stallDocId}` : null,
+
     itemId: slugify(item.name),
     name: item.name,
     img: item.img,
@@ -695,5 +698,5 @@ addToCartBtn.addEventListener("click", () => {
   cart.push(cartItem);
   writeCart(cart);
 
-  window.location.href = `menu.html?id=${encodeURIComponent(stallId)}`;
+  window.location.href = `menu.html?id=${encodeURIComponent(stallKey)}`;
 });

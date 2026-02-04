@@ -44,6 +44,7 @@ const stalls = [
   {
     id: "tiong-bahru",
     name: "Tiong Bahru Chicken Rice",
+    fsId: "CLjvGdNwGcYMcfBtIiPIEeMk55z2", // ✅ real Firestore stall document ID
     grade: "A",
     icon: "images/chickenrice-hero.jpg",
   },
@@ -389,7 +390,10 @@ function renderMenu(filter = "") {
 
     addBtn.addEventListener("click", () => {
       const itemKey = slugify(item.name);
-      window.location.href = `item.html?stall=${encodeURIComponent(stall.id)}&item=${encodeURIComponent(itemKey)}`;
+      window.location.href =
+        `item.html?centre=${encodeURIComponent(stall.id)}` +
+        `&stallDoc=${encodeURIComponent(stall.fsId || "")}` +
+        `&item=${encodeURIComponent(itemKey)}`;
     });
 
     card.appendChild(imgWrap);
