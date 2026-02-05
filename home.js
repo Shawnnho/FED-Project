@@ -6,13 +6,6 @@ import {
   getDocs,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-import {
-  getAuth,
-  signOut,
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-const auth = getAuth();
-
 /*************************************************
  * home.js - Stall Listing + Filters + Guest Mode (FULL)
  * - Guest mode: home.html?mode=guest
@@ -41,59 +34,86 @@ function applyGuestModeUI() {
   });
 }
 
-function wireAccountLinkForGuest() {
-  document.addEventListener(
-    "click",
-    (e) => {
-      if (!isGuest) return;
-
-      const link = e.target.closest(
-        'a[href*="account.html"], a[data-guest-account="1"]',
-      );
-      if (!link) return;
-
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      window.location.href = "signin.html?from=guest";
-    },
-    true,
-  );
-}
-
+applyGuestModeUI();
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll('a[href="account.html"]').forEach((link) => {
+    link.addEventListener("click", (e) => {
+      if (isGuest) {
+        e.preventDefault();
+        window.location.href = "signin.html";
+      }
+    });
+  });
+});
 /* ===============================
    DATA
 ================================ */
 
 let stalls = [];
 
-let els = {};
+const els = {
+  list: document.getElementById("list"),
+  subline: document.getElementById("subline"),
+  q: document.getElementById("q"),
+  cuisine: document.getElementById("cuisine"),
+  grade: document.getElementById("grade"),
+  sort: document.getElementById("sort"),
+  location: document.getElementById("location"),
+  emptyState: document.getElementById("emptyState"),
+  resetBtn: document.getElementById("resetFiltersBtn"),
+};
 
 async function loadHomeStalls() {
-  const q = query(collection(db, "stalls"), where("active", "==", true));
-  const snap = await getDocs(q);
+  try {
+    // 1) get all centres
+    const centresSnap = await getDocs(collection(db, "centres"));
+    const centreIds = centresSnap.docs.map((d) => d.id);
 
-  stalls = snap.docs.map((d) => {
-    const s = d.data();
-    return {
-      id: d.id,
-      name: s.stallName ?? s.name ?? d.id,
-      cuisine: s.cuisine ?? "",
-      grade: s.hygieneGrade ?? s.grade ?? "",
-      popular: !!s.popular,
-      location: s.location ?? "",
-      desc: s.desc ?? "",
-      img: s.imageUrl ?? s.img ?? "images/default-stall.png",
-      openTime: s.openTime ?? "",
-      closeTime: s.closeTime ?? "",
-      unit: s.unitNo ?? s.unit ?? "",
-      prepMin: s.prepMin ?? null,
-      prepMax: s.prepMax ?? null,
-    };
-  });
+    // 2) get stalls for each centre
+    const results = await Promise.all(
+      centreIds.map(async (centreId) => {
+        const q = query(
+          collection(db, "centres", centreId, "stalls"),
+          where("active", "==", true),
+        );
+        const snap = await getDocs(q);
 
-  // render AFTER data exists
-  renderCuisineOptions();
-  applyFilters();
+        return snap.docs.map((d) => {
+          const s = d.data() || {};
+          return {
+            // IMPORTANT: these are the real IDs your menu needs
+            stallId: d.id,
+            centreId: centreId,
+            name: s.stallName ?? s.name ?? d.id,
+            cuisine: s.cuisine ?? "",
+            grade: s.hygieneGrade ?? s.grade ?? "",
+            popular: !!s.popular,
+            location: s.location ?? "",
+            desc: s.desc ?? "",
+            img: s.imageUrl ?? s.img ?? "images/default-stall.png",
+            openTime: s.openTime ?? "",
+            closeTime: s.closeTime ?? "",
+            unit: s.unitNo ?? s.unit ?? "",
+            prepMin: s.prepMin ?? null,
+            prepMax: s.prepMax ?? null,
+          };
+        });
+      }),
+    );
+
+    stalls = results.flat();
+
+    renderCuisineOptions();
+    applyFilters();
+  } catch (e) {
+    console.error(e);
+    els.list.innerHTML = `
+      <div class="emptyState">
+        <h2 class="emptyTitle">Cannot load stalls</h2>
+        <p class="emptyDesc">${e.message}</p>
+      </div>
+    `;
+  }
 }
 
 /* ===============================
@@ -110,7 +130,7 @@ function renderGuestLockedView() {
         Reset Filters
       </button>
 
-      <a class="resetBtn guestCTA secondary" href="${withGuestMode("signup.html")}">
+      <a class="resetBtn guestCTA secondary" href="signup.html">
         Register
       </a>
     </div>
@@ -208,7 +228,7 @@ function createCard(stall) {
 
       <div class="cardBottom">
         <span class="prep">Prep Time: ${stall.prepMin}-${stall.prepMax} min</span>
-        <button class="viewBtn" data-id="${stall.id}">
+        <button class="viewBtn" data-id="${stall.stallId}">
           View Stall 
           <img src="images/right-arrow.png" alt="" class="arrowIcon" />
         </button>
@@ -218,7 +238,7 @@ function createCard(stall) {
 
   card.querySelector(".viewBtn").addEventListener("click", () => {
     const target = withGuestMode(
-      `stall.html?id=${encodeURIComponent(stall.id)}`,
+      `menu.html?centreId=${encodeURIComponent(stall.centreId)}&stallId=${encodeURIComponent(stall.stallId)}`,
     );
     window.location.href = target;
   });
@@ -335,67 +355,29 @@ function hasActiveFilters() {
 /* ===============================
    RESET BUTTON HANDLING
 ================================ */
-function wireHomeListeners() {
-  // reset filters button inside list
-  els.list.addEventListener("click", (e) => {
-    const btn = e.target.closest('[data-action="reset-filters"]');
-    if (!btn) return;
 
-    resetAllFilters();
-    applyFilters();
-  });
+els.list.addEventListener("click", (e) => {
+  const btn = e.target.closest('[data-action="reset-filters"]');
+  if (!btn) return;
 
-  // filter/search inputs
-  ["input", "change"].forEach((evt) => {
-    els.q.addEventListener(evt, applyFilters);
-    els.location.addEventListener(evt, applyFilters);
-  });
-
-  els.cuisine.addEventListener("change", applyFilters);
-  els.grade.addEventListener("change", applyFilters);
-  els.sort.addEventListener("change", applyFilters);
-}
-
-function forceAccountLinksToSigninForGuest() {
-  if (!isGuest) return;
-
-  // Desktop + Mobile account links
-  document
-    .querySelectorAll('a[href="account.html"], a[href*="account.html"]')
-    .forEach((a) => {
-      a.setAttribute("href", withGuestMode("signin.html"));
-      a.setAttribute("data-guest-account", "1");
-    });
-}
+  resetAllFilters();
+  applyFilters();
+});
 
 /* ===============================
    INIT
 ================================ */
-function initHome() {
-  if (isGuest) {
-    signOut(auth);
-  }
-  // Grab DOM elements ONLY after DOM is ready
-  els = {
-    list: document.getElementById("list"),
-    subline: document.getElementById("subline"),
-    q: document.getElementById("q"),
-    cuisine: document.getElementById("cuisine"),
-    grade: document.getElementById("grade"),
-    sort: document.getElementById("sort"),
-    location: document.getElementById("location"),
-    emptyState: document.getElementById("emptyState"),
-    resetBtn: document.getElementById("resetFiltersBtn"),
-  };
 
-  applyGuestModeUI();
-  wireAccountLinkForGuest();
-  wireHomeListeners();
-  loadHomeStalls();
-}
+loadHomeStalls();
+/* ===============================
+   LISTENERS
+================================ */
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initHome);
-} else {
-  initHome();
-}
+// Guest lock is handled inside applyFilters()
+["input", "change"].forEach((evt) => {
+  els.q.addEventListener(evt, applyFilters);
+  els.location.addEventListener(evt, applyFilters);
+});
+els.cuisine.addEventListener("change", applyFilters);
+els.grade.addEventListener("change", applyFilters);
+els.sort.addEventListener("change", applyFilters);
