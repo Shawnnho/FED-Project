@@ -63,7 +63,7 @@ function canPublishStall(data) {
     return "Prep time (min & max) is required";
   if (!data.imageUrl && !data.img) return "Stall image is required";
 
-  return null; 
+  return null;
 }
 
 /* =========================
@@ -106,6 +106,15 @@ function formatUnitForSave(unit) {
   return `${block}-${String(n).padStart(3, "0")}`;
 }
 
+function buildHoursText(openTime, closeTime) {
+  const overnight = closeTime <= openTime; // if close earlier, it’s next day
+  const openTxt = format12h(openTime);
+  const closeTxt = format12hClose(closeTime);
+  return overnight
+    ? `${openTxt} - ${closeTxt} (Next day)`
+    : `${openTxt} - ${closeTxt}`;
+}
+
 function format12h(time24) {
   // "07:00" -> "07:00AM", "21:00" -> "9:00PM"
   const [hhStr, mm] = time24.split(":");
@@ -131,7 +140,9 @@ function format12hClose(time24) {
 
 function parseHoursToTimes(hoursText) {
   // supports: "7:00AM - 9:00PM" or "07:00AM - 9:00PM"
-  const t = String(hoursText || "").replace(/\s+/g, "");
+  const t = String(hoursText || "")
+    .replace(/\(Nextday\)/gi, "") // ignore suffix
+    .replace(/\s+/g, "");
   const m = t.match(/^(\d{1,2}):(\d{2})(AM|PM)-(\d{1,2}):(\d{2})(AM|PM)$/i);
   if (!m) return null;
 
@@ -383,11 +394,8 @@ function wireEditStallDetails(user) {
               "Please select BOTH open and close time (or leave both empty for default).";
             return;
           }
-          if (closeTime <= openTime) {
-            err.textContent = "Close time must be after open time.";
-            return;
-          }
-          newHours = `${format12h(openTime)} - ${format12hClose(closeTime)}`;
+          // Allow overnight. If close <= open, treat as next-day closing.
+          newHours = buildHoursText(openTime, closeTime);
         }
 
         if (!newStallName) {
@@ -591,7 +599,7 @@ onAuthStateChanged(auth, async (user) => {
 
   try {
     // users/{uid}
-    wireReviewBadgeDashboardWay(user.uid); 
+    wireReviewBadgeDashboardWay(user.uid);
     const userRef = doc(db, "users", user.uid);
     const userSnap = await getDoc(userRef);
     if (!userSnap.exists()) return;
