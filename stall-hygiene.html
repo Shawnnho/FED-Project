@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Stall Hygiene</title>
+
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="stall-holder.css" />
+    <link rel="stylesheet" href="hygiene.css" />
+  </head>
+
+  <body class="stallHolder">
+    <!-- ================= HEADER ================= -->
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="stall-dashboard.html">
+          <img src="images/logo.png" class="brand-logo" alt="Hawker Point" />
+        </a>
+
+        <div class="shStallTitle" id="stallTitle">—</div>
+
+        <div class="shTopRight">
+          <button class="shUserBtn" type="button">
+            <span id="ownerName">—</span>
+            <span class="shMuted">(Owner)</span>
+          </button>
+
+          <button id="logoutBtn" class="pill shLogout" type="button">
+            Logout
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ================= PAGE ================= -->
+    <main class="shPage">
+      <div class="shLayout">
+        <!-- ===== SIDEBAR ===== -->
+        <aside class="shSide">
+          <center><h2>Hygiene</h2></center>
+
+          <a class="shNav" href="stall-dashboard.html">Dashboard</a>
+          <a class="shNav" href="stall-orders.html">Order</a>
+          <a class="shNav" href="stall-menu.html">Menu</a>
+          <a class="shNav" href="stall-review.html">Review</a>
+          <a class="shNav" href="stall-analytics.html">Analytics</a>
+
+          <a class="shNav active" href="stall-hygiene.html">Hygiene</a>
+          <a class="shNav" href="stall-account.html">Account</a>
+
+          <div class="shSideDivider"></div>
+          <a class="shNav" href="rental-payment.html">Manage Payment</a>
+        </aside>
+
+        <!-- ===== CONTENT ===== -->
+        <div class="shContent">
+          <header class="hygiene-header" style="margin-bottom: 10px">
+            <h1>My Stall Hygiene</h1>
+          </header>
+
+          <!-- Reuse the same layout from hygiene.html -->
+          <div class="hygieneGrid" style="padding: 0; margin: 0">
+            <!-- LEFT COLUMN -->
+            <div class="hygieneLeft">
+              <!-- Large Grade Card -->
+              <section class="gradeBigCard" id="gradeCard">
+                <div class="bigGrade" id="bigGrade">—</div>
+                <div class="gradeLabel" id="gradeLabel">Loading…</div>
+              </section>
+
+              <!-- Upcoming Inspection Card (Storeholder only) -->
+              <section
+                class="hygieneCard upcomingCard"
+                id="upcomingCard"
+                style="display: none"
+              >
+                <h3>Upcoming Inspection</h3>
+                <div class="upcomingRow">
+                  <div class="upcomingDate" id="upcomingDate">—</div>
+                  <div class="upcomingTag">Scheduled</div>
+                </div>
+                <p class="upcomingOfficer" id="upcomingOfficer">Officer: —</p>
+                <p class="upcomingHint">
+                  Please ensure all hygiene standards are met before the
+                  inspection date.
+                </p>
+              </section>
+
+              <!-- License Info -->
+              <section class="hygieneCard licenseCard">
+                <h3>License Validity</h3>
+                <div class="licenseRow">
+                  <div class="licenseDays" id="licenseDays">— Days</div>
+                  <div class="licenseTag" id="licenseStatus">Unknown</div>
+                </div>
+
+                <div class="licenseBar">
+                  <div
+                    class="licenseFill"
+                    id="licenseFill"
+                    style="width: 0%"
+                  ></div>
+                </div>
+
+                <div class="licenseDates">
+                  <div id="issueDate">Issued: —</div>
+                  <div id="expiryDate">Expired: —</div>
+                </div>
+              </section>
+            </div>
+
+            <!-- RIGHT COLUMN -->
+            <div class="hygieneRight">
+              <!-- Mini Trend Chart -->
+              <section class="hygieneCard">
+                <div class="cardTopRow">
+                  <h3>Recent Inspection Trend</h3>
+                  <button class="linkBtn" id="viewTrendBtn" type="button">
+                    View Trend →
+                  </button>
+                </div>
+
+                <div class="chartWrap" id="chartWrap">
+                  <div class="chartGrid"></div>
+                  <p class="chartEmpty">Loading…</p>
+                </div>
+
+                <div class="chartFooter" id="chartFooter"></div>
+              </section>
+
+              <!-- History Preview -->
+              <section class="hygieneCard">
+                <div class="cardTopRow">
+                  <h3>Inspection History</h3>
+                  <button class="linkBtn" id="viewHistoryBtn" type="button">
+                    Full History →
+                  </button>
+                </div>
+
+                <div class="histTable">
+                  <div class="histRow histHead">
+                    <div>Date</div>
+                    <div>Score</div>
+                    <div>Grade</div>
+                    <div>Remarks</div>
+                  </div>
+
+                  <div id="historyRows">
+                    <div
+                      class="emptyState"
+                      style="padding: 18px; font-size: 14px"
+                    >
+                      Loading…
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script type="module" src="stall-hygiene.js"></script>
+  </body>
+</html>
