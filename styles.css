@@ -2431,8 +2431,8 @@ select,
   box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
   margin-bottom: 28px;
 
-  max-width: 880px; 
-  width: 96%; 
+  max-width: 880px;
+  width: 96%;
   margin-left: 0;
   margin-right: auto;
 }
@@ -2550,7 +2550,7 @@ select,
   }
 
   .page.stallPage .favWrap {
-    position: static; 
+    position: static;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -3953,7 +3953,7 @@ FOOTER
 /* ===== Featured row (horizontal) ===== */
 /* wider container */
 .discoverPage .featuredWrap {
-  max-width: 1180px; 
+  max-width: 1180px;
   margin: 14px auto 0;
   padding: 0 22px; /* use more side space */
 }
@@ -3978,7 +3978,7 @@ FOOTER
 /* bigger cards on desktop, still responsive */
 .discoverPage .featuredCard {
   flex: 0 0 auto;
-  width: min(520px, 88vw); 
+  width: min(520px, 88vw);
   background: rgba(255, 255, 255, 0.92);
   border: 1px solid rgba(0, 0, 0, 0.12);
   border-radius: 16px;
@@ -3996,11 +3996,11 @@ FOOTER
   background: #fff;
   background-size: cover;
   background-position: center;
-  background-image: none; 
+  background-image: none;
 }
 .discoverPage .featuredImg.alt,
 .discoverPage .featuredImg.alt2 {
-  background-image: none; 
+  background-image: none;
 }
 
 .discoverPage .featuredBody {
@@ -4893,7 +4893,7 @@ FOOTER
   padding: 12px;
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(0, 0, 0, 0.10);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   box-shadow: none;
 }
 
@@ -5193,7 +5193,7 @@ FOOTER
   height: 44px;
   padding: 0 12px;
   border-radius: 12px;
-  border: 1px solid rgba(0,0,0,0.16);
+  border: 1px solid rgba(0, 0, 0, 0.16);
   font-weight: 800;
   outline: none;
 }
@@ -5205,13 +5205,13 @@ FOOTER
   opacity: 0.75;
 }
 
-.cartPage .feeMsg{
+.cartPage .feeMsg {
   margin-top: -6px;
   padding: 0 2px 8px;
   font-size: 12px;
   font-weight: 800;
   opacity: 0.75;
-  border-bottom: none; 
+  border-bottom: none;
 }
 
 .cartPage .cartSummary .cartSumRow.noBorder {
@@ -5228,7 +5228,7 @@ FOOTER
    SAVE ADDRESS (checkbox row)
 ========================= */
 
-.cartPage .saveAddrRow{
+.cartPage .saveAddrRow {
   margin-top: 6px;
   display: flex;
   align-items: center;
@@ -5236,7 +5236,7 @@ FOOTER
   padding-right: 8px;
 }
 
-.cartPage .saveAddrLabel{
+.cartPage .saveAddrLabel {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -5246,20 +5246,20 @@ FOOTER
   cursor: pointer;
 }
 
-.cartPage #saveAddrChk{
+.cartPage #saveAddrChk {
   width: 16px;
   height: 16px;
   margin: 0;
   padding: 0;
   position: relative;
-  top: 2px;   
+  top: 2px;
 }
 
-.cartPage .saveAddrLabel span{
+.cartPage .saveAddrLabel span {
   line-height: normal;
 }
 
-.cartPage .saveAddrStatus{
+.cartPage .saveAddrStatus {
   display: flex;
   align-items: center;
   font-size: 12px;
@@ -5277,52 +5277,52 @@ FOOTER
 /* =========================
    CART PROMO BOX (RIGHT PANEL)
 ========================= */
-.cartPage .promoRedeemWrap.promoRedeemWrap--cart{
+.cartPage .promoRedeemWrap.promoRedeemWrap--cart {
   max-width: none;
   margin: 0 0 12px;
   padding: 0;
 }
 
-.cartPage .promoRedeemCard.promoRedeemCard--cart{
+.cartPage .promoRedeemCard.promoRedeemCard--cart {
   padding: 12px;
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(0, 0, 0, 0.10);
-  box-shadow: none; 
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: none;
 }
 
-.cartPage .promoRedeemCard--cart .promoRedeemLeft h3{
+.cartPage .promoRedeemCard--cart .promoRedeemLeft h3 {
   font-size: 14px;
   margin: 0 0 4px;
 }
 
-.cartPage .promoRedeemCard--cart .promoRedeemLeft p{
+.cartPage .promoRedeemCard--cart .promoRedeemLeft p {
   font-size: 11px;
   margin: 0 0 10px;
 }
 
-.cartPage .promoRedeemCard--cart .promoRedeemRight{
+.cartPage .promoRedeemCard--cart .promoRedeemRight {
   display: grid;
-  grid-template-columns: 1fr auto; 
+  grid-template-columns: 1fr auto;
   gap: 10px;
 }
 
-.cartPage .promoRedeemCard--cart .promoRedeemInput{
-  min-width: 0;       
+.cartPage .promoRedeemCard--cart .promoRedeemInput {
+  min-width: 0;
   width: 100%;
   height: 40px;
   border-radius: 10px;
   font-size: 12px;
 }
 
-.cartPage .promoRedeemCard--cart .promoRedeemBtn{
+.cartPage .promoRedeemCard--cart .promoRedeemBtn {
   height: 40px;
   min-width: 110px;
   padding: 0 14px;
   border-radius: 10px;
 }
 
-.cartPage .promoRedeemCard--cart .promoRedeemMsg{
+.cartPage .promoRedeemCard--cart .promoRedeemMsg {
   margin: 8px 0 0;
   font-size: 11px;
 }
@@ -5332,10 +5332,10 @@ FOOTER
 ========================= */
 
 .cartPage .cartLayout {
-  width: 640px;           
+  width: 640px;
   max-width: 92vw;
-  margin: 0 auto;         
-  position: relative;    
+  margin: 0 auto;
+  position: relative;
 }
 
 .cartPage .cartLeft {
@@ -5353,7 +5353,6 @@ FOOTER
   margin-left: 24px;
   width: 300px;
 }
-
 
 /* =========================
    MOBILE: stack layout
@@ -5386,7 +5385,11 @@ FOOTER
 ========================================= */
 
 body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
   background: #f6f7f9;
   margin: 0;
   padding: 24px;
@@ -5398,7 +5401,7 @@ body {
   background: #fff;
   padding: 24px;
   border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
 }
 
 h1 {
@@ -5451,4 +5454,11 @@ body.storePage #stallGrade.gradeC {
 body.storePage #stallGrade.gradeD {
   background: #9ca3af;
   color: #fff;
+}
+
+.variant-selected {
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #c83c50;
 }
