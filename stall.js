@@ -139,9 +139,11 @@ function fillUI() {
   cuisineEl.textContent = stall.cuisine;
 
   gradeEl.textContent = stall.grade;
-  gradeEl.classList.remove("gradeA", "gradeB", "gradeC");
+  gradeEl.classList.remove("gradeA", "gradeB", "gradeC", "gradeD");
   gradeEl.classList.add(
-    stall.grade === "A" ? "gradeA" : stall.grade === "B" ? "gradeB" : "gradeC",
+    stall.grade === "A" ? "gradeA" : 
+    stall.grade === "B" ? "gradeB" : 
+    stall.grade === "C" ? "gradeC" : "gradeD",
   );
 
   descEl.textContent = stall.desc;

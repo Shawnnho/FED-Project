@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Hawker Point — Inspection History</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="home.html" aria-label="Hawker Point Home">
+          <img src="images/logo.png" alt="Hawker Point" class="brand-logo" />
+        </a>
+
+        <nav class="nav" aria-label="Primary navigation">
+          <a class="pill" href="home.html">Home</a>
+          <a class="pill" href="promotions.html">Promotions</a>
+          <a class="pill" href="orders.html">Orders</a>
+          <a class="pill" href="feedback.html">Feedback</a>
+          <a class="pill active" href="hygiene.html">Hygiene</a>
+          <a class="pill cartPill" href="cart.html">
+            Cart <span id="cartCount" class="cartBadge isZero">0</span>
+          </a>
+
+          <a class="pill account" href="account.html">Account</a>
+        </nav>
+
+        <button
+          id="menuBtn"
+          class="menuBtn"
+          type="button"
+          aria-label="Open menu"
+          aria-expanded="false"
+        >
+          ☰
+        </button>
+      </div>
+
+      <div id="navBackdrop" class="navBackdrop"></div>
+      <nav id="navMobile" class="navMobile" aria-label="Mobile navigation">
+        <a class="mLink" href="home.html">Home</a>
+        <a class="mLink" href="promotions.html">Promotions</a>
+        <a class="mLink" href="orders.html">Orders</a>
+        <a class="mLink" href="feedback.html">Feedback</a>
+        <a class="mLink active" href="hygiene.html">Hygiene</a>
+        <a class="mLink" href="cart.html">
+          Cart <span id="cartCountMobile" class="cartBadge isZero">0</span>
+        </a>
+
+        <a class="mLink" href="account.html">Account</a>
+      </nav>
+    </header>
+
+    <!-- Mobile specific Header (Inspection Log) -->
+    <div class="mobileHeader">
+      <button id="mobileBackBtn" class="mobileBackBtn">‹</button>
+      <h1>Inspection Log</h1>
+    </div>
+
+    <main class="page historyPage">
+      <div class="hhGrid">
+        
+        <!-- SIDEBAR (Desktop) -->
+        <aside class="hhSidebar desktopOnly">
+          <a href="hygiene.html" class="hhBackLink">‹ Back</a>
+          
+          <div class="hhStallInfo">
+            <img id="stallImg" src="" alt="Stall Image" class="hhStallImg">
+            <h2 id="stallName" class="hhStallName">Loading...</h2>
+          </div>
+
+          <div class="currentGradeCard">
+            <div class="cgLabel">Current Grade</div>
+            <div id="cgValue" class="cgValue">—</div>
+          </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <section class="hhContent">
+          
+          <!-- Desktop Title -->
+          <h2 class="hhPageTitle desktopOnly">Inspection History Log</h2>
+
+          <!-- CONTROLS -->
+          <div class="hhControls">
+            <!-- Search -->
+            <div class="hhSearch">
+              <input id="searchInput" type="text" placeholder="Search">
+            </div>
+
+            <!-- Filters (Desktop Dropdowns) -->
+            <div class="hhFilters desktopOnly">
+              <select id="yearFilter">
+                <option value="">Year</option>
+                <option value="2026">2026</option>
+                <option value="2025">2025</option>
+                <option value="2024">2024</option>
+              </select>
+              <select id="gradeFilter">
+                <option value="">Grade</option>
+                <option value="A">Grade A</option>
+                <option value="B">Grade B</option>
+                <option value="C">Grade C</option>
+              </select>
+            </div>
+
+            <!-- Filters (Mobile Pills) -->
+            <div class="hhPills mobileOnly">
+              <button class="hhPill active" data-filter="all">All Years</button>
+              <button class="hhPill" data-filter="A">Grade A</button>
+              <button class="hhPill" data-filter="B">Grade B</button>
+              <button class="hhPill" data-filter="2025">2025</button>
+            </div>
+          </div>
+
+          <!-- TABLE (Desktop) -->
+          <div class="hhTableWrap desktopOnly">
+            <table class="hhTable">
+              <thead>
+                <tr>
+                  <th width="120">Date</th>
+                  <th width="100">Score</th>
+                  <th width="80">Grade</th>
+                  <th>Officer Remarks</th>
+                </tr>
+              </thead>
+              <tbody id="tableBody">
+                <!-- JS Populated -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- CARDS (Mobile) -->
+          <div id="mobileList" class="hhMobileList mobileOnly">
+            <!-- JS Populated -->
+          </div>
+
+          <!-- FOOTER / PAGINATION -->
+          <div class="hhFooter">
+            <div class="hhCount desktopOnly" id="recordCount">Showing 0 records</div>
+            
+            <div class="hhPagination desktopOnly">
+              <button class="pgBtn">‹</button>
+              <button class="pgBtn active">1</button>
+              <button class="pgBtn">2</button>
+              <button class="pgBtn">3</button>
+              <button class="pgBtn">...</button>
+              <button class="pgBtn">12</button>
+              <button class="pgBtn">›</button>
+            </div>
+
+            <button id="loadMoreBtn" class="loadMoreBtn mobileOnly">Load More Record</button>
+          </div>
+
+        </section>
+      </div>
+    </main>
+
+    <script type="module" src="cart-badge.js"></script>
+    <script type="module" src="menu.js"></script>
+    <script type="module" src="hygiene-history.js"></script>
+  </body>
+</html>
