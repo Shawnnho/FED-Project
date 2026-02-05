@@ -238,7 +238,7 @@ function createCard(stall) {
 
   card.querySelector(".viewBtn").addEventListener("click", () => {
     const target = withGuestMode(
-      `menu.html?centreId=${encodeURIComponent(stall.centreId)}&stallId=${encodeURIComponent(stall.stallId)}`,
+      `stall.html?centreId=${encodeURIComponent(stall.centreId)}&stallId=${encodeURIComponent(stall.stallId)}`,
     );
     window.location.href = target;
   });

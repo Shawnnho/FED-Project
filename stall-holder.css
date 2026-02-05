@@ -1097,7 +1097,7 @@ button:active {
 .hpSimpleModal {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.35); 
+  background: rgba(0, 0, 0, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1150,7 +1150,7 @@ button:active {
 }
 @media (max-width: 520px) {
   .menuCard .menuActionRow {
-    width: 100% !important; 
+    width: 100% !important;
     max-width: 100% !important;
   }
 }
@@ -1918,4 +1918,112 @@ body.stallHolder .anFeedbackBtn {
   font-size: 12px;
   opacity: 0.9;
   min-width: 180px;
+}
+
+/* =========================
+   Stall Status (Account page)
+========================= */
+body.stallHolder .stallStatusRow {
+  padding: 14px 16px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+body.stallHolder .stallStatusLeft {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+body.stallHolder .stallStatusTop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+body.stallHolder .stallStatusLabel {
+  font-weight: 900;
+  font-size: 14px;
+  color: #111;
+}
+
+body.stallHolder .stallStatusHint {
+  font-size: 13px;
+  font-weight: 800;
+  opacity: 0.72;
+  line-height: 1.45;
+  max-width: 560px;
+}
+
+/* pill */
+body.stallHolder .stallStatusPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-weight: 950;
+  font-size: 12.5px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(0, 0, 0, 0.05);
+}
+
+body.stallHolder .stallStatusPill::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+/* active */
+body.stallHolder .stallStatusPill.isActive {
+  background: rgba(34, 197, 94, 0.14);
+  border-color: rgba(34, 197, 94, 0.28);
+  color: #14532d;
+}
+body.stallHolder .stallStatusPill.isActive::before {
+  background: #22c55e;
+}
+
+/* inactive */
+body.stallHolder .stallStatusPill.isInactive {
+  background: rgba(217, 56, 44, 0.12);
+  border-color: rgba(217, 56, 44, 0.25);
+  color: #7f1d1d;
+}
+body.stallHolder .stallStatusPill.isInactive::before {
+  background: #d9382c;
+}
+
+/* use your anSwitch size but a bit tighter on account page */
+body.stallHolder .stallStatusSwitch {
+  width: 54px;
+  height: 30px;
+}
+
+body.stallHolder .stallStatusSwitch .anSlider::before {
+  width: 24px;
+  height: 24px;
+  left: 3px;
+  top: 3px;
+}
+
+body.stallHolder .stallStatusSwitch input:checked + .anSlider::before {
+  transform: translateX(24px);
+}
+
+/* mobile stack */
+@media (max-width: 520px) {
+  body.stallHolder .stallStatusRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  body.stallHolder .stallStatusSwitch {
+    margin-top: 6px;
+  }
 }

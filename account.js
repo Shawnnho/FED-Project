@@ -39,15 +39,15 @@ import {
   updateDoc,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* Firebase Config */
-const firebaseConfig = {
-  apiKey: "AIzaSyC-NTWADB-t1OGl7NbdyMVXjpVjnqjpTXg",
-  authDomain: "fedproject-8d254.firebaseapp.com",
-  projectId: "fedproject-8d254",
-  storageBucket: "fedproject-8d254.firebasestorage.app",
-  messagingSenderId: "477538553634",
-  appId: "1:477538553634:web:a14b93bbd93d33b9281f7b",
-};
+  /* Firebase Config */
+  const firebaseConfig = {
+    apiKey: "AIzaSyC-NTWADB-t1OGl7NbdyMVXjpVjnqjpTXg",
+    authDomain: "fedproject-8d254.firebaseapp.com",
+    projectId: "fedproject-8d254",
+    storageBucket: "fedproject-8d254.firebasestorage.app",
+    messagingSenderId: "477538553634",
+    appId: "1:477538553634:web:a14b93bbd93d33b9281f7b",
+  };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);

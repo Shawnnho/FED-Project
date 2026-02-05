@@ -67,11 +67,21 @@ const selectedVariantText = document.getElementById("selectedVariantText");
 let ITEM = null;
 let ADDONS = [];
 let qty = 1;
+let STALL = null;
 const selectedAddons = new Set();
 
 /* =========================
    HELPERS
 ========================= */
+function prettifyKey(key) {
+  return key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function hideAddonsUI() {
+  const section = document.getElementById("addonsSection");
+  if (section) section.style.display = "none";
+}
+
 function money(n) {
   return `$${Number(n || 0).toFixed(2)}`;
 }
@@ -109,10 +119,22 @@ function normalizePricesMap(prices) {
 }
 
 const PRICE_LABELS = {
+  // 🔥 Drinks
   hot: "Hot",
   cold_s: "Cold (S)",
   cold_m: "Cold (M)",
   cold_l: "Cold (L)",
+
+  // 🍗 Chicken rice
+  quarter_upper: "Quarter (Upper) 四分之一(上庄)",
+  quarter_lower: "Quarter (Lower) 四分之一(下庄)",
+  half: "Half (半只鸡)",
+  whole: "Whole (一只鸡)",
+
+  // 🍱 Generic fallbacks (optional future use)
+  small: "Small",
+  medium: "Medium",
+  large: "Large",
 };
 
 function pickDefaultPriceKey(pricesObj) {
@@ -171,6 +193,7 @@ function ensureVariantUI() {
 }
 
 function renderVariantsIfAny() {
+  if (!STALL?.supportsSizePricing) return;
   const prices = ITEM?.prices;
   if (!prices) return;
 
@@ -189,7 +212,7 @@ function renderVariantsIfAny() {
     btn.style.fontWeight = "900";
     btn.style.cursor = "pointer";
 
-    const label = PRICE_LABELS[key] || key;
+    const label = PRICE_LABELS[key] || prettifyKey(key);
     btn.textContent = `${label} • ${money(prices[key])}`;
 
     const isActive = ITEM.variantKey === key;
@@ -209,6 +232,19 @@ function renderVariantsIfAny() {
 
     row.appendChild(btn);
   });
+}
+
+async function loadStall() {
+  const ref = doc(db, "centres", centreId, "stalls", stallId);
+  const snap = await getDoc(ref);
+
+  if (!snap.exists()) return;
+
+  const d = snap.data();
+  STALL = {
+    supportsAddons: d.supportsAddons !== false,
+    supportsSizePricing: d.supportsSizePricing !== false,
+  };
 }
 
 /* =========================
@@ -251,6 +287,8 @@ async function loadItem() {
     desc: d.desc || d.description || "",
     img: pickImage(d),
 
+    category: d.category || "", // ✅ ADD THIS
+
     // pricing
     price,
     prices: pricesMap, // null or object
@@ -268,24 +306,59 @@ async function loadItem() {
   }
 }
 
+function filterAddonsForItem(addons, item) {
+  const category = (item?.category || "").toLowerCase();
+
+  return addons.filter((a) => {
+    if (!a.active) return false;
+
+    // Allow-only (e.g. Drinks → Upsize)
+    if (a.allowCategories?.length) {
+      return a.allowCategories.some((c) => category.includes(c.toLowerCase()));
+    }
+
+    // Deny (e.g. block food addons for Drinks)
+    if (a.denyCategories?.length) {
+      return !a.denyCategories.some((c) => category.includes(c.toLowerCase()));
+    }
+
+    return true;
+  });
+}
+
 /* =========================
    LOAD ADDONS
 ========================= */
 async function loadAddons() {
+  selectedAddons.clear();
+  if (!STALL?.supportsAddons) {
+    hideAddonsUI();
+    return;
+  }
+
   const ref = collection(db, "centres", centreId, "stalls", stallId, "addons");
   const snap = await getDocs(ref);
 
-  ADDONS = snap.docs
-    .map((d) => {
-      const a = d.data();
-      return {
-        id: d.id,
-        label: a.label || a.name || d.id,
-        price: Number(a.price || 0),
-        active: a.active !== false,
-      };
-    })
-    .filter((a) => a.active);
+  const rawAddons = snap.docs.map((d) => {
+    const a = d.data();
+    return {
+      id: d.id,
+      label: a.label || a.name || d.id,
+      price: Number(a.price || 0),
+      active: a.active !== false,
+      allowCategories: Array.isArray(a.allowCategories)
+        ? a.allowCategories
+        : [],
+      denyCategories: Array.isArray(a.denyCategories) ? a.denyCategories : [],
+    };
+  });
+
+  ADDONS = ITEM ? filterAddonsForItem(rawAddons, ITEM) : [];
+
+  if (!ADDONS.length) {
+    hideAddonsUI();
+    return;
+  }
 
   renderAddons();
 }
@@ -412,4 +485,8 @@ closeBtn.addEventListener("click", () => {
 /* =========================
    INIT
 ========================= */
-Promise.all([loadItem(), loadAddons()]);
+(async () => {
+  await loadStall();
+  await loadItem();
+  await loadAddons();
+})();

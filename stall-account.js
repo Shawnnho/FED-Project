@@ -23,6 +23,7 @@ import {
   orderBy,
   limit,
   onSnapshot,
+  updateDoc,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 import {
@@ -472,7 +473,7 @@ function wireEditStallDetails(user) {
             ...updates,
             ownerUid: user.uid,
             centreId: ctxCache.centreId,
-            active: true,
+            active: stallCache?.active ?? true,
             hasSetup: true,
             updatedAt: serverTimestamp(),
           },
@@ -587,6 +588,25 @@ function wireReviewBadgeDashboardWay(stallUid) {
     badge.textContent = "";
   });
 }
+
+function renderActiveUI(isActive) {
+  const toggle = document.getElementById("stallActiveToggle");
+  const pill = document.getElementById("stallStatusPill");
+
+  if (toggle) toggle.checked = !!isActive;
+
+  if (pill) {
+    pill.classList.remove("isActive", "isInactive");
+    if (isActive) {
+      pill.classList.add("isActive");
+      pill.textContent = "Active (Customers can order)";
+    } else {
+      pill.classList.add("isInactive");
+      pill.textContent = "Inactive (Temporarily closed)";
+    }
+  }
+}
+
 
 /* =========================
    Main
@@ -734,6 +754,76 @@ onAuthStateChanged(auth, async (user) => {
     ctxCache = ctx;
 
     stallRef = doc(db, ctx.stallPath);
+
+    // ===== Stall Active Toggle (public stalls/{stallId}) =====
+    const publicRef = doc(db, "stalls", ctx.stallId);
+    let currentActive = true;
+
+    try {
+      const pubSnap = await getDoc(publicRef);
+      if (pubSnap.exists()) {
+        const pub = pubSnap.data() || {};
+        currentActive = pub.active !== false; // default true if missing
+      } else {
+        // If public doc doesn't exist yet, keep UI disabled until they publish
+        currentActive = false;
+      }
+    } catch (e) {
+      console.warn("Could not read public active status:", e);
+    }
+
+    renderActiveUI(currentActive);
+
+    const toggle = document.getElementById("stallActiveToggle");
+    if (toggle) {
+      // If public doc doesn't exist (never published), disable toggle
+      const pubSnap = await getDoc(publicRef);
+      if (!pubSnap.exists()) {
+        toggle.disabled = true;
+        document.getElementById("stallActiveText").textContent =
+          "Publish your stall first (complete setup) to enable this.";
+      } else {
+        toggle.disabled = false;
+
+        toggle.addEventListener("change", async () => {
+          const next = toggle.checked;
+
+          // Confirm when turning OFF
+          if (!next) {
+            const ok = confirm(
+              "Set stall to INACTIVE?\nCustomers won't be able to order until you turn it back on.",
+            );
+            if (!ok) {
+              toggle.checked = true;
+              return;
+            }
+          }
+
+          try {
+            await updateDoc(publicRef, {
+              active: next,
+              updatedAt: serverTimestamp(),
+            });
+
+            // OPTIONAL: mirror into centre stall doc too
+            if (stallRef) {
+              await setDoc(stallRef, { active: next }, { merge: true });
+            }
+
+            renderActiveUI(next);
+            alert(
+              next ? "✅ Stall is now ACTIVE." : "✅ Stall is now INACTIVE.",
+            );
+          } catch (err) {
+            console.error(err);
+            alert(`❌ Failed to update status: ${err.code || err.message}`);
+            // revert UI
+            toggle.checked = !next;
+            renderActiveUI(!next);
+          }
+        });
+      }
+    }
 
     // 1) if stall doc doesn't exist → create a blank one
     let stallSnap = await getDoc(stallRef);

@@ -119,8 +119,7 @@ function catTokens(s) {
 }
 
 function menuUrl(s) {
-  // IMPORTANT: this matches your new menu.html params
-  return `menu.html?centreId=${encodeURIComponent(s.centreId)}&stallId=${encodeURIComponent(s.stallDocId)}`;
+  return `stall.html?centreId=${encodeURIComponent(s.centreId)}&stallId=${encodeURIComponent(s.stallDocId)}`;
 }
 
 // =========================
@@ -444,7 +443,6 @@ async function loadStalls() {
   renderList(stalls);
   applyFilters();
 }
-
 
 let stopFavWatch = null;
 
