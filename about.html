@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>About Us | HawkerPoint</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="footer.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="index.html" aria-label="Hawker Point Home">
+          <img src="images/logo.png" alt="Hawker Point" class="brand-logo" />
+        </a>
+
+        <nav class="nav" aria-label="Primary navigation">
+          <a class="pill cartPill" href="cart.html">
+            Cart <span id="cartCount" class="cartBadge isZero">0</span>
+          </a>
+          <a class="pill" href="signin.html">Log In</a>
+          <a
+            class="pill active"
+            href="signup.html"
+            style="background: #df8f3b; color: white"
+            >Sign up for free today</a
+          >
+        </nav>
+
+        <button
+          id="menuBtn"
+          class="menuBtn"
+          type="button"
+          aria-label="Open menu"
+          aria-expanded="false"
+        >
+          ☰
+        </button>
+      </div>
+
+      <div id="navBackdrop" class="navBackdrop"></div>
+      <nav id="navMobile" class="navMobile" aria-label="Mobile navigation">
+        <a class="mLink" href="cart.html">
+          Cart <span id="cartCountMobile" class="cartBadge isZero">0</span>
+        </a>
+        <a
+          class="mLink active"
+          href="signup.html"
+          style="background: #df8f3b; color: white"
+          >Sign up for free today</a
+        >
+        <a class="mLink" href="signin.html">Sign in</a>
+      </nav>
+    </header>
+
+    <section class="page-hero">
+      <img
+        src="images\Lau_Pa_Sat_satay_street.jpg"
+        alt="Hawker centre in Singapore"
+      />
+
+      <div class="page-hero-text">
+        <h1>About HawkerPoint</h1>
+        <p>Empowering hawkers. Serving communities.</p>
+      </div>
+    </section>
+
+    <br>
+      
+      <div class="about-card">
+        <h3>What is HawkerPoint?</h3>
+        <p>
+          HawkerPoint is a digital platform designed to support Singapore's
+          hawker ecosystem by connecting customers, stallholders, and
+          authorities in one unified system.
+        </p>
+      </div>
+
+      <div class="about-card">
+        <h3>What can users do?</h3>
+        <p>
+          Customers can discover hawker stalls, view menus, hygiene grades, and
+          leave feedback. Stallholders manage stalls and menus, while
+          authorities oversee hygiene inspections and compliance.
+        </p>
+      </div>
+
+      <div class="about-card">
+        <h3>Our goal</h3>
+        <p>
+          To modernise hawker centres while preserving their cultural
+          significance and improving transparency.
+        </p>
+      </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="hc-footer">
+      <div class="hc-footer-inner">
+        <div class="hc-footer-brand">
+          <h3>HawkerPoint</h3>
+          <p>Empowering Hawkers. Serving Communities.</p>
+        </div>
+
+        <div class="hc-footer-links">
+          <div>
+            <h4>Platform</h4>
+            <a href="about.html">About Us</a>
+            <a href="how-it-works.html">How It Works</a>
+            <a href="centres.html">Centres</a>
+          </div>
+
+          <div>
+            <h4>For Stallholders</h4>
+            <a href="signup.html">Register Stall</a>
+            <a href="pricing.html">Pricing</a>
+          </div>
+
+          <div>
+            <h4>Support</h4>
+            <a href="help.html">Help Centre</a>
+            <a href="contact.html">Contact Us</a>
+            <a href="feedback.html">Feedback</a>
+          </div>
+
+          <div>
+            <h4>Legal</h4>
+            <a href="privacy.html">Privacy Policy</a>
+            <a href="terms-of-service.html">Terms of Service</a>
+          </div>
+        </div>
+
+        <div class="hc-footer-bottom">
+          <p>&copy; 2026 HawkerPoint. All rights reserved.</p>
+          <p class="hc-footer-note">
+            Hygiene grades and inspection data are displayed for public
+            awareness purposes.
+          </p>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

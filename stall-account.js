@@ -23,6 +23,7 @@ import {
   orderBy,
   limit,
   onSnapshot,
+  updateDoc,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 import {
@@ -63,7 +64,7 @@ function canPublishStall(data) {
     return "Prep time (min & max) is required";
   if (!data.imageUrl && !data.img) return "Stall image is required";
 
-  return null; // ✅ ok to publish
+  return null;
 }
 
 /* =========================
@@ -106,6 +107,15 @@ function formatUnitForSave(unit) {
   return `${block}-${String(n).padStart(3, "0")}`;
 }
 
+function buildHoursText(openTime, closeTime) {
+  const overnight = closeTime <= openTime; // if close earlier, it’s next day
+  const openTxt = format12h(openTime);
+  const closeTxt = format12hClose(closeTime);
+  return overnight
+    ? `${openTxt} - ${closeTxt} (Next day)`
+    : `${openTxt} - ${closeTxt}`;
+}
+
 function format12h(time24) {
   // "07:00" -> "07:00AM", "21:00" -> "9:00PM"
   const [hhStr, mm] = time24.split(":");
@@ -131,7 +141,9 @@ function format12hClose(time24) {
 
 function parseHoursToTimes(hoursText) {
   // supports: "7:00AM - 9:00PM" or "07:00AM - 9:00PM"
-  const t = String(hoursText || "").replace(/\s+/g, "");
+  const t = String(hoursText || "")
+    .replace(/\(Nextday\)/gi, "") // ignore suffix
+    .replace(/\s+/g, "");
   const m = t.match(/^(\d{1,2}):(\d{2})(AM|PM)-(\d{1,2}):(\d{2})(AM|PM)$/i);
   if (!m) return null;
 
@@ -167,7 +179,23 @@ function setImg(id, src) {
 function setGrade(id, grade) {
   const el = $(id);
   if (!el) return;
-  el.textContent = grade ?? "—";
+
+  const g = String(grade ?? "")
+    .trim()
+    .toUpperCase();
+
+  // text
+  el.textContent = g || "—";
+
+  // reset classes
+  el.classList.remove("gradeA", "gradeB", "gradeC", "gradeD", "gradeNA");
+
+  // apply color by grade
+  if (g === "A") el.classList.add("gradeA");
+  else if (g === "B") el.classList.add("gradeB");
+  else if (g === "C") el.classList.add("gradeC");
+  else if (g === "D") el.classList.add("gradeD");
+  else el.classList.add("gradeNA"); // for — / N.A. / empty
 }
 
 function isPhone(v) {
@@ -253,7 +281,7 @@ function wireEditStallDetails(user) {
       ""
     ).trim();
 
-    // ✅ Create modal and CAPTURE overlay here
+    // Create modal and CAPTURE overlay here
     const { overlay } = openModal({
       title: "Edit Stall Details",
       primaryText: "Save",
@@ -367,11 +395,8 @@ function wireEditStallDetails(user) {
               "Please select BOTH open and close time (or leave both empty for default).";
             return;
           }
-          if (closeTime <= openTime) {
-            err.textContent = "Close time must be after open time.";
-            return;
-          }
-          newHours = `${format12h(openTime)} - ${format12hClose(closeTime)}`;
+          // Allow overnight. If close <= open, treat as next-day closing.
+          newHours = buildHoursText(openTime, closeTime);
         }
 
         if (!newStallName) {
@@ -407,7 +432,7 @@ function wireEditStallDetails(user) {
 
           await uploadBytes(fileRef, imageFile);
           imageUrl = await getDownloadURL(fileRef);
-          // ✅ after upload, show the REAL download URL preview
+          // after upload, show the REAL download URL preview
           prev.src = imageUrl;
           prev.style.display = "block";
         }
@@ -448,7 +473,7 @@ function wireEditStallDetails(user) {
             ...updates,
             ownerUid: user.uid,
             centreId: ctxCache.centreId,
-            active: true,
+            active: stallCache?.active ?? true,
             hasSetup: true,
             updatedAt: serverTimestamp(),
           },
@@ -472,19 +497,19 @@ function wireEditStallDetails(user) {
 
     const fileInput = overlay.querySelector("#mImageFile");
 
-    // ✅ Prefill ON OPEN (not on Save)
+    // Prefill ON OPEN (not on Save)
     overlay.querySelector("#mDesc").value = stallCache?.desc || "";
     overlay.querySelector("#mPrepMin").value = stallCache?.prepMin ?? "";
     overlay.querySelector("#mPrepMax").value = stallCache?.prepMax ?? "";
 
-    // ✅ Preview existing image (if any)
+    // Preview existing image (if any)
     const prev = overlay.querySelector("#mImagePreview");
     const currentImg = stallCache?.imageUrl || stallCache?.img || "";
     if (currentImg) {
       prev.src = currentImg;
       prev.style.display = "block";
     }
-    // ✅ Live preview when user selects a new file
+    // Live preview when user selects a new file
     fileInput?.addEventListener("change", () => {
       const f = fileInput.files?.[0];
       if (!f) return;
@@ -564,6 +589,25 @@ function wireReviewBadgeDashboardWay(stallUid) {
   });
 }
 
+function renderActiveUI(isActive) {
+  const toggle = document.getElementById("stallActiveToggle");
+  const pill = document.getElementById("stallStatusPill");
+
+  if (toggle) toggle.checked = !!isActive;
+
+  if (pill) {
+    pill.classList.remove("isActive", "isInactive");
+    if (isActive) {
+      pill.classList.add("isActive");
+      pill.textContent = "Active (Customers can order)";
+    } else {
+      pill.classList.add("isInactive");
+      pill.textContent = "Inactive (Temporarily closed)";
+    }
+  }
+}
+
+
 /* =========================
    Main
 ========================= */
@@ -575,14 +619,14 @@ onAuthStateChanged(auth, async (user) => {
 
   try {
     // users/{uid}
-    wireReviewBadgeDashboardWay(user.uid); // ✅ ADD HERE
+    wireReviewBadgeDashboardWay(user.uid);
     const userRef = doc(db, "users", user.uid);
     const userSnap = await getDoc(userRef);
     if (!userSnap.exists()) return;
 
     const u = userSnap.data();
 
-    // ✅ If already deactivated, block and kick out (same as account.js)
+    // If already deactivated, block and kick out (same as account.js)
     if (u?.deactivated) {
       alert("This account has been deactivated.");
       await signOut(auth);
@@ -590,7 +634,7 @@ onAuthStateChanged(auth, async (user) => {
       return;
     }
 
-    // ✅ Deactivate popup (same flow as account.js)
+    // Deactivate popup (same flow as account.js)
     $("deactivateBtn")?.addEventListener("click", () => {
       // Only allow for email/password accounts
       const isPasswordUser = user.providerData.some(
@@ -631,18 +675,18 @@ onAuthStateChanged(auth, async (user) => {
           }
 
           try {
-            // ✅ Re-authenticate
+            // Re-authenticate
             const cred = EmailAuthProvider.credential(user.email, password);
             await reauthenticateWithCredential(user, cred);
 
-            // ✅ Mark deactivated in Firestore
+            // Mark deactivated in Firestore
             await setDoc(
               doc(db, "users", user.uid),
               { deactivated: true, deactivatedAt: serverTimestamp() },
               { merge: true },
             );
 
-            // ✅ Log out + redirect
+            // Log out + redirect
             setTimeout(async () => {
               try {
                 await signOut(auth);
@@ -701,7 +745,7 @@ onAuthStateChanged(auth, async (user) => {
     setText("role2", "Store Owner");
     setImg("avatar", u.avatarUrl || "images/defaultprofile.png");
 
-    // ✅ stall doc (DB-based via storeholder-context)
+    // stall doc (DB-based via storeholder-context)
     const ctx = await getStoreholderCtx(user.uid);
     if (!ctx || !ctx.centreId) {
       console.warn("No centre linked to this storeholder");
@@ -710,6 +754,76 @@ onAuthStateChanged(auth, async (user) => {
     ctxCache = ctx;
 
     stallRef = doc(db, ctx.stallPath);
+
+    // ===== Stall Active Toggle (public stalls/{stallId}) =====
+    const publicRef = doc(db, "stalls", ctx.stallId);
+    let currentActive = true;
+
+    try {
+      const pubSnap = await getDoc(publicRef);
+      if (pubSnap.exists()) {
+        const pub = pubSnap.data() || {};
+        currentActive = pub.active !== false; // default true if missing
+      } else {
+        // If public doc doesn't exist yet, keep UI disabled until they publish
+        currentActive = false;
+      }
+    } catch (e) {
+      console.warn("Could not read public active status:", e);
+    }
+
+    renderActiveUI(currentActive);
+
+    const toggle = document.getElementById("stallActiveToggle");
+    if (toggle) {
+      // If public doc doesn't exist (never published), disable toggle
+      const pubSnap = await getDoc(publicRef);
+      if (!pubSnap.exists()) {
+        toggle.disabled = true;
+        document.getElementById("stallActiveText").textContent =
+          "Publish your stall first (complete setup) to enable this.";
+      } else {
+        toggle.disabled = false;
+
+        toggle.addEventListener("change", async () => {
+          const next = toggle.checked;
+
+          // Confirm when turning OFF
+          if (!next) {
+            const ok = confirm(
+              "Set stall to INACTIVE?\nCustomers won't be able to order until you turn it back on.",
+            );
+            if (!ok) {
+              toggle.checked = true;
+              return;
+            }
+          }
+
+          try {
+            await updateDoc(publicRef, {
+              active: next,
+              updatedAt: serverTimestamp(),
+            });
+
+            // OPTIONAL: mirror into centre stall doc too
+            if (stallRef) {
+              await setDoc(stallRef, { active: next }, { merge: true });
+            }
+
+            renderActiveUI(next);
+            alert(
+              next ? "✅ Stall is now ACTIVE." : "✅ Stall is now INACTIVE.",
+            );
+          } catch (err) {
+            console.error(err);
+            alert(`❌ Failed to update status: ${err.code || err.message}`);
+            // revert UI
+            toggle.checked = !next;
+            renderActiveUI(!next);
+          }
+        });
+      }
+    }
 
     // 1) if stall doc doesn't exist → create a blank one
     let stallSnap = await getDoc(stallRef);
@@ -751,9 +865,32 @@ onAuthStateChanged(auth, async (user) => {
     setText("stallName2", s.stallName);
     setText("unitNo", formatUnitForDisplay(s.unitNo) || "—");
     setText("cuisine", s.cuisine || "—");
-    setGrade("hygieneGrade", s.hygieneGrade);
     setText("operatingHours", s.operatingHours || "—");
     setText("stallDesc", s.desc || "—");
+
+    // hygiene grade is stored in top-level stalls/{stallId} (NEA updates there)
+    let hygieneToShow = s.hygieneGrade;
+
+    try {
+      const pubSnap = await getDoc(doc(db, "stalls", ctx.stallId));
+      if (pubSnap.exists()) {
+        const pub = pubSnap.data() || {};
+        if (pub.hygieneGrade) hygieneToShow = pub.hygieneGrade;
+
+        // (optional) keep centres stall doc in sync so other pages can read it too
+        if (hygieneToShow && hygieneToShow !== s.hygieneGrade) {
+          await setDoc(
+            stallRef,
+            { hygieneGrade: hygieneToShow },
+            { merge: true },
+          );
+        }
+      }
+    } catch (e) {
+      console.warn("Could not read public stall hygieneGrade:", e);
+    }
+
+    setGrade("hygieneGrade", hygieneToShow || "—");
 
     /* =========================
        Edit Profile popup
@@ -1004,7 +1141,7 @@ onAuthStateChanged(auth, async (user) => {
       });
     });
 
-    // ✅ wire edit stall AFTER stallRef + stallCache are ready
+    // wire edit stall AFTER stallRef + stallCache are ready
     wireEditStallDetails(user);
   } catch (err) {
     console.error("stall-account.js error:", err);

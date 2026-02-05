@@ -45,6 +45,9 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+const params = new URLSearchParams(window.location.search);
+const fromGuest = params.get("from") === "guest";
+
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("loginForm");
   const emailOrPhone = document.getElementById("emailOrPhone");
@@ -95,6 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
      Auth state (block deactivated)
   ============================== */
   onAuthStateChanged(auth, async (user) => {
+    if (fromGuest) return; // ✅ allow signin page to stay
     if (!user || isLoggingIn) return;
 
     try {
@@ -127,7 +131,8 @@ document.addEventListener("DOMContentLoaded", () => {
   ============================== */
   function applyRoleUI() {
     if (!googleBtn) return;
-    const lockGoogle = selectedRole === "storeholder";
+    const lockGoogle =
+      selectedRole === "storeholder" || selectedRole === "nea_officer";
     googleBtn.disabled = lockGoogle;
     googleBtn.style.opacity = lockGoogle ? "0.5" : "1";
     googleBtn.style.cursor = lockGoogle ? "not-allowed" : "pointer";
@@ -263,7 +268,15 @@ document.addEventListener("DOMContentLoaded", () => {
   function redirectByRole(role) {
     if (role === "storeholder") {
       window.location.href = "stall-dashboard.html";
-      // or: "stall-account.html"
+      return;
+    }
+
+    if (role === "nea_officer") {
+      window.location.href = "nea.html";
+      return;
+    }
+    if (role === "operator"){
+      window.location.href = "operator.html"
       return;
     }
 
@@ -285,7 +298,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const role = sessionStorage.getItem("signin_role") || selectedRole;
 
     if (role === "guest") {
-      window.location.href = "home.html?mode=guest";
+      window.location.href = "index.html?mode=guest";
       return;
     }
 
@@ -340,7 +353,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const code = err?.code || "";
       const email = emailOrPhone.value.trim();
 
-      // ✅ If auth fails, still check if this email belongs to a deactivated account
+      // If auth fails, still check if this email belongs to a deactivated account
       if (
         code === "auth/invalid-credential" ||
         code === "auth/user-not-found"

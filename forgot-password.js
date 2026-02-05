@@ -4,7 +4,6 @@ import {
   sendPasswordResetEmail,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-// ✅ Use the same config from your working Google login file
 const firebaseConfig = {
   apiKey: "AIzaSyC-NTWADB-t1OGl7NbdyMVXjpVjnqjpTXg",
   authDomain: "fedproject-8d254.firebaseapp.com",

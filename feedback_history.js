@@ -36,7 +36,7 @@ const emptyEl = document.getElementById("historyEmpty");
 const tabsWrap = document.querySelector(".historyTabs");
 let activeTab = "all";
 
-/* ✅ NEW: sort dropdown (Google reviews style) */
+/* NEW: sort dropdown (Google reviews style) */
 const sortEl = document.getElementById("historySort");
 let activeSort = "relevant"; // relevant | newest | starsDesc | starsAsc
 
@@ -60,7 +60,7 @@ function escapeHtml(s) {
   );
 }
 
-/* ✅ avatar block: image if exists, else fallback initial */
+/* avatar block: image if exists, else fallback initial */
 function avatarHtml(userMeta) {
   const name = userMeta?.name || "You";
   const initial = escapeHtml((name.trim()[0] || "Y").toUpperCase());
@@ -95,7 +95,7 @@ function cardHtml(item, userMeta) {
 
     title = `${escapeHtml(item.stallName || "Stall")} • ${starsHtml}`;
   } else {
-    title = `${escapeHtml(item.stall || "Stall")} • Complaint`;
+    title = `${escapeHtml(item.stallName || item.stall || "Stall")} • Complaint`;
   }
 
   const tags =
@@ -138,7 +138,7 @@ function cardHtml(item, userMeta) {
   `;
 }
 
-/* ✅ NEW: Google-review style sort */
+/* NEW: Google-review style sort */
 function sortItems(arr) {
   return [...arr].sort((a, b) => {
     const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
@@ -168,7 +168,7 @@ function sortItems(arr) {
       return tb - ta;
     }
 
-    // ✅ Most relevant (approx Google)
+    // Most relevant (approx Google)
     // 1) Reviews first (ratings exist), then complaints
     const isReviewA = a.type === "review" ? 1 : 0;
     const isReviewB = b.type === "review" ? 1 : 0;
@@ -226,7 +226,7 @@ async function loadHistory(user) {
     orderBy("createdAt", "desc"),
   );
 
-  // ✅ old location support: /reviews (top-level)
+  // old location support: /reviews (top-level)
   const reviewsTopQ = query(
     collection(db, "reviews"),
     where("userId", "==", user.uid),
@@ -266,7 +266,7 @@ async function loadHistory(user) {
 
   render(all, userMeta);
 
-  // ✅ NEW: Sort dropdown listener
+  // NEW: Sort dropdown listener
   sortEl?.addEventListener("change", () => {
     activeSort = sortEl.value;
     render(all, userMeta);

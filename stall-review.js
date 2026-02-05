@@ -138,7 +138,7 @@ function render() {
 
   const { avg, count } = calcSummary(list);
 
-  // ✅ nicer empty state: don't show "0.0" summary when no reviews
+  // nicer empty state: don't show "0.0" summary when no reviews
   if (count === 0) {
     setBadge(0, false);
     sumEl.innerHTML = `
@@ -199,14 +199,22 @@ function render() {
 /* =========================
    Find stallId for this storeholder
    ========================= */
-async function findPublicStallId(centreId, ownerUid) {
-  // 1) Try centres/{centreId}/stalls/{uid} doc fields
+async function findPublicStallId(centreId, ownerUid, stallDocId) {
+  // 1) Try centres/{centreId}/stalls/{stallDocId} doc fields
   try {
-    const stallRef = doc(db, "centres", centreId, "stalls", ownerUid);
+    const stallRef = doc(
+      db,
+      "centres",
+      centreId,
+      "stalls",
+      stallDocId || ownerUid,
+    );
     const stallSnap = await getDoc(stallRef);
+
     if (stallSnap.exists()) {
       const s = stallSnap.data() || {};
-      const fromDoc = s.publicStallId || s.stallId || s.publicId;
+      const fromDoc =
+        s.reviewStallId || s.publicStallId || s.stallId || s.publicId;
       if (fromDoc) return String(fromDoc);
     }
   } catch (e) {
@@ -233,7 +241,6 @@ async function findPublicStallId(centreId, ownerUid) {
     if (b) return b;
   } catch {}
 
-  // 3) Last fallback: assume stallId == ownerUid
   return ownerUid;
 }
 
@@ -341,7 +348,13 @@ onAuthStateChanged(auth, async (user) => {
     }
 
     // show stall name (still from centres path)
-    const stallRef = doc(db, "centres", centreId, "stalls", user.uid);
+    const stallRef = doc(
+      db,
+      "centres",
+      centreId,
+      "stalls",
+      u.stallDocId || user.uid,
+    );
     const stallSnap = await getDoc(stallRef);
     if (stallSnap.exists()) {
       const s = stallSnap.data() || {};
@@ -354,7 +367,12 @@ onAuthStateChanged(auth, async (user) => {
     lastSeenMs = loadLastSeen(user.uid);
 
     // find public stall id and listen
-    const publicStallId = await findPublicStallId(centreId, user.uid);
+    const publicStallId = await findPublicStallId(
+      centreId,
+      user.uid,
+      u.stallDocId,
+    );
+    console.log("Listening reviews at:", publicStallId);
     listenReviewsPublic(publicStallId);
   } catch (err) {
     console.error("stall-review.js error:", err);

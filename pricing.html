@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Pricing | HawkerPoint</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="footer.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="index.html" aria-label="Hawker Point Home">
+          <img src="images/logo.png" alt="Hawker Point" class="brand-logo" />
+        </a>
+
+        <nav class="nav" aria-label="Primary navigation">
+          <a class="pill cartPill" href="cart.html">
+            Cart <span id="cartCount" class="cartBadge isZero">0</span>
+          </a>
+          <a class="pill" href="signin.html">Log In</a>
+          <a
+            class="pill active"
+            href="signup.html"
+            style="background: #df8f3b; color: white"
+            >Sign up for free today</a
+          >
+        </nav>
+
+        <button
+          id="menuBtn"
+          class="menuBtn"
+          type="button"
+          aria-label="Open menu"
+          aria-expanded="false"
+        >
+          ☰
+        </button>
+      </div>
+
+      <div id="navBackdrop" class="navBackdrop"></div>
+      <nav id="navMobile" class="navMobile" aria-label="Mobile navigation">
+        <a class="mLink" href="cart.html">
+          Cart <span id="cartCountMobile" class="cartBadge isZero">0</span>
+        </a>
+        <a
+          class="mLink active"
+          href="signup.html"
+          style="background: #df8f3b; color: white"
+          >Sign up for free today</a
+        >
+        <a class="mLink" href="signin.html">Sign in</a>
+      </nav>
+    </header>
+
+    <section class="page-hero">
+      <img
+        src="images\Lau_Pa_Sat_satay_street.jpg"
+        alt="Hawker centre in Singapore"
+      />
+      <div class="page-hero-text">
+        <h1>Pricing</h1>
+        <p>Simple plans for customers, stallholders, and centre management</p>
+      </div>
+    </section>
+
+    <br>
+
+    <!--CONTENT -->
+    <main class="page home about-page pricing-page">
+      <div class="about-card">
+        <h3>Transparent pricing</h3>
+        <p>
+          HawkerPoint is designed to keep costs low while helping hawkers
+          modernise. Choose the plan that fits your needs.
+        </p>
+      </div>
+
+      <section class="pricing-grid">
+        <!-- CUSTOMER -->
+        <div class="pricing-card">
+          <div class="pricing-top">
+            <h3>Customer</h3>
+            <p class="pricing-desc">For diners exploring stalls and menus</p>
+            <div class="pricing-price">
+              <span class="pricing-currency">$</span>0
+              <span class="pricing-period">/ month</span>
+            </div>
+          </div>
+
+          <ul class="pricing-list">
+            <li>Browse centres and stalls</li>
+            <li>View menus and operating hours</li>
+            <li>See hygiene grades (where available)</li>
+            <li>Leave feedback and reviews</li>
+          </ul>
+
+          <a class="pricing-btn" href="index.html">Start browsing</a>
+        </div>
+
+        <!-- STALLHOLDER -->
+        <div class="pricing-card pricing-featured">
+          <div class="pricing-badge">Most Popular</div>
+
+          <div class="pricing-top">
+            <h3>Stallholder</h3>
+            <p class="pricing-desc">For hawkers managing stalls and menus</p>
+            <div class="pricing-price">
+              <span class="pricing-currency">$</span>1,250-1,800
+              <span class="pricing-period">/ month</span>
+            </div>
+          </div>
+
+          <ul class="pricing-list">
+            <li>Register and manage your stall profile</li>
+            <li>Add & update menu items with images</li>
+            <li>View customer feedback and ratings</li>
+            <li>Basic analytics (orders / views)</li>
+            <li>Promotions (limited)</li>
+          </ul>
+
+          <a class="pricing-btn pricing-btn-strong" href="signup.html"
+            >Sign up as stallholder</a
+          >
+        </div>
+
+        <!-- ENTERPRISE / NEA -->
+        <div class="pricing-card">
+          <div class="pricing-top">
+            <h3>Centre / NEA</h3>
+            <p class="pricing-desc">For officers and centre management</p>
+            <div class="pricing-price">
+              <span class="pricing-currency">$</span>Contact
+              <span class="pricing-period"></span>
+            </div>
+          </div>
+
+          <ul class="pricing-list">
+            <li>Inspection & compliance tools</li>
+            <li>Hygiene grade management</li>
+            <li>Centre-level reporting</li>
+            <li>Audit logs & data export (optional)</li>
+          </ul>
+
+          <a class="pricing-btn" href="contact.html">Contact us</a>
+        </div>
+      </section>
+
+      <div class="about-card pricing-note">
+        <h3>Notes</h3>
+        <p>
+          Prices shown are for demonstration. Features and pricing can be
+          adjusted based on the needs of hawker centres and stakeholders.
+        </p>
+      </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="hc-footer">
+      <div class="hc-footer-inner">
+        <div class="hc-footer-brand">
+          <h3>HawkerPoint</h3>
+          <p>Empowering Hawkers. Serving Communities.</p>
+        </div>
+
+        <div class="hc-footer-links">
+          <div>
+            <h4>Platform</h4>
+            <a href="about.html">About Us</a>
+            <a href="how-it-works.html">How It Works</a>
+            <a href="centres.html">Centres</a>
+          </div>
+
+          <div>
+            <h4>For Stallholders</h4>
+            <a href="signup.html">Register Stall</a>
+            <a href="pricing.html">Pricing</a>
+          </div>
+
+          <div>
+            <h4>Support</h4>
+            <a href="help.html">Help Centre</a>
+            <a href="contact.html">Contact Us</a>
+            <a href="feedback.html">Feedback</a>
+          </div>
+
+          <div>
+            <h4>Legal</h4>
+            <a href="privacy.html">Privacy Policy</a>
+            <a href="terms.html">Terms of Service</a>
+          </div>
+        </div>
+
+        <div class="hc-footer-bottom">
+          <p>&copy; 2026 HawkerPoint. All rights reserved.</p>
+          <p class="hc-footer-note">
+            Hygiene grades and inspection data are displayed for public
+            awareness purposes.
+          </p>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

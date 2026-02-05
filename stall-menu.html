@@ -9,7 +9,6 @@
   </head>
 
   <body class="stallHolder">
-
     <!-- ================= HEADER ================= -->
     <header class="topbar">
       <div class="topbar-inner">
@@ -64,8 +63,9 @@
           </a>
 
           <a class="shNav" href="stall-account.html"><span>Account</span></a>
+          <div class="shSideDivider"></div>
           <a class="shNav" href="rental-payment.html"
-            ><span>Manage Rental Payment</span></a
+            ><span>Manage Payment</span></a
           >
         </aside>
 
@@ -152,6 +152,16 @@
           <div class="hpModalRow">
             <label class="hpModalLabel">Item Name</label>
             <input id="editName" class="hpModalInput" />
+          </div>
+
+          <div class="hpModalRow">
+            <label class="hpModalLabel">Description</label>
+            <textarea
+              id="editDesc"
+              class="hpModalInput"
+              rows="3"
+              placeholder="Short description (optional)"
+            ></textarea>
           </div>
 
           <div class="hpModalRow">

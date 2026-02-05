@@ -3,7 +3,7 @@
  * - Loads user profile from Firestore users/{uid}
  * - Edit Profile (name + phone)
  * - Change Password (send reset email)
- * - ✅ Preferences (load + save)
+ * - Preferences (load + save)
  *************************************************/
 
 import {
@@ -39,15 +39,15 @@ import {
   updateDoc,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* ✅ Use SAME config as signup/login */
-const firebaseConfig = {
-  apiKey: "AIzaSyC-NTWADB-t1OGl7NbdyMVXjpVjnqjpTXg",
-  authDomain: "fedproject-8d254.firebaseapp.com",
-  projectId: "fedproject-8d254",
-  storageBucket: "fedproject-8d254.firebasestorage.app",
-  messagingSenderId: "477538553634",
-  appId: "1:477538553634:web:a14b93bbd93d33b9281f7b",
-};
+  /* Firebase Config */
+  const firebaseConfig = {
+    apiKey: "AIzaSyC-NTWADB-t1OGl7NbdyMVXjpVjnqjpTXg",
+    authDomain: "fedproject-8d254.firebaseapp.com",
+    projectId: "fedproject-8d254",
+    storageBucket: "fedproject-8d254.firebasestorage.app",
+    messagingSenderId: "477538553634",
+    appId: "1:477538553634:web:a14b93bbd93d33b9281f7b",
+  };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -76,7 +76,7 @@ const viewVouchersBtn = document.getElementById("viewVouchersBtn");
 const notifCount = document.getElementById("notifCount");
 const mNotifCount = document.getElementById("mNotifCount");
 
-/* ✅ Preferences DOM (from account.html) */
+/* Preferences DOM (from account.html) */
 const prefCuisineEls = Array.from(document.querySelectorAll(".prefCuisine"));
 const prefNotifEls = Array.from(document.querySelectorAll(".prefNotif"));
 const savePrefBtn = document.getElementById("savePrefBtn");
@@ -85,6 +85,12 @@ const voucherModal = document.getElementById("voucherModal");
 const voucherModalList = document.getElementById("voucherModalList");
 const voucherModalSub = document.getElementById("voucherModalSub");
 const closeVoucherModal = document.getElementById("closeVoucherModal");
+
+// Order History Summary DOM
+const sumTotal = document.getElementById("sumTotal");
+const sumLast = document.getElementById("sumLast");
+const sumFav = document.getElementById("sumFav");
+const viewOrdersBtn = document.getElementById("viewOrdersBtn");
 
 /* =========================
    Helpers
@@ -122,7 +128,7 @@ function roleLabel(r) {
 }
 
 /* =========================
-   ✅ Preferences helpers (SAFE)
+   Preferences helpers (SAFE)
    Fixes: "object is not iterable"
 ========================= */
 function toArraySafe(v) {
@@ -284,6 +290,106 @@ function expiryText(v) {
   return `Expires in ${days} days`;
 }
 
+function formatDateTime(ms) {
+  if (!ms) return "—";
+  try {
+    const d = new Date(ms);
+    return d.toLocaleString("en-SG", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return "—";
+  }
+}
+
+function getOrderCreatedMs(o) {
+  // supports Firestore Timestamp, number, or date-like
+  const v = o?.createdAt || o?.created_at || o?.orderCreatedAt;
+  if (!v) return 0;
+  if (typeof v?.toMillis === "function") return v.toMillis();
+  if (typeof v === "number") return v;
+  const asDate = new Date(v);
+  const ms = asDate.getTime();
+  return Number.isFinite(ms) ? ms : 0;
+}
+
+function getOrderStallKey(o) {
+  // prefer a human label, fall back to stallId, then "Unknown"
+  return (
+    o?.stallName ||
+    o?.stall?.name ||
+    o?.storeName ||
+    o?.stallId ||
+    o?.stallID ||
+    "Unknown"
+  );
+}
+
+async function loadOrderHistorySummary(uid) {
+  // Default UI
+  if (sumTotal) sumTotal.textContent = "0";
+  if (sumLast) sumLast.textContent = "—";
+  if (sumFav) sumFav.textContent = "—";
+
+  // Try common user fields (some projects use userId, some use customerId)
+  const ordersRef = collection(db, "orders");
+
+  const q1 = query(ordersRef, where("userId", "==", uid));
+  const q2 = query(ordersRef, where("customerId", "==", uid));
+
+  // Run both and merge unique by doc id
+  const [s1, s2] = await Promise.allSettled([getDocs(q1), getDocs(q2)]);
+
+  const byId = new Map();
+
+  if (s1.status === "fulfilled") {
+    s1.value.docs.forEach((d) => byId.set(d.id, { id: d.id, ...d.data() }));
+  }
+  if (s2.status === "fulfilled") {
+    s2.value.docs.forEach((d) => byId.set(d.id, { id: d.id, ...d.data() }));
+  }
+
+  let orders = Array.from(byId.values());
+
+  // Optional: ignore cancelled orders if you store that
+  orders = orders.filter(
+    (o) => String(o?.status || "").toLowerCase() !== "cancelled",
+  );
+
+  const total = orders.length;
+
+  // Last order = newest createdAt
+  let lastMs = 0;
+  for (const o of orders) {
+    const ms = getOrderCreatedMs(o);
+    if (ms > lastMs) lastMs = ms;
+  }
+
+  // Favourite stall = most frequent stall key
+  const counts = new Map();
+  for (const o of orders) {
+    const key = getOrderStallKey(o);
+    counts.set(key, (counts.get(key) || 0) + 1);
+  }
+
+  let fav = "—";
+  let best = 0;
+  for (const [k, c] of counts.entries()) {
+    if (c > best) {
+      best = c;
+      fav = k;
+    }
+  }
+
+  if (sumTotal) sumTotal.textContent = String(total);
+  if (sumLast) sumLast.textContent = total ? formatDateTime(lastMs) : "—";
+  if (sumFav) sumFav.textContent = total ? fav : "—";
+}
+
 async function loadUserVouchers(uid) {
   const snap = await getDocs(collection(db, "users", uid, "vouchers"));
   return snap.docs.map((d) => ({ ...d.data(), docId: d.id }));
@@ -354,6 +460,14 @@ onAuthStateChanged(auth, async (user) => {
   try {
     const data = await loadProfile(user.uid, user);
 
+    // Order History Summary
+    await loadOrderHistorySummary(user.uid);
+
+    // button
+    viewOrdersBtn?.addEventListener("click", () => {
+      window.location.href = "orders.html";
+    });
+
     if (data?.deactivated) {
       setStatus("❌ This account has been deactivated.", false);
 
@@ -368,7 +482,7 @@ onAuthStateChanged(auth, async (user) => {
       return;
     }
     // =========================
-    // ✅ VOUCHERS (Popup + Firestore)
+    // VOUCHERS (Popup + Firestore)
     // =========================
     await updateRedeemedCount(user.uid);
 
@@ -430,10 +544,8 @@ onAuthStateChanged(auth, async (user) => {
       // Mark used in Firestore
       await markVoucherUsed(user.uid, docId);
 
-      // Refresh UI
-      const vouchers = await loadUserVouchers(user.uid);
-      renderVoucherModal(vouchers);
-      await updateRedeemedCount(user.uid);
+      // ✅ go straight to cart page
+      window.location.href = "cart.html";
     });
 
     // UI populate
@@ -447,7 +559,7 @@ onAuthStateChanged(auth, async (user) => {
         : "—";
 
     // =========================
-    // ✅ FAVOURITES (Saved Stores)
+    // FAVOURITES (Saved Stores)
     // =========================
     const savedStoresEl = document.getElementById("savedStores");
     const favs = Array.isArray(data?.favourites) ? data.favourites : [];
@@ -476,14 +588,14 @@ onAuthStateChanged(auth, async (user) => {
     applyBadge(0);
 
     /* =========================
-       ✅ LOAD PREFERENCES into checkboxes
+       LOAD PREFERENCES into checkboxes
     ========================= */
     const prefs = data?.preferences || {};
     setCheckedByValues(prefCuisineEls, prefs.cuisines);
     setCheckedByValues(prefNotifEls, prefs.notifications);
 
     /* =========================
-       ✅ SAVE PREFERENCES button
+       SAVE PREFERENCES button
     ========================= */
     savePrefBtn?.addEventListener("click", async () => {
       try {
@@ -626,7 +738,7 @@ onAuthStateChanged(auth, async (user) => {
             }
 
             try {
-              // ✅ Sends verification email to NEW address
+              // Sends verification email to NEW address
               await verifyBeforeUpdateEmail(user, newEmail);
 
               err.style.color = "#1b5e20";
@@ -662,7 +774,7 @@ onAuthStateChanged(auth, async (user) => {
               email: newEmail || user.email || "",
               updatedAt: serverTimestamp(),
 
-              // ✅ ONLY save avatar if user uploaded one
+              // ONLY save avatar if user uploaded one
               ...(avatarUrlToSave ? { avatarUrl: avatarUrlToSave } : {}),
             },
             { merge: true },
@@ -762,11 +874,11 @@ onAuthStateChanged(auth, async (user) => {
           }
 
           try {
-            // ✅ Re-authenticate
+            // Re-authenticate
             const cred = EmailAuthProvider.credential(user.email, password);
             await reauthenticateWithCredential(user, cred);
 
-            // ✅ Mark deactivated in Firestore
+            //  Mark deactivated in Firestore
             await setDoc(
               doc(db, "users", user.uid),
               { deactivated: true, deactivatedAt: serverTimestamp() },
@@ -775,7 +887,7 @@ onAuthStateChanged(auth, async (user) => {
 
             setStatus("✅ Account deactivated. Logging you out…");
 
-            // ✅ Log out and redirect
+            // Log out and redirect
             setTimeout(async () => {
               try {
                 await signOut(auth);

@@ -1,7 +1,6 @@
 /*************************************************
  * stall.js (module)
  * - Loads stall UI from local array
- * - ✅ Add/Remove Favourite (Firestore users/{uid}.favourites)
  *************************************************/
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -13,6 +12,7 @@ import {
   getFirestore,
   doc,
   getDoc,
+  getDocs,
   setDoc,
   arrayUnion,
   arrayRemove,
@@ -23,7 +23,7 @@ import {
   limit,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* ✅ SAME config as your other pages */
+/* Firebase Config */
 const firebaseConfig = {
   apiKey: "AIzaSyC-NTWADB-t1OGl7NbdyMVXjpVjnqjpTXg",
   authDomain: "fedproject-8d254.firebaseapp.com",
@@ -41,11 +41,14 @@ const db = getFirestore(app);
 // Load stall from Firestore
 // =========================
 const params = new URLSearchParams(window.location.search);
-const id = params.get("id");
+const centreId = params.get("centreId");
+const stallId = params.get("stallId");
 
-if (!id) window.location.href = "home.html";
+if (!centreId || !stallId) {
+  window.location.href = "home.html";
+}
 
-const stallRef = doc(db, "stalls", id);
+const stallRef = doc(db, "centres", centreId, "stalls", stallId);
 
 let stall = null;
 
@@ -60,8 +63,10 @@ async function loadStall() {
   const d = snap.data();
 
   stall = {
-    id,
-    name: d.stallName ?? d.name ?? id,
+    id: stallId,
+    centreId,
+    reviewStallId: d.reviewStallId || stallId,
+    name: d.stallName ?? d.name ?? stallId,
     cuisine: d.cuisine ?? "",
     grade: d.hygieneGrade ?? d.grade ?? "—",
     desc: d.desc ?? "",
@@ -73,6 +78,33 @@ async function loadStall() {
   };
 
   fillUI();
+  refreshRatingsFromReviews().catch(console.error);
+}
+
+async function refreshRatingsFromReviews() {
+  const reviewsRef = collection(db, "stalls", stall.reviewStallId, "reviews");
+  const qs = query(reviewsRef, orderBy("createdAt", "desc"), limit(200));
+  const snap = await getDocs(qs);
+
+  let total = 0;
+  let count = 0;
+
+  snap.forEach((d) => {
+    const r = d.data() || {};
+    const stars = Number(r.rating ?? r.stars ?? 0); // supports rating or stars
+    if (stars > 0) {
+      total += stars;
+      count += 1;
+    }
+  });
+
+  const avg = count ? total / count : 0;
+
+  if (avgText) avgText.textContent = avg.toFixed(1);
+  if (countText) countText.textContent = `(${count})`;
+
+  const pct = Math.max(0, Math.min(100, (avg / 5) * 100));
+  if (starFill) starFill.style.width = pct + "%";
 }
 
 // =========================
@@ -122,30 +154,21 @@ function fillUI() {
     locationEl.textContent = `📍 ${stall.location}`;
   }
 
-  if (menuLink) menuLink.href = `menu.html?id=${stall.id}`;
+  if (menuLink)
+    menuLink.href = `menu.html?centreId=${centreId}&stallId=${stallId}`;
   if (callBtn) callBtn.href = "tel:+6590000000";
   if (dirBtn) {
     dirBtn.href =
       "https://www.google.com/maps?q=" +
       encodeURIComponent(stall.location || stall.name);
   }
+  if (seeReviewLink) {
+    seeReviewLink.href = `feedback.html?id=${encodeURIComponent(stall.reviewStallId)}`;
+  }
 }
 
-onSnapshot(stallRef, (snap) => {
-  const d = snap.exists() ? snap.data() : {};
-  const total = Number(d.ratingTotal || 0);
-  const count = Number(d.ratingCount || 0);
-  const avg = count ? total / count : 0;
-
-  if (avgText) avgText.textContent = avg.toFixed(1);
-  if (countText) countText.textContent = `(${count})`;
-
-  const pct = Math.max(0, Math.min(100, (avg / 5) * 100));
-  if (starFill) starFill.style.width = pct + "%";
-});
-
 // =========================
-// ✅ Favourite (Firestore)
+// Favourite (Firestore)
 // =========================
 function setFavUI(isFav) {
   if (!favBtn) return;

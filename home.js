@@ -13,7 +13,7 @@ import {
  * - If guest tries to use search/filter/sort/location -> show locked screen (like your design)
  *************************************************/
 
-// ✅ GUEST MODE
+// GUEST MODE
 const params = new URLSearchParams(window.location.search);
 const isGuest = params.get("mode") === "guest";
 
@@ -33,13 +33,6 @@ function applyGuestModeUI() {
     el.style.display = "block";
   });
 }
-
-document.querySelectorAll(".viewBtn").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    const id = btn.dataset.id;
-    window.location.href = `stall.html?id=${id}`;
-  });
-});
 
 applyGuestModeUI();
 document.addEventListener("DOMContentLoaded", () => {
@@ -71,31 +64,56 @@ const els = {
 };
 
 async function loadHomeStalls() {
-  const q = query(collection(db, "stalls"), where("active", "==", true));
-  const snap = await getDocs(q);
+  try {
+    // 1) get all centres
+    const centresSnap = await getDocs(collection(db, "centres"));
+    const centreIds = centresSnap.docs.map((d) => d.id);
 
-  stalls = snap.docs.map((d) => {
-    const s = d.data();
-    return {
-      id: d.id,
-      name: s.stallName ?? s.name ?? d.id,
-      cuisine: s.cuisine ?? "",
-      grade: s.hygieneGrade ?? s.grade ?? "",
-      popular: !!s.popular,
-      location: s.location ?? "",
-      desc: s.desc ?? "",
-      img: s.imageUrl ?? s.img ?? "images/default-stall.png",
-      openTime: s.openTime ?? "",
-      closeTime: s.closeTime ?? "",
-      unit: s.unitNo ?? s.unit ?? "",
-      prepMin: s.prepMin ?? null,
-      prepMax: s.prepMax ?? null,
-    };
-  });
+    // 2) get stalls for each centre
+    const results = await Promise.all(
+      centreIds.map(async (centreId) => {
+        const q = query(
+          collection(db, "centres", centreId, "stalls"),
+          where("active", "==", true),
+        );
+        const snap = await getDocs(q);
 
-  // render AFTER data exists
-  renderCuisineOptions();
-  applyFilters();
+        return snap.docs.map((d) => {
+          const s = d.data() || {};
+          return {
+            // IMPORTANT: these are the real IDs your menu needs
+            stallId: d.id,
+            centreId: centreId,
+            name: s.stallName ?? s.name ?? d.id,
+            cuisine: s.cuisine ?? "",
+            grade: s.hygieneGrade ?? s.grade ?? "",
+            popular: !!s.popular,
+            location: s.location ?? "",
+            desc: s.desc ?? "",
+            img: s.imageUrl ?? s.img ?? "images/default-stall.png",
+            openTime: s.openTime ?? "",
+            closeTime: s.closeTime ?? "",
+            unit: s.unitNo ?? s.unit ?? "",
+            prepMin: s.prepMin ?? null,
+            prepMax: s.prepMax ?? null,
+          };
+        });
+      }),
+    );
+
+    stalls = results.flat();
+
+    renderCuisineOptions();
+    applyFilters();
+  } catch (e) {
+    console.error(e);
+    els.list.innerHTML = `
+      <div class="emptyState">
+        <h2 class="emptyTitle">Cannot load stalls</h2>
+        <p class="emptyDesc">${e.message}</p>
+      </div>
+    `;
+  }
 }
 
 /* ===============================
@@ -174,7 +192,7 @@ function renderCuisineOptions() {
   });
 }
 
-// ✅ helper: keep guest mode when navigating
+// helper: keep guest mode when navigating
 function withGuestMode(url) {
   if (!isGuest) return url;
   return url.includes("?") ? `${url}&mode=guest` : `${url}?mode=guest`;
@@ -210,7 +228,7 @@ function createCard(stall) {
 
       <div class="cardBottom">
         <span class="prep">Prep Time: ${stall.prepMin}-${stall.prepMax} min</span>
-        <button class="viewBtn" data-id="${stall.id}">
+        <button class="viewBtn" data-id="${stall.stallId}">
           View Stall 
           <img src="images/right-arrow.png" alt="" class="arrowIcon" />
         </button>
@@ -220,7 +238,7 @@ function createCard(stall) {
 
   card.querySelector(".viewBtn").addEventListener("click", () => {
     const target = withGuestMode(
-      `stall.html?id=${encodeURIComponent(stall.id)}`,
+      `stall.html?centreId=${encodeURIComponent(stall.centreId)}&stallId=${encodeURIComponent(stall.stallId)}`,
     );
     window.location.href = target;
   });
@@ -233,7 +251,7 @@ function createCard(stall) {
 ================================ */
 
 function applyFilters() {
-  // ✅ if guest tries to use filters, show locked view and stop
+  // if guest tries to use filters, show locked view and stop
   if (guestTriedToFilter()) return;
 
   const q = els.q.value.trim().toLowerCase();
@@ -309,7 +327,7 @@ function renderList(data, sortValue) {
   // NORMAL LIST
   data.forEach((s) => els.list.appendChild(createCard(s)));
 
-  // ✅ Bottom reset button ONLY if filters are active
+  // Bottom reset button ONLY if filters are active
   if (showReset) {
     els.list.insertAdjacentHTML(
       "beforeend",

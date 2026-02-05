@@ -13,25 +13,23 @@
         <a class="brand" href="home.html" aria-label="Hawker Point Home">
           <img src="images/logo.png" alt="Hawker Point" class="brand-logo" />
         </a>
-        
-        <!-- Desktop nav (same as your current) -->
+
         <nav class="nav" aria-label="Primary navigation">
           <a class="pill active" href="home.html">Home</a>
           <a class="pill" href="promotions.html">Promotions</a>
           <a class="pill" href="orders.html">Orders</a>
           <a class="pill" href="feedback.html">Feedback</a>
           <a class="pill" href="hygiene.html">Hygiene</a>
+
           <a class="pill cartPill" href="cart.html">
             Cart <span id="cartCount" class="cartBadge isZero">0</span>
           </a>
 
           <a class="pill account" href="account.html">
-            Account
-            <span class="notif" id="notifCount" hidden></span>
+            Account <span class="notif" id="notifCount" hidden></span>
           </a>
         </nav>
 
-        <!-- ✅ Hamburger button (mobile only via CSS) -->
         <button
           id="menuBtn"
           class="menuBtn"
@@ -44,12 +42,14 @@
       </div>
 
       <div id="navBackdrop" class="navBackdrop"></div>
+
       <nav id="navMobile" class="navMobile" aria-label="Mobile navigation">
         <a class="mLink" href="home.html">Home</a>
         <a class="mLink" href="promotions.html">Promotions</a>
         <a class="mLink" href="orders.html">Orders</a>
         <a class="mLink" href="feedback.html">Feedback</a>
         <a class="mLink" href="hygiene.html">Hygiene</a>
+
         <a class="mLink" href="cart.html">
           Cart <span id="cartCountMobile" class="cartBadge isZero">0</span>
         </a>
@@ -66,44 +66,165 @@
         <p class="cartSub" id="cartSub">0 items</p>
       </div>
 
-      <section class="list" id="cartList"></section>
+      <div class="cartLayout">
+        <!-- LEFT COLUMN -->
+        <div class="cartLeft">
+          <section class="list" id="cartList"></section>
 
-      <section class="cartSummary" id="cartSummary">
-        <div class="cartSumRow">
-          <span>Subtotal</span>
-          <span>$<span id="sumSubtotal">0.00</span></span>
+          <!-- PICKUP / DELIVERY -->
+          <section class="fulfillBox" id="fulfillBox">
+            <div class="payTitle">Pickup / Delivery</div>
+
+            <label class="payOption">
+              <input type="radio" name="fulfillment" value="pickup" checked />
+              <span>Pickup</span>
+            </label>
+
+            <label class="payOption">
+              <input type="radio" name="fulfillment" value="delivery" />
+              <span>Delivery</span>
+            </label>
+
+            <div id="deliveryFields" class="deliveryFields" hidden>
+              <div class="deliveryGrid">
+                <div class="field field--full">
+                  <label>
+                    Address*
+                    <span class="req" id="reqAddress" hidden>Required</span>
+                  </label>
+                  <input
+                    id="delAddress"
+                    type="text"
+                    placeholder="Street / Building"
+                  />
+                </div>
+
+                <div class="field">
+                  <label>
+                    Postal Code*
+                    <span class="req" id="reqPostal" hidden>Required</span>
+                  </label>
+                  <input id="delPostal" type="text" placeholder="e.g. 560123" />
+                </div>
+
+                <div class="field">
+                  <label>
+                    Unit*
+                    <span class="req" id="reqUnit" hidden>Required</span>
+                  </label>
+                  <input id="delUnit" type="text" placeholder="e.g. 10-123" />
+                </div>
+
+                <div class="field field--full saveAddrRow">
+                  <label class="saveAddrLabel">
+                    <input id="saveAddrChk" type="checkbox" />
+                    <span>Save address for future deliveries</span>
+                  </label>
+                  <div id="saveAddrHint" class="saveAddrStatus" hidden></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- PAYMENT METHODS (SEPARATE BOX BELOW) -->
+          <section class="payBox" id="payBox">
+            <div class="payTitle">Payment Methods</div>
+
+            <label class="payOption">
+              <input type="radio" name="payMethod" value="cash" />
+              <span>Cash</span>
+            </label>
+
+            <label class="payOption">
+              <input type="radio" name="payMethod" value="paynow_nets" />
+              <span>Paynow / NETS QR</span>
+            </label>
+
+            <label class="payOption">
+              <input type="radio" name="payMethod" value="card" />
+              <span>Credit / Debit Card</span>
+            </label>
+          </section>
         </div>
-        <div class="cartSumRow">
-          <span>Delivery</span>
-          <span>$<span id="sumDelivery">0.00</span></span>
-        </div>
-        <div class="cartSumRow cartSumTotal">
-          <span>Total</span>
-          <span>$<span id="sumTotal">0.00</span></span>
-        </div>
-      </section>
 
-      <section class="payBox" id="payBox">
-        <div class="payTitle">Payment Method</div>
+        <!-- RIGHT COLUMN -->
+        <aside class="cartRight">
+          <div class="orderPanel" id="orderPanel">
+            <!-- PROMO CODE BOX (ABOVE SUMMARY) -->
+            <section
+              id="promoBox"
+              class="promoRedeemWrap promoRedeemWrap--cart"
+            >
+              <div class="promoRedeemCard promoRedeemCard--cart">
+                <div class="promoRedeemLeft">
+                  <h3>Have a promo code?</h3>
+                  <p>Enter it here — we’ll apply it to your cart.</p>
+                </div>
 
-        <label class="payOption">
-          <input type="radio" name="payMethod" value="cash" />
-          <span>Cash</span>
-        </label>
+                <div class="promoRedeemRight">
+                  <input
+                    id="redeemInput"
+                    class="promoRedeemInput"
+                    placeholder="ENTER PROMO CODE"
+                    autocomplete="off"
+                  />
+                  <button
+                    id="redeemBtn"
+                    class="viewBtn promoRedeemBtn"
+                    type="button"
+                  >
+                    Redeem <span class="arrow">›</span>
+                  </button>
+                </div>
 
-        <label class="payOption">
-          <input type="radio" name="payMethod" value="paynow_nets" />
-          <span>Paynow / NETS QR</span>
-        </label>
+                <p id="redeemMsg" class="promoRedeemMsg" aria-live="polite"></p>
+              </div>
+            </section>
 
-        <label class="payOption">
-          <input type="radio" name="payMethod" value="card" />
-          <span>Credit/ Debit Card</span>
-        </label>
-      </section>
+            <section class="cartSummary" id="cartSummary">
+              <div class="cartSumRow">
+                <span>Subtotal</span>
+                <span>$<span id="sumSubtotal">0.00</span></span>
+              </div>
 
+              <div class="cartSumRow">
+                <span>Promo (<span id="promoCodeLabel">None</span>)</span>
+                <span>$<span id="sumPromo">0.00</span></span>
+              </div>
+
+              <div class="cartSumRow" id="smallOrderRow">
+                <span>Small order fee</span>
+                <span>$<span id="sumSmallFee">0.00</span></span>
+              </div>
+
+              <div id="smallOrderMsg" class="feeMsg" hidden></div>
+
+              <div class="cartDivider" id="smallOrderDivider" hidden></div>
+
+              <div class="cartSumRow noBorder">
+                <span>Delivery</span>
+                <span>$<span id="sumDelivery">0.00</span></span>
+              </div>
+
+              <div class="cartDivider"></div>
+
+              <div class="cartSumRow cartSumTotal">
+                <span>Total</span>
+                <span>$<span id="sumTotal">0.00</span></span>
+              </div>
+            </section>
+          </div>
+        </aside>
+      </div>
+
+      <!-- PROCEED BUTTON -->
       <div class="cartAction">
-        <button id="checkoutBtn" class="payProceedBtn" type="button" disabled>
+        <button
+          id="checkoutBtn"
+          class="payProceedBtn isLocked"
+          type="button"
+          disabled
+        >
           Proceed To Payment
         </button>
       </div>

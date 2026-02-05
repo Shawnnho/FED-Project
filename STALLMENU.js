@@ -1,30 +1,55 @@
 /*************************************************
- * stallmenu.js
- * - Loads menu for stall via menu.html?id=...
- * - Renders menu list in your screenshot style
- * - Clicking "+" navigates to item.html
- * - Cart badge uses account-based cart via cart.js
+ * 
+ *   1) menu.html?centreId=...&stallId=...
+ *   2) legacy menu.html?id=publicStallId (e.g. kopi-fellas)
+ *      -> resolves using collectionGroup('stalls') where publicStallId == id
+ * - Loads stall doc + menu subcollection from Firestore
+ * - Renders in your existing card layout
  *************************************************/
 
 import { getCartForUI } from "./cart.js";
 
-/* ===== HAMBURGER ===== */
-const menuBtn = document.getElementById("menuBtn");
-const navMobile = document.getElementById("navMobile");
-const navBackdrop = document.getElementById("navBackdrop");
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  collection,
+  getDocs,
+  query,
+  where,
+  orderBy,
+  limit,
+  collectionGroup,
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-function toggleMenu(open) {
-  document.body.classList.toggle("menuOpen", open);
-  navMobile?.classList.toggle("open", open);
-  navBackdrop?.classList.toggle("open", open);
-}
+/* =========================
+   Firebase init (same as your menu.js)
+========================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyC-NTWADB-t1OGl7NbdyMVXjpVjnqjpTXg",
+  authDomain: "fedproject-8d254.firebaseapp.com",
+  projectId: "fedproject-8d254",
+  storageBucket: "fedproject-8d254.firebasestorage.app",
+  messagingSenderId: "477538553634",
+  appId: "1:477538553634:web:a14b93bbd93d33b9281f7b",
+};
 
-menuBtn?.addEventListener("click", () =>
-  toggleMenu(!navMobile?.classList.contains("open")),
-);
-navBackdrop?.addEventListener("click", () => toggleMenu(false));
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-/* ===== HELPERS ===== */
+/* =========================
+   DOM
+========================= */
+const listEl = document.getElementById("menuList");
+const searchEl = document.getElementById("menuQ");
+const titleEl = document.getElementById("menuTitle");
+const iconEl = document.getElementById("stallIcon");
+const gradeEl = document.getElementById("gradePill");
+
+/* =========================
+   Helpers
+========================= */
 function slugify(str) {
   return String(str)
     .toLowerCase()
@@ -33,237 +58,20 @@ function slugify(str) {
     .replace(/[^a-z0-9-]/g, "");
 }
 
-/* ===== STALL INFO (logos) ===== */
-const stalls = [
-  {
-    id: "ahmad-nasi-lemak",
-    name: "Ahmad Nasi Lemak",
-    grade: "B",
-    icon: "images/stalls/nasilemak.jpg",
-  },
-  {
-    id: "tiong-bahru",
-    name: "Tiong Bahru Chicken Rice",
-    grade: "A",
-    icon: "images/chickenrice-hero.jpg",
-  },
-  {
-    id: "asia-wok",
-    name: "Asia Wok",
-    grade: "A",
-    icon: "images/asiawok-hero.jpg",
-  },
-  {
-    id: "al-azhar",
-    name: "Al-Azhar Restaurant",
-    grade: "C",
-    icon: "images/al-azhar-hero.jpg",
-  },
-  {
-    id: "fat-buddies",
-    name: "Fat Buddies Western Food",
-    grade: "B",
-    icon: "images/stalls/Fatbuddies.png",
-  },
-  {
-    id: "kopi-fellas",
-    name: "Kopi Fellas",
-    grade: "A",
-    icon: "images/stalls/kopifellas.jpg",
-  },
-];
+function money(v) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n.toFixed(2) : "—";
+}
 
-/* ===== MENU ITEMS (you can expand later) ===== */
-const menuByStall = {
-  "ahmad-nasi-lemak": [
-    {
-      name: "Nasi Lemak",
-      price: 7.0,
-      likes: 277,
-      img: "images/stalls/nasilemak.jpg",
-    },
-    {
-      name: "Fried Noodles",
-      price: 6.7,
-      likes: 67,
-      img: "images/fried noodles.png",
-    },
-    {
-      name: "Satay (1 Dozen)",
-      price: 10.5,
-      likes: 300,
-      img: "images/Satay 1D.png",
-    },
-    {
-      name: "Assam Laksa",
-      price: 8.0,
-      likes: 50,
-      img: "images/Asaam Laks.png",
-    },
-    { name: "Roti Canai", price: 5.0, likes: 99, img: "images/Roti canai.png" },
-    { name: "Chendul", price: 4.0, likes: 32, img: "images/Chendul.png" },
-  ],
+function setTopUI({ stallName, imageUrl, hygieneGrade }) {
+  if (titleEl) titleEl.textContent = `Menu — ${stallName || "Selected stall"}`;
+  if (iconEl) iconEl.src = imageUrl || "images/menu/placeholder.png";
+  if (gradeEl) gradeEl.textContent = `✓ Hygiene Grade: ${hygieneGrade || "—"}`;
+}
 
-  "asia-wok": [
-    {
-      name: "Mee Goreng",
-      price: 6.0,
-      likes: 141,
-      img: "images/mee goreng.png",
-    },
-    {
-      name: "Fried Beef Dry Hor Fun",
-      price: 8.0,
-      likes: 200,
-      img: "images/dry hor.png",
-    },
-    {
-      name: "Cereal Sliced Fish Rice",
-      price: 8.5,
-      likes: 96,
-      img: "images/sliced fish.png",
-    },
-    {
-      name: "Seafood White Bee Hoon",
-      price: 9.0,
-      likes: 153,
-      img: "images/whitebeehoon.png",
-    },
-    {
-      name: "Hong Kong Noodle",
-      price: 7.0,
-      likes: 85,
-      img: "images/hk noodle.png",
-    },
-    {
-      name: "Black Pepper Chicken Cube Rice",
-      price: 6.7,
-      likes: 67,
-      img: "images/BP.png",
-    },
-  ],
-
-  "tiong-bahru": [
-    {
-      name: "Chicken Rice",
-      price: 5.0,
-      likes: 420,
-      img: "images/stalls/chickenrice.png",
-    },
-    {
-      name: "Chicken Cutlet Rice",
-      price: 5.5,
-      likes: 198,
-      img: "images/ChicCut.png",
-    },
-    { name: "Fried Rice", price: 5.5, likes: 67, img: "images/friedrice.png" },
-    {
-      name: "Shredded Chicken Porridge",
-      price: 6.0,
-      likes: 34,
-      img: "images/ShredChicPorr.png",
-    },
-    {
-      name: "Shredded Chicken Kway Teow",
-      price: 6.0,
-      likes: 55,
-      img: "images/ShredChicKway.png",
-    },
-    {
-      name: "Chicken Wings",
-      price: 4.0,
-      likes: 85,
-      img: "images/ChicWing.png",
-    },
-  ],
-
-  "al-azhar": [
-    {
-      name: "Butter Chicken",
-      price: 13.0,
-      likes: 823,
-      img: "images/ButtChic.png",
-    },
-    {
-      name: "Mutton Biryani",
-      price: 13.0,
-      likes: 219,
-      img: "images/MuttBir.png",
-    },
-    {
-      name: "Chicken Biryani",
-      price: 11.5,
-      likes: 200,
-      img: "images/ChicBir.png",
-    },
-    {
-      name: "Beef Biryani",
-      price: 12.0,
-      likes: 238,
-      img: "images/BeefBir.png",
-    },
-    {
-      name: "Nasi Sambal Goreng Chicken",
-      price: 10.0,
-      likes: 104,
-      img: "images/NasiSam.png",
-    },
-    {
-      name: "Tandoori Chicken",
-      price: 9.0,
-      likes: 190,
-      img: "images/Tandoori.png",
-    },
-  ],
-
-  "fat-buddies": [
-    {
-      name: "Chicken Bolognese",
-      price: 8.0,
-      likes: 230,
-      img: "images/ChicBolog.png",
-    },
-    { name: "Fish and Chips", price: 10.0, likes: 512, img: "images/F&C.png" },
-    { name: "Carbonara", price: 8.5, likes: 67, img: "images/CarbP.png" },
-    { name: "Beef Burger", price: 9.0, likes: 89, img: "images/BeefBurg.png" },
-    {
-      name: "Chicken Burger",
-      price: 8.0,
-      likes: 42,
-      img: "images/ChicBurg.png",
-    },
-    { name: "Curly Fries", price: 4.0, likes: 103, img: "images/CurlyFri.png" },
-  ],
-
-  "kopi-fellas": [
-    { name: "Kopi O", price: 2.0, likes: 210, img: "images/kopi-o.png" },
-    { name: "Kopi C", price: 2.3, likes: 199, img: "images/kopi-c.png" },
-    { name: "Teh Peng", price: 2.5, likes: 160, img: "images/teh-peng.png" },
-    { name: "Yuan Yang", price: 2.8, likes: 144, img: "images/yuan-yang.png" },
-    { name: "Ice Milo", price: 3.0, likes: 290, img: "images/ice-milo.png" },
-    {
-      name: "Honey Lemon",
-      price: 3.1,
-      likes: 232,
-      img: "images/honey-lemon.png",
-    },
-  ],
-};
-
-/* ===== READ URL (?id=stallId) ===== */
-const params = new URLSearchParams(window.location.search);
-const stallId = params.get("id") || "ahmad-nasi-lemak";
-
-const stall = stalls.find((s) => s.id === stallId) || stalls[0];
-const items = menuByStall[stall.id] || [];
-
-/* ===== FILL TOP UI ===== */
-document.getElementById("menuTitle").textContent = `Menu — ${stall.name}`;
-document.getElementById("stallIcon").src = stall.icon;
-document.getElementById("gradePill").textContent =
-  `✓ Hygiene Grade: ${stall.grade}`;
-
-/* ===== CART BADGE (account-based via cart.js) ===== */
+/* =========================
+   Cart badge (reuse your existing cart.js logic)
+========================= */
 async function updateCartDisplay() {
   try {
     const cart = await getCartForUI();
@@ -279,25 +87,21 @@ async function updateCartDisplay() {
       total += Number.isFinite(line) ? line : 0;
     }
 
-    // Desktop badge
     const el = document.getElementById("cartCount");
     if (el) {
       el.textContent = String(count);
       el.classList.toggle("isZero", count <= 0);
     }
 
-    // Mobile badge
     const elM = document.getElementById("cartCountMobile");
     if (elM) {
       elM.textContent = String(count);
       elM.classList.toggle("isZero", count <= 0);
     }
 
-    // Optional total
     const totalEl = document.getElementById("cartTotal");
     if (totalEl) totalEl.textContent = total.toFixed(2);
   } catch (err) {
-    // If cart.js throws, we don't kill the menu page
     console.warn("Cart badge update failed:", err);
   }
 }
@@ -305,107 +109,248 @@ async function updateCartDisplay() {
 document.addEventListener("DOMContentLoaded", updateCartDisplay);
 window.addEventListener("pageshow", updateCartDisplay);
 
-/* ===== RENDER MENU ===== */
-const listEl = document.getElementById("menuList");
-const searchEl = document.getElementById("menuQ");
+/* =========================
+   Resolve stall from URL
+========================= */
+const params = new URLSearchParams(window.location.search);
+const centreId = params.get("centreId");
+const stallId = params.get("stallId");
 
-function renderMenu(filter = "") {
-  listEl.innerHTML = "";
-  const q = filter.toLowerCase();
+let CAN_LOAD = true;
 
-  const filtered = items.filter((i) => i.name.toLowerCase().includes(q));
+if (!centreId || !stallId) {
+  CAN_LOAD = false;
+  if (listEl) {
+    listEl.innerHTML = `<div class="emptyState">
+      <h2 class="emptyTitle">Missing centreId or stallId in URL</h2>
+      <p class="emptySub">Open like this: <b>menu.html?centreId=...&stallId=...</b></p>
+    </div>`;
+  }
+} else {
+  // only run when params exist
+  searchEl?.addEventListener("input", (e) => renderMenu(e.target.value));
 
-  filtered.forEach((item) => {
-    const card = document.createElement("article");
-    card.classList.add("menuCard");
-
-    // left image
-    const imgWrap = document.createElement("div");
-    imgWrap.classList.add("menuImgWrap");
-    const img = document.createElement("img");
-    img.src = item.img;
-    img.alt = item.name;
-    imgWrap.appendChild(img);
-
-    // middle info
-    const info = document.createElement("div");
-    info.classList.add("menuInfo");
-
-    const name = document.createElement("div");
-    name.classList.add("menuName");
-    name.textContent = item.name;
-
-    const price = document.createElement("div");
-    price.classList.add("menuPrice");
-    price.textContent = `$${item.price.toFixed(2)}+`;
-
-    const likesRow = document.createElement("div");
-    likesRow.classList.add("menuLikes");
-
-    const likeKey = `hp_like_${stall.id}_${slugify(item.name)}`;
-    let liked = localStorage.getItem(likeKey) === "1";
-
-    const heartBtn = document.createElement("button");
-    heartBtn.type = "button";
-    heartBtn.classList.add("likeBtn");
-    heartBtn.setAttribute("aria-label", liked ? "Unlike" : "Like");
-    heartBtn.textContent = "♥";
-
-    const likeCount = document.createElement("span");
-    likeCount.classList.add("likeCount");
-
-    likeCount.textContent = item.likes + (liked ? 1 : 0);
-
-    if (liked) heartBtn.classList.add("active");
-
-    heartBtn.addEventListener("click", () => {
-      liked = !liked;
-
-      if (liked) {
-        localStorage.setItem(likeKey, "1");
-        heartBtn.classList.add("active");
-        heartBtn.setAttribute("aria-label", "Unlike");
-        likeCount.textContent = Number(likeCount.textContent) + 1;
-      } else {
-        localStorage.removeItem(likeKey);
-        heartBtn.classList.remove("active");
-        heartBtn.setAttribute("aria-label", "Like");
-        likeCount.textContent = Math.max(0, Number(likeCount.textContent) - 1);
-      }
-    });
-
-    likesRow.appendChild(heartBtn);
-    likesRow.appendChild(likeCount);
-
-    info.appendChild(name);
-    info.appendChild(price);
-    info.appendChild(likesRow);
-
-    // right add button
-    const addBtn = document.createElement("button");
-    addBtn.classList.add("menuAddBtn");
-    addBtn.type = "button";
-    addBtn.textContent = "+";
-
-    addBtn.addEventListener("click", () => {
-      const itemKey = slugify(item.name);
-      window.location.href = `item.html?stall=${encodeURIComponent(stall.id)}&item=${encodeURIComponent(itemKey)}`;
-    });
-
-    card.appendChild(imgWrap);
-    card.appendChild(info);
-    card.appendChild(addBtn);
-
-    listEl.appendChild(card);
+  loadStallAndMenu().catch((e) => {
+    console.error(e);
+    if (listEl) {
+      listEl.innerHTML = `<div class="emptyState">
+        <h2 class="emptyTitle">Failed to load menu</h2>
+        <p class="emptySub">${e?.message || e}</p>
+      </div>`;
+    }
   });
+}
+
+/* =========================
+   Load stall + menu
+========================= */
+let ALL_ITEMS = []; // normalized menu items for rendering/search
+
+function renderMenu(filter) {
+  if (!listEl) return;
+  const q = String(filter || "")
+    .toLowerCase()
+    .trim();
+
+  const filtered = ALL_ITEMS.filter((i) => i.name.toLowerCase().includes(q));
+
+  // group by category
+  const groups = new Map();
+  for (const item of filtered) {
+    const key = item.category || "Uncategorised";
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(item);
+  }
+
+  listEl.innerHTML = "";
 
   if (filtered.length === 0) {
-    const empty = document.createElement("div");
-    empty.classList.add("emptyState");
-    empty.innerHTML = `<h2 class="emptyTitle">No items found</h2>`;
-    listEl.appendChild(empty);
+    listEl.innerHTML = `<div class="emptyState">
+      <h2 class="emptyTitle">No items found</h2>
+    </div>`;
+    return;
+  }
+
+  for (const [cat, items] of groups.entries()) {
+    const catTitle = document.createElement("div");
+    catTitle.className = "menuSectionTitle";
+    catTitle.textContent = cat;
+    listEl.appendChild(catTitle);
+
+    for (const item of items) {
+      const card = document.createElement("article");
+      card.classList.add("menuCard");
+
+      // left image
+      const imgWrap = document.createElement("div");
+      imgWrap.classList.add("menuImgWrap");
+      const img = document.createElement("img");
+      img.src = item.img;
+      img.alt = item.name;
+      imgWrap.appendChild(img);
+
+      // middle info
+      const info = document.createElement("div");
+      info.classList.add("menuInfo");
+
+      const name = document.createElement("div");
+      name.classList.add("menuName");
+      name.textContent = item.name;
+
+      const price = document.createElement("div");
+      price.classList.add("menuPrice");
+
+      // show "from" if priceFrom exists, else normal price
+      if (item.priceFrom != null && item.priceFrom !== "") {
+        price.textContent = `from $${money(item.priceFrom)}`;
+      } else if (item.price != null && item.price !== "") {
+        price.textContent = `$${money(item.price)}`;
+      } else {
+        price.textContent = `—`;
+      }
+
+      const likesRow = document.createElement("div");
+      likesRow.classList.add("menuLikes");
+
+      const likeKey = `hp_like_${stallId}_${item.id}`;
+      let liked = localStorage.getItem(likeKey) === "1";
+
+      const heartBtn = document.createElement("button");
+      heartBtn.type = "button";
+      heartBtn.classList.add("likeBtn");
+      heartBtn.setAttribute("aria-label", liked ? "Unlike" : "Like");
+      heartBtn.textContent = "♥";
+
+      const likeCount = document.createElement("span");
+      likeCount.classList.add("likeCount");
+      likeCount.textContent = String(item.likes + (liked ? 1 : 0));
+
+      if (liked) heartBtn.classList.add("active");
+
+      heartBtn.addEventListener("click", () => {
+        liked = !liked;
+        if (liked) {
+          localStorage.setItem(likeKey, "1");
+          heartBtn.classList.add("active");
+          heartBtn.setAttribute("aria-label", "Unlike");
+          likeCount.textContent = String(Number(likeCount.textContent) + 1);
+        } else {
+          localStorage.removeItem(likeKey);
+          heartBtn.classList.remove("active");
+          heartBtn.setAttribute("aria-label", "Like");
+          likeCount.textContent = String(
+            Math.max(0, Number(likeCount.textContent) - 1),
+          );
+        }
+      });
+
+      likesRow.appendChild(heartBtn);
+      likesRow.appendChild(likeCount);
+
+      info.appendChild(name);
+      info.appendChild(price);
+      info.appendChild(likesRow);
+
+      // right add button (go item.html)
+      const addBtn = document.createElement("button");
+      addBtn.classList.add("menuAddBtn");
+      addBtn.type = "button";
+      addBtn.textContent = "+";
+
+      addBtn.addEventListener("click", () => {
+        // Pass BOTH new + old param names so you don't break item.html
+        const url =
+          `item.html?centreId=${encodeURIComponent(centreId)}` +
+          `&stallId=${encodeURIComponent(stallId)}` +
+          `&itemId=${encodeURIComponent(item.id)}` +
+          `&centre=${encodeURIComponent(centreId)}` +
+          `&stallDoc=${encodeURIComponent(stallId)}` +
+          `&item=${encodeURIComponent(item.id)}`;
+        window.location.href = url;
+      });
+
+      card.appendChild(imgWrap);
+      card.appendChild(info);
+      card.appendChild(addBtn);
+
+      listEl.appendChild(card);
+    }
   }
 }
 
-renderMenu();
-searchEl.addEventListener("input", (e) => renderMenu(e.target.value));
+async function loadStallAndMenu() {
+  // 1) Load stall doc
+  const stallRef = doc(db, "centres", centreId, "stalls", stallId);
+  const stallSnap = await getDoc(stallRef);
+
+  if (!stallSnap.exists()) {
+    listEl.innerHTML = `<div class="emptyState">
+      <h2 class="emptyTitle">Stall not found</h2>
+      <p class="emptySub">centres/${centreId}/stalls/${stallId}</p>
+    </div>`;
+    return;
+  }
+
+  const stall = stallSnap.data();
+  setTopUI({
+    stallName: stall.stallName,
+    imageUrl: stall.imageUrl,
+    hygieneGrade: stall.hygieneGrade,
+  });
+
+  // 2) Load menu subcollection (no query/index needed)
+  const menuRef = collection(
+    db,
+    "centres",
+    centreId,
+    "stalls",
+    stallId,
+    "menu",
+  );
+  const snap = await getDocs(menuRef);
+  ALL_ITEMS = snap.docs
+  .map((d) => {
+    const it = d.data() || {};
+
+    // --- PRICE NORMALIZATION ---
+    // Case 1: normal stalls: price / priceFrom
+    const directPrice = it.price ?? null;
+    const directPriceFrom = it.priceFrom ?? null;
+
+    // Case 2: beverage stalls: prices map (cold_s, cold_m, hot_s, etc.)
+    const pricesMap = it.prices && typeof it.prices === "object" ? it.prices : null;
+
+    // compute min price from prices map (for menu list "from $X.XX")
+    let minVariantPrice = null;
+    if (pricesMap) {
+      const vals = Object.values(pricesMap)
+        .map(Number)
+        .filter((n) => Number.isFinite(n));
+      if (vals.length) minVariantPrice = Math.min(...vals);
+    }
+
+    return {
+      id: d.id,
+      name: it.name || d.id,
+      category: it.category || "Uncategorised",
+
+      // if priceFrom/price exist use them, else use min from variants
+      price: directPrice,
+      priceFrom: directPriceFrom ?? minVariantPrice,
+
+      // for item.html later (keep the variants available)
+      prices: pricesMap,
+
+      // --- IMAGE NORMALIZATION ---
+      // prefer full Firebase Storage URL if present
+      img: it.imageUrl || it.img || "images/menu/placeholder.png",
+
+      likes: Number(it.likes ?? 0),
+      active: it.active ?? true,
+    };
+  })
+  .filter((it) => it.active !== false);
+
+renderMenu("");
+
+}

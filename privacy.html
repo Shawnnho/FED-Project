@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Privacy Policy | HawkerPoint</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="footer.css" />
+  </head>
+
+  <body>
+    <!-- TOPBAR (reuse your same one) -->
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="index.html" aria-label="Hawker Point Home">
+          <img src="images/logo.png" alt="Hawker Point" class="brand-logo" />
+        </a>
+
+        <nav class="nav" aria-label="Primary navigation">
+          <a class="pill cartPill" href="cart.html">
+            Cart <span id="cartCount" class="cartBadge isZero">0</span>
+          </a>
+          <a class="pill" href="signin.html">Log In</a>
+          <a
+            class="pill active"
+            href="signup.html"
+            style="background: #df8f3b; color: #fff"
+          >
+            Sign up for free today
+          </a>
+        </nav>
+
+        <button
+          id="menuBtn"
+          class="menuBtn"
+          type="button"
+          aria-label="Open menu"
+          aria-expanded="false"
+        >
+          ☰
+        </button>
+      </div>
+
+      <div id="navBackdrop" class="navBackdrop"></div>
+      <nav id="navMobile" class="navMobile" aria-label="Mobile navigation">
+        <a class="mLink" href="cart.html">
+          Cart <span id="cartCountMobile" class="cartBadge isZero">0</span>
+        </a>
+        <a
+          class="mLink active"
+          href="signup.html"
+          style="background: #df8f3b; color: #fff"
+        >
+          Sign up for free today
+        </a>
+        <a class="mLink" href="signin.html">Sign in</a>
+      </nav>
+    </header>
+
+    <!-- HERO -->
+    <section class="page-hero">
+      <img
+        src="images/Lau_Pa_Sat_satay_street.jpg"
+        alt="Hawker centre in Singapore"
+      />
+      <div class="page-hero-text">
+        <h1>Privacy Policy</h1>
+        <p>How we collect, use, and protect your data</p>
+      </div>
+    </section>
+
+    <!-- CONTENT -->
+   <main class="page legal-page">
+      <div class="about-card legal-intro">
+        <h3>Overview</h3>
+        <p>
+          This Privacy Policy explains what data we collect, why we collect it,
+          how it is used, and what choices you have.
+        </p>
+        <p class="legal-muted">Last updated: 1 February 2026</p>
+      </div>
+
+      <div class="about-card legal-doc">
+        <section class="legal-section">
+          <h3>1. Information We Collect</h3>
+          <ul>
+            <li>Account details (e.g., email, role)</li>
+            <li>
+              Profile info (e.g., stall name, unit number) for stallholders
+            </li>
+            <li>Content you submit (e.g., reviews, feedback, images)</li>
+          </ul>
+        </section>
+
+        <section class="legal-section">
+          <h3>2. How We Use Your Information</h3>
+          <ul>
+            <li>
+              To provide platform features (menus, centres, stall management)
+            </li>
+            <li>
+              To improve safety and trust (hygiene grade display, moderation)
+            </li>
+            <li>To respond to support requests</li>
+          </ul>
+        </section>
+
+        <section class="legal-section">
+          <h3>3. Sharing of Information</h3>
+          <p>
+            We only share data when necessary to operate the platform (e.g.,
+            displaying stall info, reviews) or when required by law.
+          </p>
+        </section>
+
+        <section class="legal-section">
+          <h3>4. Data Storage</h3>
+          <p>
+            Data is stored securely using Firebase services. Access is
+            controlled through authentication and security rules.
+          </p>
+        </section>
+
+        <section class="legal-section">
+          <h3>5. Your Choices</h3>
+          <ul>
+            <li>You may update your profile details</li>
+            <li>You may remove content you submitted (where allowed)</li>
+            <li>You may request help via the Contact page</li>
+          </ul>
+        </section>
+
+        <section class="legal-section legal-section-last">
+          <h3>Contact</h3>
+          <p>If you have questions about this policy, contact us.</p>
+          <a class="legal-link-btn" href="contact.html">Go to Contact</a>
+        </section>
+      </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="hc-footer">
+      <div class="hc-footer-inner">
+        <div class="hc-footer-brand">
+          <h3>HawkerPoint</h3>
+          <p>Empowering Hawkers. Serving Communities.</p>
+        </div>
+
+        <div class="hc-footer-links">
+          <div>
+            <h4>Platform</h4>
+            <a href="about.html">About Us</a>
+            <a href="how-it-works.html">How It Works</a>
+            <a href="centres.html">Centres</a>
+          </div>
+
+          <div>
+            <h4>For Stallholders</h4>
+            <a href="signup.html">Register Stall</a>
+            <a href="pricing.html">Pricing</a>
+          </div>
+
+          <div>
+            <h4>Support</h4>
+            <a href="help.html">Help Centre</a>
+            <a href="contact.html">Contact Us</a>
+            <a href="feedback.html">Feedback</a>
+          </div>
+
+          <div>
+            <h4>Legal</h4>
+            <a href="privacy.html">Privacy Policy</a>
+            <a href="terms-of-service.html">Terms of Service</a>
+          </div>
+        </div>
+
+        <div class="hc-footer-bottom">
+          <p>&copy; 2026 HawkerPoint. All rights reserved.</p>
+          <p class="hc-footer-note">
+            Hygiene grades and inspection data are displayed for public
+            awareness purposes.
+          </p>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -15,6 +15,7 @@ import {
   getDocs,
   query,
   where,
+  collectionGroup,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -50,7 +51,7 @@ const resetBtn = document.getElementById("discoverReset");
 // =========================
 let activeCat = "all";
 let currentUid = null;
-let favSet = new Set(); // stall ids
+let favSet = new Set(); // stall ids (we will store full path: centres/{centreId}/stalls/{stallId})
 
 function isExpired(p) {
   return p.expiresAt && Date.now() > p.expiresAt;
@@ -103,27 +104,28 @@ function timeLabel(s) {
 }
 
 function prepClass(s) {
-  // based on max time
   if (s.prepMax <= 5) return "good";
   if (s.prepMax <= 10) return "ok";
   return "slow";
 }
 
 function catTokens(s) {
-  // used for filtering from your chips
   const tokens = [];
-  if (s.cuisine) tokens.push(s.cuisine.toLowerCase()); // chinese / malay / indian / western / beverages
+  if (s.cuisine) tokens.push(s.cuisine.toLowerCase());
   if (s.popular) tokens.push("popular");
-  if (s.grade === "A") tokens.push("top"); // treat grade A as top-rated
+  if (s.grade === "A") tokens.push("top");
   if (s.prepMax <= 10) tokens.push("fast");
   return tokens.join(" ");
+}
+
+function menuUrl(s) {
+  return `stall.html?centreId=${encodeURIComponent(s.centreId)}&stallId=${encodeURIComponent(s.stallDocId)}`;
 }
 
 // =========================
 // Dynamic chip generation
 // =========================
 function buildChipsFromData(data) {
-  // unique cuisines from data
   const cuisines = [
     ...new Set(data.map((s) => (s.cuisine || "").trim()).filter(Boolean)),
   ];
@@ -170,7 +172,7 @@ function renderFeatured(data) {
   featuredTrack.innerHTML = featured
     .map((s) => {
       return `
-      <a class="featuredCard" href="stall.html?id=${esc(s.id)}">
+      <a class="featuredCard" href="${menuUrl(s)}">
         <div class="featuredImg" style="background-image:url('${esc(s.img)}')"></div>
         <div class="featuredBody">
           <div class="featuredBadge">${s.grade === "A" ? "Top Pick" : "Popular"}</div>
@@ -219,7 +221,7 @@ function renderList(data) {
                 <span class="heart">${favOn ? "♥" : "♡"}</span>
               </button>
 
-              <a class="viewBtn" href="stall.html?id=${esc(s.id)}">
+              <a class="viewBtn" href="${menuUrl(s)}">
                 View <span class="arrow">→</span>
               </a>
             </div>
@@ -239,7 +241,9 @@ function renderPromoStrip(data) {
       (p) => `
       <article class="promoCard">
         <a class="promoLink" href="promotions.html">
-         <div class="promoImg" style="background-image:url('${esc(p.img || "images/stalls/feature1.jpg")}')"></div>
+          <div class="promoImg" style="background-image:url('${esc(
+            p.img || "images/stalls/feature1.jpg",
+          )}')"></div>
         </a>
 
         <div class="promoBody">
@@ -285,13 +289,11 @@ function applyFilters() {
 function watchFavourites(uid) {
   const userRef = doc(db, "users", uid);
 
-  // Live updates (if other tabs change favourites)
   return onSnapshot(userRef, (snap) => {
     const data = snap.data() || {};
     const favs = Array.isArray(data.favourites) ? data.favourites : [];
     favSet = new Set(favs);
 
-    // re-render list so hearts match
     renderList(stalls);
     applyFilters();
   });
@@ -306,7 +308,6 @@ async function toggleFavourite(stallId) {
   const userRef = doc(db, "users", currentUid);
   const isFav = favSet.has(stallId);
 
-  // ensure doc exists
   const userSnap = await getDoc(userRef);
   if (!userSnap.exists()) {
     await setDoc(userRef, { favourites: [] });
@@ -330,14 +331,12 @@ document.addEventListener("click", async (e) => {
   const code = btn.dataset.code;
   if (!code) return;
 
-  // ✅ Logged out = can see promos but cannot claim
   if (!currentUid) {
     showDToast("Please sign in to claim this promotion.");
     setTimeout(() => (window.location.href = "signin.html"), 650);
     return;
   }
 
-  // ✅ Logged in = save claimed promo
   const userRef = doc(db, "users", currentUid);
 
   const snap = await getDoc(userRef);
@@ -358,8 +357,6 @@ chipRow?.addEventListener("click", (e) => {
   const btn = e.target.closest(".chipBtn");
   if (!btn) return;
 
-  // map your chip labels -> tokens
-  // current chips: all / chicken / noodles / western / spicy / top / fast
   activeCat = btn.dataset.cat || "all";
 
   chipRow
@@ -394,8 +391,6 @@ listEl?.addEventListener("click", (e) => {
   toggleFavourite(stallId);
 });
 
-let discoverPromos = [];
-
 // =========================
 // Init
 // =========================
@@ -404,16 +399,30 @@ loadDiscoverPromos();
 
 async function loadStalls() {
   const snap = await getDocs(
-    query(collection(db, "stalls"), where("active", "==", true)),
+    query(collectionGroup(db, "stalls"), where("active", "==", true)),
   );
 
-  stalls = snap.docs.map((d) => {
-    const data = d.data();
+  const map = new Map(); // key = centres/{centreId}/stalls/{stallId}
 
-    return {
-      id: d.id,
-      name: data.name || data.stallName || "Unnamed Stall",
-      cuisine: data.cuisine,
+  snap.forEach((d) => {
+    // Only keep docs that are actually under centres/{centreId}/stalls/{stallId}
+    // Top-level stalls look like: "stalls/{id}" -> we skip them.
+    if (!d.ref.path.startsWith("centres/")) return;
+
+    const data = d.data() || {};
+
+    const centreIdFromPath = d.ref.parent.parent.id; // centres/{centreId}
+    const stallDocId = d.id;
+
+    const stallPathId = `centres/${centreIdFromPath}/stalls/${stallDocId}`;
+
+    map.set(stallPathId, {
+      id: stallPathId,
+      centreId: centreIdFromPath,
+      stallDocId,
+
+      name: data.stallName || data.name || "Unnamed Stall",
+      cuisine: data.cuisine || "",
       grade: data.hygieneGrade || data.grade || "B",
       prepMin: data.prepMin ?? 5,
       prepMax: data.prepMax ?? 10,
@@ -423,9 +432,11 @@ async function loadStalls() {
       location: data.location || "",
       openTime: data.openTime,
       closeTime: data.closeTime,
-      unit: data.unit,
-    };
+      unit: data.unitNo || data.unit || "",
+    });
   });
+
+  stalls = Array.from(map.values());
 
   buildChipsFromData(stalls);
   renderFeatured(stalls);
@@ -439,7 +450,7 @@ onAuthStateChanged(auth, (user) => {
   currentUid = user?.uid || null;
 
   if (stopFavWatch) {
-    stopFavWatch(); // unsubscribe old listener
+    stopFavWatch();
     stopFavWatch = null;
   }
 

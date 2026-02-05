@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Contact Us | HawkerPoint</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="footer.css" />
+  </head>
+
+  <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="index.html" aria-label="Hawker Point Home">
+          <img src="images/logo.png" alt="Hawker Point" class="brand-logo" />
+        </a>
+
+        <nav class="nav" aria-label="Primary navigation">
+          <a class="pill cartPill" href="cart.html">
+            Cart <span id="cartCount" class="cartBadge isZero">0</span>
+          </a>
+          <a class="pill" href="signin.html">Log In</a>
+          <a
+            class="pill active"
+            href="signup.html"
+            style="background: #df8f3b; color: white"
+            >Sign up for free today</a
+          >
+        </nav>
+
+        <button
+          id="menuBtn"
+          class="menuBtn"
+          type="button"
+          aria-label="Open menu"
+          aria-expanded="false"
+        >
+          ☰
+        </button>
+      </div>
+
+      <div id="navBackdrop" class="navBackdrop"></div>
+      <nav id="navMobile" class="navMobile" aria-label="Mobile navigation">
+        <a class="mLink" href="cart.html">
+          Cart <span id="cartCountMobile" class="cartBadge isZero">0</span>
+        </a>
+        <a
+          class="mLink active"
+          href="signup.html"
+          style="background: #df8f3b; color: white"
+          >Sign up for free today</a
+        >
+        <a class="mLink" href="signin.html">Sign in</a>
+      </nav>
+    </header>
+
+    <section class="page-hero">
+      <img
+        src="images/Lau_Pa_Sat_satay_street.jpg"
+        alt="Contact HawkerPoint support"
+      />
+
+      <div class="page-hero-text">
+        <h1>Contact Us</h1>
+        <p>Send us a message — we'll reply as soon as possible.</p>
+      </div>
+    </section>
+
+    <br />
+
+    <div class="about-card">
+      <h3>Contact form</h3>
+      <p>
+        For quick answers, check the
+        <a class="helpInlineLink" href="help.html">Help Centre</a>.
+      </p>
+
+      <form id="contactForm" class="contactForm" novalidate>
+        <div class="grid2">
+          <label class="field">
+            <span class="label">Name</span>
+            <input
+              id="name"
+              class="input"
+              type="text"
+              placeholder="Your name"
+            />
+            <span class="err" id="errName"></span>
+          </label>
+
+          <label class="field">
+            <span class="label">Email</span>
+            <input
+              id="email"
+              class="input"
+              type="email"
+              placeholder="you@email.com"
+            />
+            <span class="err" id="errEmail"></span>
+          </label>
+        </div>
+
+        <div class="grid2">
+          <label class="field">
+            <span class="label">Role</span>
+            <select id="role" class="input">
+              <option value="">Select role…</option>
+              <option value="customer">Customer</option>
+              <option value="storeholder">Storeholder</option>
+              <option value="nea_officer">NEA Officer</option>
+            </select>
+            <span class="err" id="errRole"></span>
+          </label>
+
+          <label class="field">
+            <span class="label">Category</span>
+            <select id="category" class="input">
+              <option value="">Select category…</option>
+              <option value="general">General enquiry</option>
+              <option value="orders">Orders</option>
+              <option value="hygiene">Hygiene / inspection</option>
+              <option value="reviews">Reviews / feedback</option>
+              <option value="account">Account / login</option>
+            </select>
+            <span class="err" id="errCategory"></span>
+          </label>
+        </div>
+
+        <label class="field">
+          <span class="label">Message</span>
+          <textarea
+            id="message"
+            class="input textarea"
+            rows="6"
+            placeholder="Tell us what happened…"
+          ></textarea>
+          <span class="err" id="errMessage"></span>
+        </label>
+
+        <div class="actions">
+          <button class="btnPrimary" type="submit">Send message</button>
+          <a class="btnGhost" href="help.html">Back to Help Centre</a>
+        </div>
+
+        <div id="contactSuccess" class="successBox" hidden>
+          ✅ Message sent! We'll get back to you soon.
+        </div>
+      </form>
+    </div>
+
+    <script src="contact.js"></script>
+
+    <!-- FOOTER (same as your About Us) -->
+    <footer class="hc-footer">
+      <div class="hc-footer-inner">
+        <div class="hc-footer-brand">
+          <h3>HawkerPoint</h3>
+          <p>Empowering Hawkers. Serving Communities.</p>
+        </div>
+
+        <div class="hc-footer-links">
+          <div>
+            <h4>Platform</h4>
+            <a href="about.html">About Us</a>
+            <a href="how-it-works.html">How It Works</a>
+            <a href="centres.html">Centres</a>
+          </div>
+
+          <div>
+            <h4>For Stallholders</h4>
+            <a href="signup.html">Register Stall</a>
+            <a href="pricing.html">Pricing</a>
+          </div>
+
+          <div>
+            <h4>Support</h4>
+            <a href="help.html">Help Centre</a>
+            <a href="contact.html">Contact Us</a>
+            <a href="feedback.html">Feedback</a>
+          </div>
+
+          <div>
+            <h4>Legal</h4>
+            <a href="privacy.html">Privacy Policy</a>
+            <a href="terms-of-service.html">Terms of Service</a>
+          </div>
+        </div>
+
+        <div class="hc-footer-bottom">
+          <p>&copy; 2026 HawkerPoint. All rights reserved.</p>
+          <p class="hc-footer-note">
+            Hygiene grades and inspection data are displayed for public
+            awareness purposes.
+          </p>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

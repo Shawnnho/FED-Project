@@ -6,7 +6,7 @@
  * - Storeholder: shows extra fields + auto-generates unique unitNo per centre
  *   - centre A and centre B can both have 01-001 (allowed)
  *   - within the SAME centre, unitNo never duplicates (transaction counter)
- * - ✅ Storeholder CANNOT sign up via Google (email/password only)
+ * - Storeholder CANNOT sign up via Google (email/password only)
  *************************************************/
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -27,7 +27,7 @@ import {
   runTransaction,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// ✅ Use SAME config as your login
+// Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyC-NTWADB-t1OGl7NbdyMVXjpVjnqjpTXg",
   authDomain: "fedproject-8d254.firebaseapp.com",
@@ -69,7 +69,7 @@ let selectedRole = "customer";
 // Google button (for disabling in UI)
 const googleBtn = document.getElementById("googleSignupBtn");
 
-// ✅ Storeholder fields (must exist in signup.html for this to work)
+// Storeholder fields (must exist in signup.html for this to work)
 const stallFields = document.getElementById("stallFields");
 const stallCentreId = document.getElementById("stallCentreId");
 const stallName = document.getElementById("stallName");
@@ -108,7 +108,7 @@ roleButtons.forEach((btn) => {
           : "";
     }
 
-    // ✅ Disable Google signup for storeholder
+    // Disable Google signup for storeholder
     if (googleBtn) {
       const lockGoogle = selectedRole === "storeholder";
       googleBtn.disabled = lockGoogle;
@@ -218,9 +218,9 @@ function validateStoreholderExtra() {
       stallNameError.textContent = "Please enter your stall name.";
     ok = false;
   }
-  if (!stallCuisine?.value) {
+  if (!stallCuisine?.value.trim()) {
     if (stallCuisineError)
-      stallCuisineError.textContent = "Please select a cuisine type.";
+      stallCuisineError.textContent = "Please enter a cuisine.";
     ok = false;
   }
 
@@ -338,7 +338,7 @@ async function createStoreholderStall(user) {
     // operatingHours: {}
   });
 
-  // ✅ ALSO create global stall doc so home.js can show it
+  // ALSO create global stall doc so home.js can show it
   await setDoc(
     doc(db, "stalls", user.uid),
     {

@@ -48,7 +48,6 @@
           <a class="shNav" href="stall-review.html">
             <span>Review</span>
             <span class="shBadge" id="reviewBadge"></span>
-
           </a>
 
           <a class="shNav" href="stall-analytics.html">
@@ -62,7 +61,7 @@
 
           <div class="shSideDivider"></div>
 
-          <a class="shNav" href="rental-payment.html">Manage Rental Payment</a>
+          <a class="shNav" href="rental-payment.html">Manage Payment</a>
         </aside>
 
         <!-- CONTENT -->
@@ -162,6 +161,31 @@
                   Edit Stall Details
                 </button>
               </div>
+            </div>
+          </div>
+
+          <!-- Stall Status -->
+          <div class="accCard">
+            <div class="accCardTitle">Stall Status</div>
+
+            <div class="stallStatusRow">
+              <div class="stallStatusLeft">
+                <div class="stallStatusTop">
+                  <div class="stallStatusLabel">Status</div>
+                  <div id="stallStatusPill" class="stallStatusPill">—</div>
+                </div>
+
+                <div class="stallStatusHint">
+                  When inactive, customers won’t be able to order from your
+                  stall.
+                </div>
+              </div>
+
+              <!-- Reuse your existing analytics switch style -->
+              <label class="anSwitch stallStatusSwitch">
+                <input id="stallActiveToggle" type="checkbox" />
+                <span class="anSlider"></span>
+              </label>
             </div>
           </div>
 
