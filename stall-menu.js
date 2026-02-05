@@ -79,6 +79,7 @@ const editClose = document.getElementById("closeEditMenu");
 const editName = document.getElementById("editName");
 const editPrice = document.getElementById("editPrice");
 const editImg = document.getElementById("editImg");
+const editDesc = document.getElementById("editDesc");
 const editImgPreview = document.getElementById("editImgPreview");
 const deleteItemBtn = document.getElementById("deleteItemBtn");
 const saveEditBtn = document.getElementById("saveEditBtn");
@@ -778,6 +779,7 @@ onAuthStateChanged(auth, async (user) => {
 
         // Fill modal
         editName.value = it.name || "";
+        editDesc.value = it.desc || it.description || "";
 
         // If this item uses prices map, we won't let you edit single price (to avoid wrecking your seeded data)
         editPrice.disabled = false;
@@ -832,6 +834,10 @@ onAuthStateChanged(auth, async (user) => {
             await updateDoc(itemRef, {
               addons: supportsAddons ? selectedAddonIds : [],
               name: newName,
+
+              desc: editDesc.value.trim(),
+              description: editDesc.value.trim(),
+
               prices: pricesMap, // object or null
               hotAvailable: pricesMap ? true : (it.hotAvailable ?? true),
 
