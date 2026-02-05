@@ -62,6 +62,22 @@ async function loadStall() {
 
   const d = snap.data();
 
+  const dayKey = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"][
+    new Date().getDay()
+  ];
+
+  let openTime = "";
+  let closeTime = "";
+
+  if (d.operatingHours && typeof d.operatingHours === "object") {
+    openTime = d.operatingHours?.[dayKey]?.open || "";
+    closeTime = d.operatingHours?.[dayKey]?.close || "";
+  } else {
+    // fallback to old fields if any
+    openTime = d.openTime ?? "";
+    closeTime = d.closeTime ?? "";
+  }
+
   stall = {
     id: stallId,
     centreId,
@@ -71,8 +87,8 @@ async function loadStall() {
     grade: d.hygieneGrade ?? d.grade ?? "—",
     desc: d.desc ?? "",
     img: d.imageUrl ?? d.img ?? "images/default-stall.png",
-    openTime: d.openTime ?? "",
-    closeTime: d.closeTime ?? "",
+    openTime,
+    closeTime,
     unit: d.unitNo ?? "",
     location: d.location ?? "",
   };
@@ -105,6 +121,23 @@ async function refreshRatingsFromReviews() {
 
   const pct = Math.max(0, Math.min(100, (avg / 5) * 100));
   if (starFill) starFill.style.width = pct + "%";
+}
+
+// HELPER
+
+function to12h(hhmm) {
+  if (!hhmm || !hhmm.includes(":")) return "";
+
+  const [h, m] = hhmm.split(":").map(Number);
+  const isPM = h >= 12;
+  const hour12 = ((h + 11) % 12) + 1;
+
+  return `${hour12}:${String(m).padStart(2, "0")}${isPM ? " PM" : " AM"}`;
+}
+
+function buildHours12(open, close) {
+  if (!open || !close) return "—";
+  return `${to12h(open)} – ${to12h(close)}`;
 }
 
 // =========================
@@ -141,14 +174,18 @@ function fillUI() {
   gradeEl.textContent = stall.grade;
   gradeEl.classList.remove("gradeA", "gradeB", "gradeC", "gradeD");
   gradeEl.classList.add(
-    stall.grade === "A" ? "gradeA" : 
-    stall.grade === "B" ? "gradeB" : 
-    stall.grade === "C" ? "gradeC" : "gradeD",
+    stall.grade === "A"
+      ? "gradeA"
+      : stall.grade === "B"
+        ? "gradeB"
+        : stall.grade === "C"
+          ? "gradeC"
+          : "gradeD",
   );
 
   descEl.textContent = stall.desc;
 
-  metaEl.textContent = `Open: ${stall.openTime} - ${stall.closeTime} • Unit ${stall.unit}`;
+  metaEl.textContent = `Open: ${buildHours12(stall.openTime, stall.closeTime)} • Unit ${stall.unit}`;
 
   if (locationEl) {
     locationEl.textContent = `📍 ${stall.location}`;

@@ -2080,14 +2080,6 @@ button:active {
     display: block; /* show inside card if needed, but for now sidebar is hidden */
   }
 
-  /* Add stall card to top of content for mobile */
-  .htContent::before {
-    /* content: ... complex to do in CSS, JS handles rendering if needed
-       Ideally we show the stall info in the first card or header.
-       Current 'hygiene-trend.html' sidebar is hidden on mobile via desktopOnly class in 'hygiene-history' styles.
-       We need to ensure that style applies or replicate it. */
-  }
-
   /* Re-use hhMobile styles */
   .trendPage .hhSidebar.desktopOnly {
     display: flex !important; /* Force show sidebar content? No, images show it separate */
