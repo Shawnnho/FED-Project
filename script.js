@@ -275,6 +275,10 @@ document.addEventListener("DOMContentLoaded", () => {
       window.location.href = "nea.html";
       return;
     }
+    if (role === "operator"){
+      window.location.href = "operator.html"
+      return;
+    }
 
     if (role === "customer") {
       window.location.href = "home.html";

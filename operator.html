@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Operator Portal - Hawker Point</title>
+    <link rel="stylesheet" href="operator.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+  </head>
+
+  <body class="op-body">
+    <nav class="op-sidebar">
+      <div class="op-brand">
+        <img src="images/logo.png" alt="Logo" />
+        <div>
+          <h3>Operator</h3>
+          <p id="opUserLine" class="op-sub">Loading...</p>
+        </div>
+      </div>
+
+      <ul class="op-menu">
+        <li class="active" onclick="switchTab('centres')">
+          <i class="fa-solid fa-building"></i>
+          <span>Centres</span>
+          <span id="badgeCentres" class="menu-badge" style="display: none">0</span>
+        </li>
+
+        <li onclick="switchTab('stalls')">
+          <i class="fa-solid fa-store"></i>
+          <span>Stalls</span>
+          <span id="badgeStalls" class="menu-badge" style="display: none">0</span>
+        </li>
+
+        <li onclick="switchTab('rentals')">
+          <i class="fa-solid fa-file-contract"></i>
+          <span>Rental Agreements</span>
+          <span id="badgeRentals" class="menu-badge" style="display: none">0</span>
+        </li>
+      </ul>
+
+      <button class="op-logout" onclick="logoutOperator()">
+        <i class="fa-solid fa-right-from-bracket"></i> Exit Portal
+      </button>
+    </nav>
+
+    <main class="op-content">
+      <!-- ================= TOP ================= -->
+      <div class="op-top">
+        <div>
+          <h2 id="centreTitle">Operator Dashboard</h2>
+          <p class="muted">
+            View your hawker centres, revenue, rental agreements and stalls.
+          </p>
+        </div>
+
+        <div class="op-topRight">
+          <select id="centreSelect" class="std-input small" onchange="onCentreChange()">
+            <option value="" disabled selected>Loading centres...</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- ================= CENTRES TAB ================= -->
+      <section id="tab-centres" class="op-tab active">
+        <div class="op-header">
+          <h2>Your Centres</h2>
+        </div>
+
+        <div class="op-card-container">
+          <div class="toolbar">
+            <div class="toolbar-right" style="margin-left: auto">
+              <input
+                id="centreSearch"
+                class="std-input small"
+                placeholder="Search centre..."
+                oninput="renderCentres()"
+              />
+              <select id="centreSort" class="std-input small" onchange="renderCentres()">
+                <option value="az">Sort: A → Z</option>
+                <option value="za">Sort: Z → A</option>
+                <option value="revenueDesc">Revenue: High → Low</option>
+                <option value="revenueAsc">Revenue: Low → High</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="overview-grid">
+            <div class="overview-box">Centres <span id="ovCentres">-</span></div>
+            <div class="overview-box">Total Revenue <span id="ovRevenue">-</span></div>
+            <div class="overview-box">Total Stalls <span id="ovStalls">-</span></div>
+            <div class="overview-box">Active Stalls <span id="ovActiveStalls">-</span></div>
+            <div class="overview-box">Agreements <span id="ovRentals">-</span></div>
+          </div>
+
+          <h3 style="margin-top: 14px">Centres Summary</h3>
+          <div id="centreList" class="op-list">
+            <p>Loading centres...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= STALLS TAB ================= -->
+      <section id="tab-stalls" class="op-tab">
+        <div class="op-header">
+          <h2>Stalls (by Centre)</h2>
+        </div>
+
+        <div class="op-card-container">
+          <div class="toolbar">
+            <div class="toolbar-left">
+              <button class="chip active" id="stallFilterAll" onclick="setStallFilter('all')">
+                All
+              </button>
+              <button class="chip" id="stallFilterActive" onclick="setStallFilter('active')">
+                Active
+              </button>
+              <button class="chip" id="stallFilterInactive" onclick="setStallFilter('inactive')">
+                Inactive
+              </button>
+            </div>
+
+            <div class="toolbar-right">
+              <input
+                id="stallSearch"
+                class="std-input small"
+                placeholder="Search stall / cuisine..."
+                oninput="renderStalls()"
+              />
+              <select id="stallSort" class="std-input small" onchange="renderStalls()">
+                <option value="az">Sort: A → Z</option>
+                <option value="za">Sort: Z → A</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="stallList" class="op-list">
+            <p>Select a centre first.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= RENTALS TAB ================= -->
+      <section id="tab-rentals" class="op-tab">
+        <div class="op-header">
+          <h2>Rental Agreements (by Centre)</h2>
+        </div>
+
+        <div class="op-card-container">
+          <div class="toolbar">
+            <div class="toolbar-right" style="margin-left: auto">
+              <input
+                id="rentalSearch"
+                class="std-input small"
+                placeholder="Search stall / owner..."
+                oninput="renderRentals()"
+              />
+              <select id="rentalSort" class="std-input small" onchange="renderRentals()">
+                <option value="newest">Sort: Newest</option>
+                <option value="oldest">Sort: Oldest</option>
+                <option value="rentDesc">Monthly Rent: High → Low</option>
+                <option value="rentAsc">Monthly Rent: Low → High</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="rentalList" class="op-list">
+            <p>Select a centre first.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="operator.js"></script>
+  </body>
+</html>
