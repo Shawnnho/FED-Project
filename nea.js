@@ -743,6 +743,10 @@ window.openCompleteModal = () => {
   document.getElementById("compEquipment").value = "";
   document.getElementById("compPremises").value = "";
   document.getElementById("compRemarks").value = "";
+
+  document.getElementById("compLicenseIssued").value = "";
+  document.getElementById("compLicenseExpiry").value = "";
+
   document.getElementById("compCurrentGrade").textContent = "-";
   document.getElementById("compCalculatedGrade").textContent = "-";
   document.getElementById("compCalculatedGrade").style.color = "";
@@ -839,7 +843,7 @@ window.submitCompletion = async () => {
       const inspectionRef = doc(db, "inspections", completingInspectionId);
       await updateDoc(inspectionRef, {
         status: "completed",
-        officer, 
+        officer,
         score,
         grade,
         remarks,
@@ -850,30 +854,39 @@ window.submitCompletion = async () => {
       });
       completingInspectionId = null;
     } else {
-      // create new completed inspection
-      await addDoc(collection(db, "inspections"), {
-        stallId,
-        stallPath,
-        stallName,
-        date,
-        dateTs,
-        officer,
-        status: "completed",
-        score,
-        grade,
-        remarks,
-        breakdown: { foodHygiene, personalHygiene, equipment, premises },
-        createdAt: serverTimestamp(),
-        completedAt: serverTimestamp(),
-      });
+      alert(
+        "Please complete an existing scheduled inspection (click Complete on a scheduled inspection).",
+      );
+      return;
     }
 
-    // Update stall grade at centres/.../stalls/...
-    const stallRef = doc(db, ...stallPath.split("/"));
-    await updateDoc(stallRef, {
+    const licIssuedStr = document.getElementById("compLicenseIssued").value;
+    const licExpiryStr = document.getElementById("compLicenseExpiry").value;
+
+    const stallUpdate = {
       hygieneGrade: grade,
       lastInspection: serverTimestamp(),
-    });
+    };
+
+    if (licIssuedStr && licExpiryStr) {
+      const issuedDate = new Date(licIssuedStr + "T00:00:00");
+      const expiryDate = new Date(licExpiryStr + "T00:00:00");
+
+      if (expiryDate <= issuedDate) {
+        alert("License Expiry Date must be after License Issued Date.");
+        return;
+      }
+
+      stallUpdate.licenseIssued = Timestamp.fromDate(issuedDate);
+      stallUpdate.licenseExpiry = Timestamp.fromDate(expiryDate);
+    } else if (licIssuedStr || licExpiryStr) {
+      alert(
+        "Please fill BOTH License Issued Date and License Expiry Date (or leave both empty).",
+      );
+      return;
+    }
+    const stallRef = doc(db, ...stallPath.split("/"));
+    await updateDoc(stallRef, stallUpdate);
 
     // Update cache
     if (stallDataCache[stallPath]) {
@@ -887,7 +900,7 @@ window.submitCompletion = async () => {
     alert(`Inspection completed! Grade: ${grade} (${score}/100)`);
   } catch (err) {
     console.error("Error completing inspection:", err);
-    alert("Error completing inspection. Please try again.");
+    alert(err.message || "Error completing inspection. Please try again.");
   }
 };
 

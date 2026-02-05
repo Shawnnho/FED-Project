@@ -138,10 +138,17 @@ function renderLicenseValidity(issuedTs, expiryTs) {
   const issued = issuedTs.toDate ? issuedTs.toDate() : new Date(issuedTs);
   const expiry = expiryTs.toDate ? expiryTs.toDate() : new Date(expiryTs);
   const total = expiry - issued;
-  const elapsed = now - issued;
-  const pct = Math.max(0, Math.min(100, (elapsed / total) * 100));
+  const remaining = expiry - now;
+
+  // Guard against bad dates
+  let pct = 0;
+  if (total > 0) {
+    pct = (remaining / total) * 100;
+    pct = Math.max(0, Math.min(100, pct));
+  }
 
   licFill.style.width = `${pct}%`;
+
   licIssue.textContent = `Issued: ${formatLicenseDate(issuedTs)}`;
   licExpiry.textContent = `Expired: ${formatLicenseDate(expiryTs)}`;
 }
