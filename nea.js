@@ -1,5 +1,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  getAuth,
+  signOut,
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 import {
   getFirestore,
@@ -74,12 +77,15 @@ function badgeForInspectionStatus(status) {
 function badgeForComplaintStatus(status) {
   const s = (status || "new").toLowerCase();
   if (s === "resolved") return `<span class="badge blue">Resolved</span>`;
-  if (s === "under_review") return `<span class="badge green">Under Review</span>`;
+  if (s === "under_review")
+    return `<span class="badge green">Under Review</span>`;
   return `<span class="badge red">New</span>`;
 }
 
 function markChipActive(prefixId, activeId) {
-  document.querySelectorAll(`[id^="${prefixId}"]`).forEach((b) => b.classList.remove("active"));
+  document
+    .querySelectorAll(`[id^="${prefixId}"]`)
+    .forEach((b) => b.classList.remove("active"));
   const el = document.getElementById(activeId);
   if (el) el.classList.add("active");
 }
@@ -101,7 +107,7 @@ function updateSidebarBadges() {
 
   // New complaints = status missing or status === "new"
   const newComplaints = complaintsRaw.filter(
-    (x) => (x.status || "new").toLowerCase() === "new"
+    (x) => (x.status || "new").toLowerCase() === "new",
   ).length;
 
   setBadge("badgeInspections", upcomingCount);
@@ -110,8 +116,12 @@ function updateSidebarBadges() {
 
 // --- TAB SWITCHING LOGIC ---
 window.switchTab = (tabName) => {
-  document.querySelectorAll(".nea-tab").forEach((el) => el.classList.remove("active"));
-  document.querySelectorAll(".nea-menu li").forEach((el) => el.classList.remove("active"));
+  document
+    .querySelectorAll(".nea-tab")
+    .forEach((el) => el.classList.remove("active"));
+  document
+    .querySelectorAll(".nea-menu li")
+    .forEach((el) => el.classList.remove("active"));
 
   const tab = document.getElementById(`tab-${tabName}`);
   if (tab) tab.classList.add("active");
@@ -130,7 +140,11 @@ window.setInspectionFilter = (mode) => {
   inspectionFilter = mode;
   markChipActive(
     "inspFilter",
-    mode === "all" ? "inspFilterAll" : mode === "upcoming" ? "inspFilterUpcoming" : "inspFilterPast"
+    mode === "all"
+      ? "inspFilterAll"
+      : mode === "upcoming"
+        ? "inspFilterUpcoming"
+        : "inspFilterPast",
   );
   renderInspections();
 };
@@ -143,10 +157,16 @@ async function loadInspections() {
     // prefer dateTs if exists; fallback to date string sorting client-side
     let snap;
     try {
-      const qTs = query(collection(db, "inspections"), orderBy("dateTs", "desc"));
+      const qTs = query(
+        collection(db, "inspections"),
+        orderBy("dateTs", "desc"),
+      );
       snap = await getDocs(qTs);
     } catch {
-      const qStr = query(collection(db, "inspections"), orderBy("date", "desc"));
+      const qStr = query(
+        collection(db, "inspections"),
+        orderBy("date", "desc"),
+      );
       snap = await getDocs(qStr);
     }
 
@@ -163,14 +183,18 @@ async function loadInspections() {
 // dropdown filter: all | scheduled | completed
 // (this is separate from chips upcoming/past)
 function statusFilterValue() {
-  return (document.getElementById("inspectionFilter")?.value || "all").toLowerCase();
+  return (
+    document.getElementById("inspectionFilter")?.value || "all"
+  ).toLowerCase();
 }
 
 window.renderInspections = () => {
   const list = document.getElementById("inspectionList");
   if (!list) return;
 
-  const q = (document.getElementById("inspSearch")?.value || "").trim().toLowerCase();
+  const q = (document.getElementById("inspSearch")?.value || "")
+    .trim()
+    .toLowerCase();
   const sortMode = document.getElementById("inspSort")?.value || "newest";
   const today = todayMidnight();
   const statusMode = statusFilterValue(); // all | scheduled | completed
@@ -324,7 +348,9 @@ window.renderComplaints = () => {
   const list = document.getElementById("complaintList");
   if (!list) return;
 
-  const q = (document.getElementById("cmpSearch")?.value || "").trim().toLowerCase();
+  const q = (document.getElementById("cmpSearch")?.value || "")
+    .trim()
+    .toLowerCase();
   const sortMode = document.getElementById("cmpSort")?.value || "newest";
 
   let items = complaintsRaw.slice();
@@ -360,7 +386,9 @@ window.renderComplaints = () => {
 
   list.innerHTML = items
     .map((x) => {
-      const date = x.createdAt?.toDate ? x.createdAt.toDate().toLocaleDateString() : "Unknown Date";
+      const date = x.createdAt?.toDate
+        ? x.createdAt.toDate().toLocaleDateString()
+        : "Unknown Date";
       const imgHtml = x.imageUrl
         ? `<a href="${x.imageUrl}" target="_blank" class="evidence-link">View Evidence</a>`
         : "";
@@ -444,7 +472,9 @@ window.scheduleFromComplaint = async (complaintId) => {
   if (sel && stallName) {
     setTimeout(() => {
       const opts = Array.from(sel.options);
-      const found = opts.find((o) => (o.textContent || "").trim() === stallName);
+      const found = opts.find(
+        (o) => (o.textContent || "").trim() === stallName,
+      );
       if (found) sel.value = found.value;
     }, 200);
   }
@@ -481,7 +511,9 @@ async function loadStallsForDropdowns() {
 
     for (const centreDoc of centresSnap.docs) {
       const centreId = centreDoc.id;
-      const stallsSnap = await getDocs(collection(db, "centres", centreId, "stalls"));
+      const stallsSnap = await getDocs(
+        collection(db, "centres", centreId, "stalls"),
+      );
 
       stallsSnap.forEach((stallDoc) => {
         const data = stallDoc.data();
@@ -538,7 +570,9 @@ function updateHygieneOverview() {
 }
 
 window.filterGradeDropdown = () => {
-  const q = (document.getElementById("gradeSearch")?.value || "").trim().toLowerCase();
+  const q = (document.getElementById("gradeSearch")?.value || "")
+    .trim()
+    .toLowerCase();
   const sel = document.getElementById("gradeStallSelect");
   if (!sel) return;
 
@@ -615,7 +649,9 @@ window.submitSchedule = async () => {
 // ---------- Grading ----------
 window.selectGrade = (grade) => {
   document.getElementById("selectedGrade").value = grade;
-  document.querySelectorAll(".grade-btn").forEach((b) => b.classList.remove("selected"));
+  document
+    .querySelectorAll(".grade-btn")
+    .forEach((b) => b.classList.remove("selected"));
   // inline onclick provides `event`
   event.target.classList.add("selected");
 };
@@ -694,7 +730,9 @@ window.openCompleteModal = () => {
   loadStallsForDropdowns();
 
   // default date today
-  document.getElementById("compDate").value = new Date().toISOString().split("T")[0];
+  document.getElementById("compDate").value = new Date()
+    .toISOString()
+    .split("T")[0];
 
   // reset
   document.getElementById("compStall").value = "";
@@ -719,22 +757,23 @@ window.closeCompleteModal = () => {
   completingInspectionId = null;
 };
 
-window.openCompleteModalForInspection = (inspectionId) => {
-  // find inspection
+window.openCompleteModalForInspection = async (inspectionId) => {
   const ins = inspectionsRaw.find((x) => x.id === inspectionId);
   if (!ins) return;
 
-  window.openCompleteModal();
+  document.getElementById("completeModal").style.display = "flex";
 
-  // IMPORTANT: compStall uses stallPath (same as dropdown)
-  const stallPath = ins.stallPath;
-  if (stallPath) document.getElementById("compStall").value = stallPath;
+  // wait for dropdowns to be populated
+  await loadStallsForDropdowns();
 
-  document.getElementById("compDate").value = ins.date || new Date().toISOString().split("T")[0];
+  document.getElementById("compStall").value = ins.stallPath;
+  document.getElementById("compDate").value = ins.date;
   document.getElementById("compOfficer").value = ins.officer || "";
 
   updateCurrentGradeForCompletion();
   completingInspectionId = inspectionId;
+
+  document.getElementById("compScore").oninput = updateCalculatedGrade;
 };
 
 window.updateCurrentGradeForCompletion = () => {
@@ -756,9 +795,12 @@ window.submitCompletion = async () => {
   const officer = document.getElementById("compOfficer").value;
 
   const score = parseInt(document.getElementById("compScore").value);
-  const foodHygiene = parseInt(document.getElementById("compFoodHygiene").value) || 0;
-  const personalHygiene = parseInt(document.getElementById("compPersonalHygiene").value) || 0;
-  const equipment = parseInt(document.getElementById("compEquipment").value) || 0;
+  const foodHygiene =
+    parseInt(document.getElementById("compFoodHygiene").value) || 0;
+  const personalHygiene =
+    parseInt(document.getElementById("compPersonalHygiene").value) || 0;
+  const equipment =
+    parseInt(document.getElementById("compEquipment").value) || 0;
   const premises = parseInt(document.getElementById("compPremises").value) || 0;
   const remarks = document.getElementById("compRemarks").value;
 
@@ -773,10 +815,14 @@ window.submitCompletion = async () => {
   }
 
   if (
-    foodHygiene < 0 || foodHygiene > 100 ||
-    personalHygiene < 0 || personalHygiene > 100 ||
-    equipment < 0 || equipment > 100 ||
-    premises < 0 || premises > 100
+    foodHygiene < 0 ||
+    foodHygiene > 100 ||
+    personalHygiene < 0 ||
+    personalHygiene > 100 ||
+    equipment < 0 ||
+    equipment > 100 ||
+    premises < 0 ||
+    premises > 100
   ) {
     alert("Breakdown scores must be between 0 and 100.");
     return;
@@ -793,11 +839,12 @@ window.submitCompletion = async () => {
       const inspectionRef = doc(db, "inspections", completingInspectionId);
       await updateDoc(inspectionRef, {
         status: "completed",
+        officer, 
         score,
         grade,
         remarks,
         breakdown: { foodHygiene, personalHygiene, equipment, premises },
-        date,        // keep consistent
+        date, // keep consistent
         dateTs,
         completedAt: serverTimestamp(),
       });

@@ -20,6 +20,7 @@
   position: sticky;
   top: 0;
   height: 100vh;
+  overflow-y: auto;
 }
 
 .nea-brand {
@@ -86,6 +87,8 @@
   cursor: pointer;
   border-radius: 6px;
   margin-top: auto;
+  position: sticky;
+  bottom: 50px;
 }
 
 /* CONTENT AREA */
@@ -434,10 +437,22 @@
   font-size: 12px;
   font-weight: 700;
 }
-.score-badge.A { background: #ffebee; color: #c62828; }
-.score-badge.B { background: #e8f5e9; color: #2e7d32; }
-.score-badge.C { background: #fff3e0; color: #ef6c00; }
-.score-badge.D { background: #ffebee; color: #b71c1c; }
+.score-badge.A {
+  background: #ffebee;
+  color: #c62828;
+}
+.score-badge.B {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+.score-badge.C {
+  background: #fff3e0;
+  color: #ef6c00;
+}
+.score-badge.D {
+  background: #ffebee;
+  color: #b71c1c;
+}
 
 /* Breakdown display */
 .breakdown-display {
