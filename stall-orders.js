@@ -1,4 +1,5 @@
 import { auth } from "./firebase.js";
+import { signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   getFirestore,
   doc,
@@ -82,6 +83,7 @@ function renderItem(it) {
       ${req}
       ${addons}
       ${note}
+      ${it.variantLabel ? `<div class="legal-muted" style="margin-top:2px;">Selected: <b>${esc(it.variantLabel)}</b></div>` : ""}
     </li>
   `;
 }
@@ -243,6 +245,18 @@ async function confirmCashPaid(orderId) {
     "payment.paidAt": serverTimestamp(),
   });
 }
+
+const logoutBtn = document.getElementById("logoutBtn");
+
+logoutBtn?.addEventListener("click", async () => {
+  try {
+    await signOut(auth);
+    window.location.href = "index.html";
+  } catch (err) {
+    console.error("Logout failed", err);
+    alert("Failed to log out. Please try again.");
+  }
+});
 
 async function main() {
   const unpaidList = $("unpaidList");

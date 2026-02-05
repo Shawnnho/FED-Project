@@ -294,6 +294,7 @@ function mergeCarts(existing = [], incoming = []) {
   // Merge by: stallId + itemId + addons + required + note (so different options stay separate)
   const key = (x) =>
     `${x.stallId || ""}|${x.itemId || x.id || x.name || ""}|` +
+    `${x.variantKey || ""}|${(x.variantLabel || "").trim()}|` +
     `${JSON.stringify(x.addons || [])}|${JSON.stringify(x.required || [])}|${(x.note || "").trim()}`;
 
   const map = new Map();
@@ -452,6 +453,7 @@ async function render() {
     const note = it.note ?? it.sideNote ?? "";
     const addons = Array.isArray(it.addons) ? it.addons : [];
     const required = Array.isArray(it.required) ? it.required : [];
+    const variantLabel = it.variantLabel || it.variant || "";
 
     const unitPrice =
       Number(it.unitPrice ?? it.basePrice ?? it.price ?? 0) || 0;
@@ -472,6 +474,12 @@ async function render() {
         <div class="menuPrice">$${money(line)}</div>
 
         <div class="cartMeta">
+        ${
+          variantLabel
+            ? `<div class="cartMetaLine"><strong>Selected:</strong> ${variantLabel}</div>`
+            : ""
+        }
+
           ${
             addons.length
               ? `<div class="cartMetaLine"><strong>Add-ons:</strong> ${addons
@@ -694,6 +702,8 @@ document.addEventListener("click", async (e) => {
         itemId: it.itemId || null,
         name: it.name || "Item",
         img: it.img || "",
+        variantKey: it.variantKey || null,
+        variantLabel: it.variantLabel || "",
         qty,
         unitPrice: Number(unitPrice.toFixed(2)),
         lineTotal: Number((qty * unitPrice).toFixed(2)),
