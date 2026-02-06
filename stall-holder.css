@@ -2043,3 +2043,38 @@ body.stallHolder .stallStatusSwitch input:checked + .anSlider::before {
   position: static; /* NOT absolute */
   margin-top: 10px;
 }
+
+/* Force filter row to stay inline */
+body.stallHolder .searchWrap .filters {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+
+  gap: 12px;
+  flex-wrap: nowrap; /* ✅ prevent stacking */
+}
+
+/* Prevent selects from taking full width */
+body.stallHolder .searchWrap .filters select {
+  width: 160px !important; /* ✅ fixed width */
+  max-width: 160px;
+  height: 34px;
+}
+
+/* Keep button same height */
+body.stallHolder .searchWrap .filters #applyFilterBtn {
+  height: 34px;
+  padding: 0 18px;
+  white-space: nowrap;
+}
+
+/* If your container is narrow, allow wrapping nicely */
+@media (max-width: 720px) {
+  body.stallHolder .searchWrap .filters {
+    flex-wrap: wrap; /* wrap on small screens only */
+  }
+  body.stallHolder .searchWrap .filters select {
+    width: 48% !important; /* 2 per row */
+    max-width: none;
+  }
+}
