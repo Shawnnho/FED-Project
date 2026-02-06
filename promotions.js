@@ -217,15 +217,19 @@ if (IS_PROMO_PAGE) {
 
     const expText =
       d <= 0
-        ? "❌ Expired"
+        ? `<img src="images/cross.png" class="expIcon" alt="Expired" /> Expired`
         : d === 1
-          ? "⏳ Expires in 1 day"
-          : `⏳ Expires in ${d} days`;
+          ? `<img src="images/hour-glass.png" class="expIcon" alt="Expires soon" /> Expires in 1 day`
+          : `<img src="images/hour-glass.png" class="expIcon" alt="Expires soon" /> Expires in ${d} days`;
 
     const redText =
-      p.redemptionsLeft == null ? "" : `• 🎫 ${p.redemptionsLeft} left`;
-    const codeUpper = p.code.toUpperCase();
-    const dailyIdUpper = `${codeUpper}_${todayKey()}`.toUpperCase();
+  p.redemptionsLeft == null
+    ? ""
+    : `• <img src="images/voucher.png" class="redIcon" alt="Redemptions left" /> ${p.redemptionsLeft} left`;
+
+const codeUpper = p.code.toUpperCase();
+const dailyIdUpper = `${codeUpper}_${todayKey()}`.toUpperCase();
+
 
     const isClaimed =
       p.claimOnce === false
