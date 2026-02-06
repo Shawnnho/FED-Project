@@ -2,6 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import {
   getAuth,
   onAuthStateChanged,
+  signOut,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   getFirestore,
@@ -333,7 +334,7 @@ document.addEventListener("click", async (e) => {
 
   if (!currentUid) {
     showDToast("Please sign in to claim this promotion.");
-    setTimeout(() => (window.location.href = "signin.html"), 650);
+    setTimeout(() => (window.location.href = "signin.html?from=guest"), 650);
     return;
   }
 
@@ -462,3 +463,11 @@ onAuthStateChanged(auth, (user) => {
     applyFilters();
   }
 });
+
+const params = new URLSearchParams(window.location.search);
+const isGuest = params.get("mode") === "guest";
+
+// ✅ if user enters guest discover page, guarantee they are logged out
+if (isGuest) {
+  signOut(auth).catch(() => {});
+}

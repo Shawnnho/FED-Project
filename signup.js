@@ -91,6 +91,7 @@ roleButtons.forEach((btn) => {
 
     // Guest = no login
     if (selectedRole === "guest") {
+      
       window.location.href = "home.html?mode=guest";
       return;
     }
