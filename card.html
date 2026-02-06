@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hawker Point — Card Payment</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body>
+    <!-- TOP NAV -->
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="home.html" aria-label="Hawker Point Home">
+          <img src="images/logo.png" alt="Hawker Point" class="brand-logo" />
+        </a>
+
+        <nav class="nav">
+          <a class="pill" href="home.html">Home</a>
+          <a class="pill" href="promotions.html">Promotions</a>
+          <a class="pill" href="orders.html">Orders</a>
+          <a class="pill" href="feedback.html">Feedback</a>
+          <a class="pill" href="hygiene.html">Hygiene</a>
+
+          <a class="pill cartPill" href="cart.html">
+            Cart <span id="cartCount" class="cartBadge isZero">0</span>
+          </a>
+
+          <a class="pill account" href="account.html">
+            Account <span class="notif" id="notifCount" hidden></span>
+          </a>
+        </nav>
+
+        <button id="menuBtn" class="menuBtn">☰</button>
+      </div>
+
+      <div id="navBackdrop" class="navBackdrop"></div>
+      <nav id="navMobile" class="navMobile">
+        <a class="mLink" href="home.html">Home</a>
+        <a class="mLink" href="promotions.html">Promotions</a>
+        <a class="mLink" href="orders.html">Orders</a>
+        <a class="mLink" href="feedback.html">Feedback</a>
+        <a class="mLink" href="hygiene.html">Hygiene</a>
+        <a class="mLink" href="cart.html">
+          Cart <span id="cartCountMobile" class="cartBadge isZero">0</span>
+        </a>
+        <a class="mLink" href="account.html">Account</a>
+      </nav>
+    </header>
+
+    <!-- CARD PAYMENT PAGE -->
+    <main class="page card">
+      <section class="cardShell">
+        <header class="cardHero">
+          <h1 class="cardTitle">Add A Card To Pay</h1>
+          <p class="cardSub">
+            Complete your payment
+            <span hidden>(Amount: $<span id="amountText">0.00</span>)</span>
+          </p>
+        </header>
+
+        <section class="cardPanel">
+          <div class="cardPanelHead">
+            <h2 class="cardPanelTitle">Enter Card Details</h2>
+          </div>
+
+          <form id="cardForm" class="cardForm">
+            <label class="cardField">
+              <span>Card Number</span>
+              <input
+                id="cardNo"
+                type="text"
+                placeholder="1234 5678 1234 5678"
+                required
+              />
+            </label>
+
+            <div class="cardRow2">
+              <label class="cardField">
+                <span>Expiration Date</span>
+                <input id="exp" type="text" placeholder="MM/YY" required />
+              </label>
+
+              <label class="cardField">
+                <span>Security Code</span>
+                <div class="cvcWrap">
+                  <img
+                    src="images/lock.png"
+                    alt="Secure"
+                    class="lockIcon"
+                  />
+                  <input id="cvc" type="text" placeholder="CVV" required />
+                </div>
+              </label>
+            </div>
+
+            <button id="payBtn" class="cardPayBtn" type="submit">
+              Pay $0.00
+            </button>
+          </form>
+
+          <!-- Secure bar -->
+          <div class="secureBar">
+            <img
+              src="images/lock.png"
+              alt="Secure payment"
+              class="secureIcon"
+            />
+            <div>
+              <div class="secureTitle">Secure &amp; Encrypted Payment</div>
+              <div class="secureSub">
+                Your card details are encrypted, and transactions are processed securely.
+              </div>
+            </div>
+          </div>
+
+          <!-- Card logos image -->
+          <div class="cardLogos">
+            <img
+              src="images/Visamasteramexlogo.jpg"
+              alt="Supported cards: American Express, Visa, Mastercard"
+              class="cardLogosImg"
+            />
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script type="module" src="menu.js"></script>
+    <script type="module" src="card.js"></script>
+  </body>
+</html>

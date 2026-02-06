@@ -4925,8 +4925,11 @@ FOOTER
   border-radius: 14px;
 }
 
-.cartPage .cartEmptyIcon {
-  font-size: 42px;
+.cartEmptyImg {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  opacity: 0.85;
 }
 
 .cartPage .cartEmptyTitle {
@@ -5538,4 +5541,168 @@ body.storePage #stallGrade.gradeD {
 .qrPage .payConfirmBtn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* ===============================
+   CARD PAYMENT PAGE
+   =============================== */
+
+.card.page {
+  display: flex;
+  justify-content: center;
+  padding: 48px 16px;
+  background: #fbf3e6;
+}
+
+.cardShell {
+  width: 800px;
+  max-width: 100%;
+}
+
+.cardHero {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.cardTitle {
+  font-size: 2.2rem;
+  font-weight: 900;
+  margin-top: 16px;     
+  margin-bottom: 8px;
+}
+
+.cardSub {
+  font-size: 1rem;
+  opacity: 0.8;
+  margin-top: 16px; 
+}
+
+/* White Card */
+.cardPanel {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+  overflow: hidden;
+}
+
+.cardPanelHead {
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+.cardPanelTitle {
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.cardForm {
+  padding: 24px;
+}
+
+.cardField span {
+  font-size: 0.8rem;
+  font-weight: 800;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.cardField input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+}
+
+.cardRow2 {
+  display: flex;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.cardRow2 .cardField {
+  flex: 1;
+}
+
+.cvcWrap {
+  position: relative;
+}
+
+.cvcWrap input {
+  padding-left: 32px;
+}
+
+.cvcWrap .lockIcon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.cardPayBtn {
+  margin-top: 16px;
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 900;
+  font-size: 1.05rem;
+  cursor: not-allowed;
+
+  background: #e53935;   
+  color: #fff;
+  opacity: 0.95;
+}
+
+.cardPayBtn.isReady {
+  background: #3ee13e;  
+  cursor: pointer;
+}
+
+.cardPayBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Secure bar */
+.secureBar {
+  border-top: 1px solid rgba(0,0,0,0.1);
+  padding: 16px 20px;
+  display: flex;
+  gap: 10px;
+  background: #fff;
+}
+
+.secureBar .secureIcon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  margin-top: 2px;
+}
+
+.secureTitle {
+  font-weight: 900;
+  font-size: 0.9rem;
+}
+
+.secureSub {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+/* Logos */
+.cardLogos {
+  display: flex;
+  justify-content: center;
+  padding: 16px 20px 22px;
+  background: #fff;
+}
+
+.cardLogosImg {
+  max-width: 260px;
+  width: 100%;
+  height: auto;
 }

@@ -50,30 +50,35 @@ async function loadCheckout(checkoutId) {
 async function markCheckoutPaid(checkout) {
   const checkoutId = checkout.id;
 
-  // 1) Update checkout payment status
+  const ref = `QR-${Date.now()}`;
+
+  const paymentData = {
+    method: "qr",
+    status: "paid",
+    paidAt: serverTimestamp(),
+    ref,
+  };
+
   await updateDoc(doc(db, "checkouts", checkoutId), {
-    "payment.status": "paid",
-    "payment.paidAt": serverTimestamp(),
-    "payment.ref": `QR-${Date.now()}`,
+    payment: paymentData,
     status: "paid",
   });
 
-  // 2) Update each linked order status
+  // 2) Update each order with the SAME payment object
   const orderIds = Array.isArray(checkout.orderIds) ? checkout.orderIds : [];
   for (const oid of orderIds) {
     await setDoc(
       doc(db, "orders", oid),
       {
         status: "processing",
-        "payment.status": "paid",
-        "payment.paidAt": serverTimestamp(),
-        "payment.ref": `QR-${Date.now()}`,
+        payment: paymentData,
         checkoutId: checkoutId,
       },
       { merge: true }
     );
   }
 }
+
 
 async function main(user) {
   const amountText = document.getElementById("amountText");
@@ -122,7 +127,7 @@ async function main(user) {
       await markCheckoutPaid(checkout);
 
       setTimeout(() => {
-        window.location.href = `payment_received.html?checkoutId=${checkout.id}`;
+        window.location.href = `payment_recieved.html?checkoutId=${checkout.id}`;
       }, 600);
     } catch (err) {
       console.error(err);
