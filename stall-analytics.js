@@ -1047,14 +1047,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
       function syncChartBtnUI() {
         if (!chartBtn) return;
-        chartBtn.textContent =
-          chartMode === "auto" ? "📊" : chartMode === "hourly" ? "🕒" : "🗓️";
-        chartBtn.title =
-          chartMode === "auto"
-            ? "Chart: Auto"
-            : chartMode === "hourly"
-              ? "Chart: Hourly"
-              : "Chart: Daily";
+
+        let iconSrc = "";
+        let title = "";
+
+        if (chartMode === "auto") {
+          iconSrc = "images/bar-graph.png";
+          title = "Chart: Auto";
+        } else if (chartMode === "hourly") {
+          iconSrc = "images/bar-graph.png";
+          title = "Chart: Hourly";
+        } else {
+          iconSrc = "images/pie-chart.png";
+          title = "Chart: Daily";
+        }
+
+        chartBtn.innerHTML = `
+    <img src="${iconSrc}" alt="${title}" />
+  `;
+        chartBtn.title = title;
       }
 
       syncChartBtnUI(); // ✅ call once on load (after loadPrefs)
@@ -1072,14 +1083,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // small visible feedback
         if (chartBtn) {
-          chartBtn.textContent =
-            chartMode === "auto" ? "📊" : chartMode === "hourly" ? "🕒" : "🗓️";
-          chartBtn.title =
-            chartMode === "auto"
-              ? "Chart: Auto"
-              : chartMode === "hourly"
-                ? "Chart: Hourly"
-                : "Chart: Daily";
+          let iconSrc = "";
+          let title = "";
+
+          if (chartMode === "auto") {
+            iconSrc = "images/bar-graph.png";
+            title = "Chart: Auto";
+          } else if (chartMode === "hourly") {
+            iconSrc = "images/bar-graph.png";
+            title = "Chart: Hourly";
+          } else {
+            iconSrc = "images/pie-chart.png";
+            title = "Chart: Daily";
+          }
+
+          chartBtn.innerHTML = `
+    <img src="${iconSrc}" alt="${title}" />
+  `;
+          chartBtn.title = title;
         }
 
         resubscribeOrders();
