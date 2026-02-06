@@ -571,24 +571,19 @@ onAuthStateChanged(auth, async (user) => {
 
     onSnapshot(doc(db, "users", user.uid), (snap) => {
       const d = snap.exists() ? snap.data() : {};
-      const favs = Array.isArray(d?.favourites) ? d.favourites : [];
 
-      // ✅ Store IDs like "kopi-fellas" (has "-")
-      const storeFavs = favs.filter(
-        (x) => typeof x === "string" && x.includes("-"),
-      );
+      // stores saved by menu.js
+      const storeFavs = Array.isArray(d?.favourites) ? d.favourites : [];
 
-      // ✅ Menu item IDs like "ckg27s5LO..." (no "-")
-      const itemFavs = favs.filter(
-        (x) => typeof x === "string" && !x.includes("-"),
-      );
+      // items saved by STALLMENU.js
+      const itemFavs = Array.isArray(d?.favouriteItems) ? d.favouriteItems : [];
 
       if (savedStoresEl) savedStoresEl.textContent = String(storeFavs.length);
       if (savedItemsEl) savedItemsEl.textContent = String(itemFavs.length);
     });
 
     // =========================
-    // Account Avatar Icon 
+    // Account Avatar Icon
     // ========================
 
     // avatar (account-based)

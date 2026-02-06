@@ -8,6 +8,7 @@
  *************************************************/
 
 import { getCartForUI } from "./cart.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
@@ -21,6 +22,10 @@ import {
   orderBy,
   limit,
   collectionGroup,
+  setDoc,
+  arrayUnion,
+  arrayRemove,
+  serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* =========================
@@ -233,7 +238,33 @@ function renderMenu(filter) {
 
       if (liked) heartBtn.classList.add("active");
 
-      heartBtn.addEventListener("click", () => {
+      heartBtn.addEventListener("click", async () => {
+        // state BEFORE toggle
+        const wasLiked = heartBtn.classList.contains("active");
+
+        // ---------- Firestore save (menu items) ----------
+        try {
+          const auth = getAuth();
+          const user = auth.currentUser;
+          if (user) {
+            const itemKey = `${stallId}::${item.id}`; // ✅ use item.id (exists)
+
+            await setDoc(
+              doc(db, "users", user.uid),
+              {
+                favouriteItems: wasLiked
+                  ? arrayRemove(itemKey)
+                  : arrayUnion(itemKey),
+                updatedAt: serverTimestamp(),
+              },
+              { merge: true },
+            );
+          }
+        } catch (err) {
+          console.error("Save favourite item failed:", err);
+        }
+
+        // ---------- Existing UI + localStorage ----------
         liked = !liked;
 
         if (liked) {
