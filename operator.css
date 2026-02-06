@@ -1,6 +1,10 @@
 /* =========================================
    OPERATOR DASHBOARD STYLES (NEA-style layout)
 ========================================= */
+:root {
+  --op-sidebar-w: 260px;
+}
+
 .op-body {
   display: flex;
   background: #f4f7f6;
@@ -11,7 +15,7 @@
 
 /* SIDEBAR */
 .op-sidebar {
-  width: 260px;
+  width: var(--op-sidebar-w);
   background: #2c3e50;
   color: #fff;
   display: flex;
@@ -202,7 +206,7 @@
   color: #1565c0;
 }
 
-/* Meta row */
+
 .item-meta {
   font-size: 13px;
   color: #888;
@@ -309,33 +313,184 @@
   margin-top: 10px;
 }
 
-/* Mobile */
-@media (max-width: 900px) {
-  .overview-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-@media (max-width: 700px) {
-  .op-body {
-    flex-direction: column;
-  }
-  .op-sidebar {
-    width: auto;
-    height: auto;
-    position: relative;
-  }
-  .std-input.small {
-    width: 100%;
-  }
+
+  /* RENTAL MODAL (Add/Edit Agreement), allows user to add/edit agreements for stalls in their owned hawker centre */
+
+
+:root {
+  --op-modal-overlay: rgba(17, 24, 39, 0.55);
+  --op-card-bg: #ffffff;
+  --op-card-line: #e5e7eb;
+  --op-text: #111827;
+  --op-muted: #6b7280;
+
+  --op-primary: #e67e22;
+  --op-primary-hover: #d35400;
+  --op-radius: 14px;
+  --op-shadow: 0 18px 55px rgba(0, 0, 0, 0.25);
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
+/* The Edit Rental Agreement Layout*/
+.modal {
+  position: fixed;
+  top: 0;
+  left: var(--op-sidebar-w);
+  width: calc(100vw - var(--op-sidebar-w));
+  height: 100vh;
+  background: var(--op-modal-overlay);
+  z-index: 99999;
+
+  display: none;            
+  align-items: center;
+  justify-content: center;
+
+  padding: 26px;
+  overflow: auto;
+}
+
+
+.modal.show {
+  display: flex;
+}
+
+/* Sa card */
+.modal-card {
+  width: min(920px, 100%);
+  background: var(--op-card-bg);
+  border-radius: var(--op-radius);
+  box-shadow: var(--op-shadow);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+
+  overflow: hidden;
+}
+
+/* Header */
+.modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+
+  padding: 18px 18px 14px;
+  border-bottom: 1px solid var(--op-card-line);
+  background: linear-gradient(180deg, #fff, #fbfbfb);
+}
+
+.modal-head h3 {
+  margin: 0;
+  color: var(--op-text);
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+/* Close button */
+.icon-x {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid var(--op-card-line);
+  background: #fff;
+  color: #111;
+  cursor: pointer;
+
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.icon-x:hover {
+  filter: brightness(0.98);
+}
+
+.modal-body {
+  padding: 16px 18px 6px;
+}
+
+/* Labels */
+.modal-label {
+  display: block;
+  margin: 12px 0 6px;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+/* For the inputs inside modal */
+.modal .std-input {
+  width: 100%;
+  padding: 11px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--op-card-line);
+  background: #fff;
+  outline: none;
+  font-size: 14px;
+  color: var(--op-text);
+}
+
+.modal .std-input:focus {
+  border-color: rgba(230, 126, 34, 0.6);
+  box-shadow: 0 0 0 4px rgba(230, 126, 34, 0.16);
+}
+
+/* Date row grid */
+.modal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+/* Footer */
+.modal-foot {
+  padding: 14px 18px 18px;
+  border-top: 1px solid var(--op-card-line);
+  background: #fff;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.modal-foot .btn-mini {
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.modal-foot .btn-mini.primary {
+  background: var(--op-primary);
+  color: #fff;
+}
+
+.modal-foot .btn-mini.primary:hover {
+  background: var(--op-primary-hover);
+}
+
+.modal-foot .btn-mini.gray {
+  background: #f3f4f6;
+  border: 1px solid var(--op-card-line);
+  color: #111827;
+}
+
+.modal-foot .btn-mini.gray:hover {
+  filter: brightness(0.98);
+}
+
+#rentalModalMsg.muted {
+  color: var(--op-muted);
+  font-size: 13px;
+}
+
+/* Mobile: full width overlay */
+@media (max-width: 700px) {
+  .modal {
+    left: 0;
+    width: 100%;
+    padding: 14px;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  .modal-grid {
+    grid-template-columns: 1fr;
   }
 }

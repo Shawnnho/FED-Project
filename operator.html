@@ -146,7 +146,13 @@
       <section id="tab-rentals" class="op-tab">
         <div class="op-header">
           <h2>Rental Agreements (by Centre)</h2>
+
+      <!-- ✅ Add button -->
+          <button class="btn-mini primary" onclick="openRentalModal()">
+          + Add Agreement
+          </button>
         </div>
+
 
         <div class="op-card-container">
           <div class="toolbar">
@@ -163,6 +169,11 @@
                 <option value="rentDesc">Monthly Rent: High → Low</option>
                 <option value="rentAsc">Monthly Rent: Low → High</option>
               </select>
+
+              <!-- ✅ NEW: Add Agreement button (keeps layout) -->
+              <button class="btn-mini primary" type="button" onclick="openRentalModal()">
+                + Add Agreement
+              </button>
             </div>
           </div>
 
@@ -172,6 +183,72 @@
         </div>
       </section>
     </main>
+
+    <!-- ================= RENTAL MODAL (NEW) ================= -->
+    <div id="rentalModal" class="modal" style="display: none">
+      <div class="modal-card">
+        <div class="modal-head">
+          <h3 id="rentalModalTitle" style="margin: 0">Add Rental Agreement</h3>
+          <button class="icon-x" type="button" onclick="closeRentalModal()">✕</button>
+        </div>
+        
+        <div class="modal-body">
+          <input type="hidden" id="rentalEditId" />
+
+          <label class="modal-label">Centre</label>
+          <select id="rentalCentreId" class="std-input">
+            <option value="" disabled selected>Select centre</option>
+          </select>
+
+          <label class="modal-label">Stall</label>
+          <select id="rentalStallId" class="std-input">
+            <option value="" disabled selected>Select stall</option>
+          </select>
+
+          <label class="modal-label">Stall Name</label>
+          <input
+            id="rentalStallName"
+            class="std-input"
+            placeholder="Auto-filled from stall"
+          />
+
+          <label class="modal-label">Owner Name</label>
+          <input id="rentalOwnerName" class="std-input" placeholder="e.g. Samuel Tan" />
+
+          <label class="modal-label">Monthly Rent (SGD)</label>
+          <input
+            id="rentalMonthlyRent"
+            class="std-input"
+            type="number"
+            min="0"
+            step="1"
+            placeholder="e.g. 3200"
+          />
+
+          <div class="modal-grid">
+            <div>
+              <label class="modal-label">Start Date</label>
+              <input id="rentalStartDate" class="std-input" type="date" />
+            </div>
+            <div>
+              <label class="modal-label">End Date</label>
+              <input id="rentalEndDate" class="std-input" type="date" />
+            </div>
+          </div>
+
+          <p id="rentalModalMsg" class="muted" style="margin-top: 10px"></p>
+        </div>
+
+        <div class="modal-foot">
+          <button class="btn-mini gray" type="button" onclick="closeRentalModal()">
+            Cancel
+          </button>
+          <button class="btn-mini primary" type="button" onclick="saveRentalAgreement()">
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
 
     <script type="module" src="operator.js"></script>
   </body>

@@ -12,7 +12,10 @@ import {
   collection,
   query,
   where,
-  orderBy,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* ✅ CONFIG */
@@ -29,9 +32,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-/* =========================
-   State
-========================= */
+// state of page
 let UID = null;
 let USERDOC = null;
 
@@ -44,9 +45,7 @@ let ordersRaw = []; // for revenue
 
 let stallFilter = "all";
 
-/* =========================
-   Helpers
-========================= */
+
 const safeLower = (x) => String(x || "").toLowerCase();
 
 function setBadge(id, count) {
@@ -90,9 +89,25 @@ function centreNameById(id) {
   return c?.name || id;
 }
 
-/* =========================
-   Auth + Role guard
-========================= */
+function setModalMsg(msg, isError = false) {
+  const el = document.getElementById("rentalModalMsg");
+  if (!el) return;
+  el.textContent = msg || "";
+  el.style.color = isError ? "#d33" : "";
+}
+
+function openModal() {
+  const m = document.getElementById("rentalModal");
+  if (m) m.style.display = "block";
+}
+function closeModal() {
+  const m = document.getElementById("rentalModal");
+  if (m) m.style.display = "none";
+}
+
+
+   //Auth + Role guard
+
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = "index.html";
@@ -121,16 +136,18 @@ onAuthStateChanged(auth, async (user) => {
   if (opUserLine) opUserLine.textContent = USERDOC.name || user.email || "Operator";
 
   await loadCentres();
-  await preloadRevenueForCentres(); // loads orders once and computes revenue per centre
+  await preloadRevenueForCentres();
   renderCentres();
-  updateOverview();
+  await updateOverview();
   switchTab("centres");
+
+  // make sure modal dropdowns can be filled whenever opened
+  wireModalListeners();
 });
 
-/* =========================
-   Centres
-   centres/{centreId}.operatorId == UID
-========================= */
+   
+   // centres/{centreId}.operatorId == UID
+
 async function loadCentres() {
   const sel = document.getElementById("centreSelect");
   if (sel) sel.innerHTML = `<option value="" disabled selected>Loading centres...</option>`;
@@ -173,9 +190,9 @@ window.onCentreChange = async () => {
   await loadRentals();
 };
 
-/* =========================
-   Tab switching
-========================= */
+
+  // Tab switching( for navigation)
+
 window.switchTab = async (tabName) => {
   document.querySelectorAll(".op-tab").forEach((el) => el.classList.remove("active"));
   document.querySelectorAll(".op-menu li").forEach((el) => el.classList.remove("active"));
@@ -189,7 +206,7 @@ window.switchTab = async (tabName) => {
 
   if (tabName === "centres") {
     renderCentres();
-    updateOverview();
+    await updateOverview();
     return;
   }
 
@@ -199,56 +216,46 @@ window.switchTab = async (tabName) => {
   if (tabName === "rentals") await loadRentals();
 };
 
-/* =========================
-   Revenue (orders)
-   orders: { centreId, total, createdAt }
-========================= */
+
+//   Revenue (orders)
+
 async function preloadRevenueForCentres() {
-  // Build map: stallId -> centreId for centres owned by this operator
   const stallToCentre = {};
 
   await Promise.all(
     CENTRES.map(async (c) => {
       const stallsSnap = await getDocs(collection(db, "centres", c.id, "stalls"));
       stallsSnap.forEach((d) => {
-        // IMPORTANT: d.id must match order.stallId (e.g. "BhFcNBORt5cDQhpg4OdmlBsIMoD2")
         stallToCentre[d.id] = c.id;
       });
     }),
   );
 
-  // Load orders once
   const ordersSnap = await getDocs(collection(db, "orders"));
   ordersRaw = ordersSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
-  // Sum revenue per centre
   const byCentre = {};
 
   for (const o of ordersRaw) {
-    // Only completed
     const status = String(o.status || "").toLowerCase();
     if (status !== "completed") continue;
 
-    // Your order has stallId at root
     const stallId = o.stallId;
     const centreId = stallToCentre[stallId];
-    if (!centreId) continue; // skip orders not belonging to this operator's centres
+    if (!centreId) continue;
 
-    // Your order total is pricing.total
     const total = Number(o.pricing?.total ?? 0);
     if (!Number.isFinite(total)) continue;
 
     byCentre[centreId] = (byCentre[centreId] || 0) + total;
   }
 
-  // Attach back to centres
   CENTRES = CENTRES.map((c) => ({ ...c, revenue: byCentre[c.id] || 0 }));
 }
 
 
-/* =========================
-   Centres UI
-========================= */
+   // Centres UI
+
 window.renderCentres = async () => {
   const list = document.getElementById("centreList");
   if (!list) return;
@@ -320,17 +327,13 @@ window.selectCentreAndGo = async (centreId, tab) => {
 };
 
 async function updateOverview() {
-  // total stalls and active stalls across all centres
   let totalStalls = 0;
   let activeStalls = 0;
   let totalRentals = 0;
   let totalRevenue = 0;
 
-  // revenue
   for (const c of CENTRES) totalRevenue += Number(c.revenue || 0);
 
-  // stalls + rentals (we’ll aggregate by reading per centre)
-  // (fine for school project size; if huge, we can optimize later)
   for (const c of CENTRES) {
     const stallsSnap = await getDocs(collection(db, "centres", c.id, "stalls"));
     const stalls = stallsSnap.docs.map((d) => d.data());
@@ -358,10 +361,9 @@ async function updateOverview() {
   setBadge("badgeRentals", totalRentals);
 }
 
-/* =========================
-   Stalls (per selected centre)
-   centres/{centreId}/stalls
-========================= */
+
+   // Stalls (per selected centre)
+
 async function loadStalls() {
   const list = document.getElementById("stallList");
   if (!SELECTED_CENTRE_ID) {
@@ -437,10 +439,9 @@ window.renderStalls = () => {
     .join("");
 };
 
-/* =========================
-   Rentals (per selected centre)
-   rentalAgreements: { centreId, stallName, ownerName, monthlyRent, startDate, endDate, createdAt }
-========================= */
+
+   // Rentals (per selected centre)
+
 async function loadRentals() {
   const list = document.getElementById("rentalList");
   if (!SELECTED_CENTRE_ID) {
@@ -493,6 +494,7 @@ window.renderRentals = () => {
       const rent = money(r.monthlyRent || 0);
       const start = r.startDate || "-";
       const end = r.endDate || "-";
+
       return `
         <div class="op-item">
           <div class="item-main">
@@ -504,10 +506,240 @@ window.renderRentals = () => {
             <span>Start: ${start}</span>
             <span>End: ${end}</span>
           </div>
+
+          <!-- ✅ NEW buttons -->
+          <div class="actions-row" style="margin-top:10px">
+            <button class="btn-mini primary" onclick="editRental('${r.id}')">
+              Edit
+            </button>
+            <button class="btn-mini gray" onclick="deleteRental('${r.id}')">
+              Delete
+            </button>
+          </div>
         </div>
       `;
     })
     .join("");
+};
+
+/* =========================================================
+   ✅ RENTAL MODAL LOGIC (ADD / EDIT / DELETE)
+========================================================= */
+function wireModalListeners() {
+  // close when clicking outside card
+  const modal = document.getElementById("rentalModal");
+  modal?.addEventListener("click", (e) => {
+    if (e.target?.id === "rentalModal") closeModal();
+  });
+
+  // load stalls dropdown for that centre when centre change
+  const centreSel = document.getElementById("rentalCentreId");
+  centreSel?.addEventListener("change", async () => {
+    await fillRentalStallOptions(centreSel.value);
+  });
+
+  // auto-fill stall  when stall change
+  const stallSel = document.getElementById("rentalStallId");
+  stallSel?.addEventListener("change", () => {
+    const stallId = stallSel.value;
+    const opt = stallSel.querySelector(`option[value="${stallId}"]`);
+    const name = opt?.dataset?.stallname || "";
+    const stallNameInput = document.getElementById("rentalStallName");
+    if (stallNameInput && name) stallNameInput.value = name;
+  });
+}
+
+async function fillRentalCentreOptions(selectedId = "") {
+  const sel = document.getElementById("rentalCentreId");
+  if (!sel) return;
+
+  if (CENTRES.length === 0) {
+    sel.innerHTML = `<option value="" disabled selected>No centres</option>`;
+    return;
+  }
+
+  sel.innerHTML =
+    `<option value="" disabled ${!selectedId ? "selected" : ""}>Select centre</option>` +
+    CENTRES.map((c) => {
+      const name = c.name || c.id;
+      const selected = c.id === selectedId ? "selected" : "";
+      return `<option value="${c.id}" ${selected}>${name}</option>`;
+    }).join("");
+}
+
+async function fillRentalStallOptions(centreId, selectedStallId = "") {
+  const stallSel = document.getElementById("rentalStallId");
+  if (!stallSel) return;
+
+  if (!centreId) {
+    stallSel.innerHTML = `<option value="" disabled selected>Select stall</option>`;
+    return;
+  }
+
+  // Load stalls for that centre (fresh)
+  const snap = await getDocs(collection(db, "centres", centreId, "stalls"));
+  const stalls = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+  if (stalls.length === 0) {
+    stallSel.innerHTML = `<option value="" disabled selected>No stalls in centre</option>`;
+    return;
+  }
+
+  stallSel.innerHTML =
+    `<option value="" disabled ${!selectedStallId ? "selected" : ""}>Select stall</option>` +
+    stalls
+      .sort((a, b) => safeLower(a.stallName).localeCompare(safeLower(b.stallName)))
+      .map((s) => {
+        const selected = s.id === selectedStallId ? "selected" : "";
+        // dataset used for autofill
+        return `<option value="${s.id}" data-stallname="${(s.stallName || "").replaceAll('"', "&quot;")}" ${selected}>
+          ${s.stallName || s.id}
+        </option>`;
+      })
+      .join("");
+
+  // AutoFills Name for user help(less mafan)
+  if (selectedStallId) {
+    const opt = stallSel.querySelector(`option[value="${selectedStallId}"]`);
+    const name = opt?.dataset?.stallname || "";
+    const stallNameInput = document.getElementById("rentalStallName");
+    if (stallNameInput && name) stallNameInput.value = name;
+  }
+}
+
+function resetRentalForm() {
+  document.getElementById("rentalEditId").value = "";
+  document.getElementById("rentalStallName").value = "";
+  document.getElementById("rentalOwnerName").value = "";
+  document.getElementById("rentalMonthlyRent").value = "";
+  document.getElementById("rentalStartDate").value = "";
+  document.getElementById("rentalEndDate").value = "";
+  setModalMsg("");
+}
+
+window.openRentalModal = async () => {
+  
+  resetRentalForm();
+  const title = document.getElementById("rentalModalTitle");
+  if (title) title.textContent = "Add Rental Agreement";
+  
+  const centreId = SELECTED_CENTRE_ID || "";
+  await fillRentalCentreOptions(centreId);
+
+  // Fill stalls dropdown based on centre
+  if (centreId) await fillRentalStallOptions(centreId);
+
+  openModal();
+};
+
+window.closeRentalModal = () => {
+  closeModal();
+};
+
+window.editRental = async (rentalId) => {
+  const r = rentalsRaw.find((x) => x.id === rentalId);
+  if (!r) return;
+
+  resetRentalForm();
+
+  const title = document.getElementById("rentalModalTitle");
+  if (title) title.textContent = "Edit Rental Agreement";
+
+  document.getElementById("rentalEditId").value = r.id || "";
+
+  // centre + stalls
+  const centreId = r.centreId || SELECTED_CENTRE_ID || "";
+  await fillRentalCentreOptions(centreId);
+  await fillRentalStallOptions(centreId, r.stallId || "");
+
+  // fields
+  document.getElementById("rentalCentreId").value = centreId;
+  if (r.stallId) document.getElementById("rentalStallId").value = r.stallId;
+
+  document.getElementById("rentalStallName").value = r.stallName || "";
+  document.getElementById("rentalOwnerName").value = r.ownerName || "";
+  document.getElementById("rentalMonthlyRent").value = String(r.monthlyRent ?? "");
+  document.getElementById("rentalStartDate").value = r.startDate || "";
+  document.getElementById("rentalEndDate").value = r.endDate || "";
+
+  openModal();
+};
+
+window.saveRentalAgreement = async () => {
+  try {
+    setModalMsg("Saving...");
+
+    const editId = document.getElementById("rentalEditId").value.trim();
+
+    const centreId = document.getElementById("rentalCentreId").value;
+    const stallId = document.getElementById("rentalStallId").value;
+    const stallName = document.getElementById("rentalStallName").value.trim();
+    const ownerName = document.getElementById("rentalOwnerName").value.trim();
+    const monthlyRent = Number(document.getElementById("rentalMonthlyRent").value);
+    const startDate = document.getElementById("rentalStartDate").value;
+    const endDate = document.getElementById("rentalEndDate").value;
+
+    // Basic validation
+    if (!centreId) return setModalMsg("Please select a centre.", true);
+    if (!stallId) return setModalMsg("Please select a stall.", true);
+    if (!stallName) return setModalMsg("Stall name is required.", true);
+    if (!ownerName) return setModalMsg("Owner name is required.", true);
+    if (!Number.isFinite(monthlyRent) || monthlyRent < 0)
+      return setModalMsg("Monthly rent must be a valid number.", true);
+    if (!startDate) return setModalMsg("Start date is required.", true);
+    if (!endDate) return setModalMsg("End date is required.", true);
+    if (endDate < startDate) return setModalMsg("End date cannot be before start date.", true);
+
+    const payload = {
+      centreId,
+      stallId,
+      stallName,
+      ownerName,
+      monthlyRent,
+      startDate,
+      endDate,
+      updatedAt: serverTimestamp(),
+      updatedBy: UID,
+    };
+
+    if (!editId) {
+      
+      await addDoc(collection(db, "rentalAgreements"), {
+        ...payload,
+        createdAt: serverTimestamp(),
+      });
+      setModalMsg("Saved.");
+    } else {
+      
+      await updateDoc(doc(db, "rentalAgreements", editId), payload);
+      setModalMsg("Updated.");
+    }
+
+    closeModal();
+
+    // refresh rentals list + overview badges
+    await loadRentals();
+    await updateOverview();
+  } catch (err) {
+    console.error(err);
+    setModalMsg(err?.message || "Save failed.", true);
+  }
+};
+
+window.deleteRental = async (rentalId) => {
+  const r = rentalsRaw.find((x) => x.id === rentalId);
+  const name = r?.stallName || "this agreement";
+  const ok = confirm(`Delete rental agreement for "${name}"?\nThis cannot be undone.`);
+  if (!ok) return;
+
+  try {
+    await deleteDoc(doc(db, "rentalAgreements", rentalId));
+    await loadRentals();
+    await updateOverview();
+  } catch (err) {
+    console.error(err);
+    alert("Delete failed. Check permissions / rules.");
+  }
 };
 
 /* =========================
