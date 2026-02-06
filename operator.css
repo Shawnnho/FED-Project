@@ -339,3 +339,108 @@
     transform: translateY(0);
   }
 }
+
+/* ===== Rental Agreement card layout ===== */
+.ra-card {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 18px;
+  padding: 18px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.06);
+  margin-bottom: 14px;
+}
+
+.ra-left h4 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+
+.ra-left p {
+  margin: 6px 0;
+}
+
+.ra-left .muted {
+  opacity: 0.75;
+  font-size: 12.5px;
+}
+
+/* ===== Bill panel ===== */
+.bill-panel {
+  background: #f7f8fb;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.bill-title {
+  font-weight: 800;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.bill-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 12px;
+}
+
+.bill-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12.5px;
+  color: rgba(0, 0, 0, 0.75);
+}
+
+.bill-field input {
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  padding: 0 10px;
+  background: #fff;
+  outline: none;
+}
+
+.bill-field input:focus {
+  border-color: rgba(255, 124, 16, 0.7);
+  box-shadow: 0 0 0 3px rgba(255, 124, 16, 0.15);
+}
+
+.bill-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bill-input-row small {
+  opacity: 0.7;
+  white-space: nowrap;
+}
+
+.bill-save {
+  margin-top: 12px;
+  width: 100%;
+  height: 40px;
+  border: 0;
+  border-radius: 12px;
+  background: #ff7c10;
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.bill-save:hover {
+  filter: brightness(0.95);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .ra-card {
+    grid-template-columns: 1fr;
+  }
+  .bill-grid {
+    grid-template-columns: 1fr;
+  }
+}

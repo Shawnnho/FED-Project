@@ -13,6 +13,9 @@ import {
   query,
   where,
   orderBy,
+  setDoc,
+  Timestamp,
+  serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* ✅ CONFIG */
@@ -41,12 +44,41 @@ let SELECTED_CENTRE_ID = null;
 let stallsRaw = [];
 let rentalsRaw = [];
 let ordersRaw = []; // for revenue
+let billsByStall = {}; // { [stallId]: operatorBillForMonth }
 
 let stallFilter = "all";
 
 /* =========================
    Helpers
 ========================= */
+function parseYMD(s) {
+  // "2026-02-05" -> local date (not UTC)
+  const [y, m, d] = String(s || "")
+    .split("-")
+    .map(Number);
+  if (!y || !m || !d) return null;
+  return new Date(y, m - 1, d);
+}
+
+function formatYMD(dateObj) {
+  if (!dateObj) return "-";
+  const y = dateObj.getFullYear();
+  const m = String(dateObj.getMonth() + 1).padStart(2, "0");
+  const d = String(dateObj.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function computeEndInclusiveFromStart(startYMD) {
+  const start = parseYMD(startYMD);
+  if (!start) return "-";
+
+  const end = new Date(start);
+  end.setMonth(end.getMonth() + 1); // ✅ +1 month
+  end.setDate(end.getDate() - 1); // inclusive end
+
+  return formatYMD(end);
+}
+
 const safeLower = (x) => String(x || "").toLowerCase();
 
 function setBadge(id, count) {
@@ -118,7 +150,8 @@ onAuthStateChanged(auth, async (user) => {
   }
 
   const opUserLine = document.getElementById("opUserLine");
-  if (opUserLine) opUserLine.textContent = USERDOC.name || user.email || "Operator";
+  if (opUserLine)
+    opUserLine.textContent = USERDOC.name || user.email || "Operator";
 
   await loadCentres();
   await preloadRevenueForCentres(); // loads orders once and computes revenue per centre
@@ -133,7 +166,8 @@ onAuthStateChanged(auth, async (user) => {
 ========================= */
 async function loadCentres() {
   const sel = document.getElementById("centreSelect");
-  if (sel) sel.innerHTML = `<option value="" disabled selected>Loading centres...</option>`;
+  if (sel)
+    sel.innerHTML = `<option value="" disabled selected>Loading centres...</option>`;
 
   const q1 = query(collection(db, "centres"), where("operatorId", "==", UID));
   const snap = await getDocs(q1);
@@ -177,8 +211,12 @@ window.onCentreChange = async () => {
    Tab switching
 ========================= */
 window.switchTab = async (tabName) => {
-  document.querySelectorAll(".op-tab").forEach((el) => el.classList.remove("active"));
-  document.querySelectorAll(".op-menu li").forEach((el) => el.classList.remove("active"));
+  document
+    .querySelectorAll(".op-tab")
+    .forEach((el) => el.classList.remove("active"));
+  document
+    .querySelectorAll(".op-menu li")
+    .forEach((el) => el.classList.remove("active"));
 
   const tab = document.getElementById(`tab-${tabName}`);
   if (tab) tab.classList.add("active");
@@ -209,7 +247,9 @@ async function preloadRevenueForCentres() {
 
   await Promise.all(
     CENTRES.map(async (c) => {
-      const stallsSnap = await getDocs(collection(db, "centres", c.id, "stalls"));
+      const stallsSnap = await getDocs(
+        collection(db, "centres", c.id, "stalls"),
+      );
       stallsSnap.forEach((d) => {
         // IMPORTANT: d.id must match order.stallId (e.g. "BhFcNBORt5cDQhpg4OdmlBsIMoD2")
         stallToCentre[d.id] = c.id;
@@ -244,7 +284,6 @@ async function preloadRevenueForCentres() {
   // Attach back to centres
   CENTRES = CENTRES.map((c) => ({ ...c, revenue: byCentre[c.id] || 0 }));
 }
-
 
 /* =========================
    Centres UI
@@ -370,7 +409,9 @@ async function loadStalls() {
   }
   if (list) list.innerHTML = "<p>Loading stalls...</p>";
 
-  const snap = await getDocs(collection(db, "centres", SELECTED_CENTRE_ID, "stalls"));
+  const snap = await getDocs(
+    collection(db, "centres", SELECTED_CENTRE_ID, "stalls"),
+  );
   stallsRaw = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
   renderStalls();
@@ -380,7 +421,11 @@ window.setStallFilter = (mode) => {
   stallFilter = mode;
   markChipActive(
     "stallFilter",
-    mode === "all" ? "stallFilterAll" : mode === "active" ? "stallFilterActive" : "stallFilterInactive",
+    mode === "all"
+      ? "stallFilterAll"
+      : mode === "active"
+        ? "stallFilterActive"
+        : "stallFilterInactive",
   );
   renderStalls();
 };
@@ -403,7 +448,8 @@ window.renderStalls = () => {
 
   if (q) {
     items = items.filter(
-      (s) => safeLower(s.stallName).includes(q) || safeLower(s.cuisine).includes(q),
+      (s) =>
+        safeLower(s.stallName).includes(q) || safeLower(s.cuisine).includes(q),
     );
   }
 
@@ -449,10 +495,32 @@ async function loadRentals() {
   }
   if (list) list.innerHTML = "<p>Loading agreements...</p>";
 
-  const q1 = query(collection(db, "rentalAgreements"), where("centreId", "==", SELECTED_CENTRE_ID));
+  const q1 = query(
+    collection(db, "rentalAgreements"),
+    where("centreId", "==", SELECTED_CENTRE_ID),
+  );
   const snap = await getDocs(q1);
-
   rentalsRaw = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+  const now = new Date();
+  const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+
+  billsByStall = {}; // reset cache
+
+  for (const r of rentalsRaw) {
+    if (!r.stallId) continue;
+
+    // auto-create bill if missing
+    await ensureMonthlyBill(r.stallId, r.monthlyRent);
+
+    // 🔥 load saved bill so UI reflects it
+    const billSnap = await getDoc(
+      doc(db, "stalls", r.stallId, "operatorBills", monthKey),
+    );
+
+    billsByStall[r.stallId] = billSnap.exists() ? billSnap.data() : null;
+  }
+
   renderRentals();
 }
 
@@ -469,14 +537,17 @@ window.renderRentals = () => {
     items = items.filter((r) => {
       return (
         safeLower(r.stallName).includes(q) ||
-        safeLower(r.ownerName).includes(q)
+        safeLower(r.ownerName).includes(q) ||
+        safeLower(r.stallId).includes(q)
       );
     });
   }
 
   items.sort((a, b) => {
-    if (sortMode === "rentDesc") return Number(b.monthlyRent || 0) - Number(a.monthlyRent || 0);
-    if (sortMode === "rentAsc") return Number(a.monthlyRent || 0) - Number(b.monthlyRent || 0);
+    if (sortMode === "rentDesc")
+      return Number(b.monthlyRent || 0) - Number(a.monthlyRent || 0);
+    if (sortMode === "rentAsc")
+      return Number(a.monthlyRent || 0) - Number(b.monthlyRent || 0);
 
     const A = toMs(a.createdAt);
     const B = toMs(b.createdAt);
@@ -490,24 +561,149 @@ window.renderRentals = () => {
 
   list.innerHTML = items
     .map((r) => {
+      const bill = billsByStall[r.stallId] || {};
       const rent = money(r.monthlyRent || 0);
       const start = r.startDate || "-";
-      const end = r.endDate || "-";
+      const end = computeEndInclusiveFromStart(r.startDate);
+
       return `
-        <div class="op-item">
-          <div class="item-main">
-            <h4>${r.stallName || "Unknown Stall"}</h4>
-            <span class="badge blue">${rent}/month</span>
-          </div>
-          <p>Owner: <b>${r.ownerName || "-"}</b></p>
-          <div class="item-meta">
-            <span>Start: ${start}</span>
-            <span>End: ${end}</span>
-          </div>
+  <div class="ra-card">
+    <div class="ra-left">
+      <h4>${r.stallName || "Unknown Stall"}</h4>
+      <p>Owner: <b>${r.ownerName || "-"}</b></p>
+      <p class="muted">Stall ID: <b>${r.stallId || "-"}</b></p>
+
+      <div class="item-meta">
+        <span>Start: ${start}</span>
+        <span>End: ${end}</span>
+      </div>
+    </div>
+
+    <div class="ra-right">
+      <div class="bill-panel">
+        <div class="bill-title">Monthly Bill</div>
+
+        <div class="bill-grid">
+          <label class="bill-field bill-span-2">
+            <span>Rent</span>
+            <div class="bill-input-row">
+              <input id="rent-${r.id}" type="number"
+  value="${Number(bill.rent ?? r.monthlyRent ?? 0)}" />
+
+              <small>/month</small>
+            </div>
+          </label>
+
+          <label class="bill-field">
+            <span>Utilities</span>
+            <input id="util-${r.id}" type="number" value="${Number(bill.utilities ?? 0)}" />
+          </label>
+
+          <label class="bill-field">
+            <span>Cleaning</span>
+           <input id="clean-${r.id}" type="number" value="${Number(bill.cleaningFee ?? 0)}" />
+          </label>
+
+          <label class="bill-field">
+            <span>Penalty</span>
+          <input id="pen-${r.id}" type="number" value="${Number(bill.penalty ?? 0)}" />
+          </label>
+
+          <label class="bill-field">
+            <span>Other</span>
+            <input id="other-${r.id}" type="number" value="${Number(bill.other ?? 0)}" />
+          </label>
         </div>
-      `;
+
+        <button class="bill-save" onclick="saveMonthlyBill('${r.stallId}', '${r.id}')">
+          Save Monthly Bill
+        </button>
+      </div>
+    </div>
+  </div>
+`;
     })
     .join("");
+};
+
+async function ensureMonthlyBill(stallId, rent) {
+  const now = new Date();
+  const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+
+  const ref = doc(db, "stalls", stallId, "operatorBills", monthKey);
+  const snap = await getDoc(ref);
+
+  if (snap.exists()) return; // already created
+
+  const dueDate = new Date(now.getFullYear(), now.getMonth(), 15);
+
+  await setDoc(ref, {
+    month: monthKey,
+    rent: Number(rent || 0),
+    utilities: 0,
+    cleaningFee: 0,
+    penalty: 0,
+    other: 0,
+    total: Number(rent || 0),
+    dueDate: Timestamp.fromDate(dueDate),
+    status: "unpaid",
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+  
+}
+
+window.saveMonthlyBill = async (stallId, rentalDocId) => {
+  try {
+    // month key like 2026-01
+    const now = new Date();
+    const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+
+    const utilities = Number(
+      document.getElementById(`util-${rentalDocId}`)?.value || 0,
+    );
+    const cleaningFee = Number(
+      document.getElementById(`clean-${rentalDocId}`)?.value || 0,
+    );
+    const penalty = Number(
+      document.getElementById(`pen-${rentalDocId}`)?.value || 0,
+    );
+    const other = Number(
+      document.getElementById(`other-${rentalDocId}`)?.value || 0,
+    );
+
+    const rent = Number(
+      document.getElementById(`rent-${rentalDocId}`)?.value || 0,
+    );
+    const total = rent + utilities + cleaningFee + penalty + other;
+
+    // default due date = 15th of this month
+    const dueDate = new Date(now.getFullYear(), now.getMonth(), 15);
+
+    await setDoc(
+      doc(db, "stalls", stallId, "operatorBills", monthKey),
+      {
+        month: monthKey,
+        rent,
+        utilities,
+        cleaningFee,
+        penalty,
+        other,
+        total,
+        dueDate: Timestamp.fromDate(dueDate),
+        status: "unpaid",
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true },
+    );
+
+    alert(`Saved operator bill for ${monthKey} (Stall ${stallId})`);
+    await loadRentals();
+
+  } catch (err) {
+    console.error(err);
+    alert(`Save failed: ${err.message}`);
+  }
 };
 
 /* =========================
