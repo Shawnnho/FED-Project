@@ -2344,15 +2344,26 @@ select,
   text-align: center;
 }
 
-.page.stallPage .favBtn {
+/* =========================
+   Favourite Heart (Image)
+========================= */
+.favBtn {
+  background: none;
   border: none;
-  background: transparent;
+  padding: 0;
   cursor: pointer;
-  font-size: 36px;
-  color: #d6786d;
+}
+
+.favIcon {
+  width: 26px;
+  height: 26px;
   transition:
     transform 0.15s ease,
-    color 0.15s ease;
+    opacity 0.15s ease;
+}
+
+.favBtn.isFav .favIcon {
+  transform: scale(1.1);
 }
 
 .page.stallPage .favBtn.active {

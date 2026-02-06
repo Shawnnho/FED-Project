@@ -156,7 +156,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      // 🔎 Check user record
+      //  Check user record
       const snap = await getDoc(doc(db, "users", user.uid));
 
       if (!snap.exists()) {

@@ -164,6 +164,11 @@ const starFill = document.getElementById("starFill");
 
 const seeReviewLink = document.getElementById("seeReviewLink");
 
+const favIcon = document.getElementById("favIcon");
+
+const HEART_OUTLINE = "images/like.png";
+const HEART_FILLED = "images/heart.png";
+
 function fillUI() {
   heroEl.src = stall.img;
   heroEl.alt = `${stall.name} hero image`;
@@ -188,7 +193,7 @@ function fillUI() {
   metaEl.textContent = `Open: ${buildHours12(stall.openTime, stall.closeTime)} • Unit ${stall.unit}`;
 
   if (locationEl) {
-    locationEl.textContent = `📍 ${stall.location}`;
+    locationEl.textContent = ` ${stall.location}`;
   }
 
   if (menuLink)
@@ -208,13 +213,17 @@ function fillUI() {
 // Favourite (Firestore)
 // =========================
 function setFavUI(isFav) {
-  if (!favBtn) return;
+  if (!favBtn || !favIcon) return;
+
   favBtn.classList.toggle("active", isFav);
   favBtn.setAttribute("aria-pressed", String(isFav));
   favBtn.setAttribute(
     "aria-label",
     isFav ? "Remove favourite" : "Add to favourite",
   );
+
+  favIcon.src = isFav ? HEART_FILLED : HEART_OUTLINE;
+  favIcon.alt = isFav ? "Remove from favourite" : "Add to favourite";
 }
 
 onAuthStateChanged(auth, async (user) => {
