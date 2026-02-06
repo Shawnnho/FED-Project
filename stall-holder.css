@@ -2078,3 +2078,17 @@ body.stallHolder .searchWrap .filters #applyFilterBtn {
     max-width: none;
   }
 }
+
+/* Fix oversized plus icon in Add Menu button */
+body.stallHolder #btnAdd {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+body.stallHolder #btnAdd img {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  display: block;
+}
