@@ -131,31 +131,22 @@ function buildChipsFromData(data) {
     ...new Set(data.map((s) => (s.cuisine || "").trim()).filter(Boolean)),
   ];
 
-  const cuisineEmojis = {
-    chinese: "🥢",
-    malay: "🍃",
-    indian: "🍛",
-    western: "🍳",
-    beverages: "☕",
-  };
-
   const cuisineBtns = cuisines
     .sort()
     .map((c) => {
       const key = c.toLowerCase();
-      const emoji = cuisineEmojis[key] || "🍽️";
       return `
-        <button class="chipBtn" data-cat="${esc(key)}" type="button">
-          ${emoji} ${esc(c)}
-        </button>`;
+      <button class="chipBtn" data-cat="${esc(key)}" type="button">
+        ${esc(c)}
+      </button>`;
     })
     .join("");
 
   const specialBtns = `
-    <button class="chipBtn" data-cat="popular" type="button">🔥 Popular</button>
-    <button class="chipBtn" data-cat="top" type="button">⭐ Top Rated</button>
-    <button class="chipBtn" data-cat="fast" type="button">⏱️ Fast</button>
-  `;
+  <button class="chipBtn" data-cat="popular" type="button">Popular</button>
+  <button class="chipBtn" data-cat="top" type="button">Top Rated</button>
+  <button class="chipBtn" data-cat="fast" type="button">Fast</button>
+`;
 
   chipRow.innerHTML = `
     <button class="chipBtn active" data-cat="all" type="button">All</button>
@@ -179,7 +170,7 @@ function renderFeatured(data) {
           <div class="featuredBadge">${s.grade === "A" ? "Top Pick" : "Popular"}</div>
           <div class="featuredName">${esc(s.name)}</div>
           <div class="featuredMeta">
-            ${esc(s.cuisine)} · Grade ${esc(s.grade)} · ⏱️ ${timeLabel(s)}
+    ${esc(s.cuisine)} · Grade ${esc(s.grade)} · Prep ${timeLabel(s)}
           </div>
         </div>
       </a>`;
@@ -213,14 +204,22 @@ function renderList(data) {
           <p class="desc">${esc(s.desc)}</p>
 
           <div class="cardBottom">
-            <span class="prep dPrep ${prepClass(s)}">⏱️ ${timeLabel(s)}</span>
+           <span class="prep dPrep ${prepClass(s)}">Prep ${timeLabel(s)}</span>
 
-            <div class="dActions">
-              <button class="dFav ${favOn ? "on" : ""}" type="button" data-stall="${esc(
-                s.id,
-              )}" aria-label="Favourite">
-                <span class="heart">${favOn ? "♥" : "♡"}</span>
-              </button>
+
+           <button
+  class="dFav ${favOn ? "on" : ""}"
+  type="button"
+  data-stall="${esc(s.id)}"
+  aria-label="Favourite"
+>
+  <img
+    class="heartIcon"
+    src="${favOn ? "images/heart.png" : "images/like.png"}"
+    alt="Favourite"
+  />
+</button>
+
 
               <a class="viewBtn" href="${menuUrl(s)}">
                 View <span class="arrow">→</span>
