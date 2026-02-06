@@ -4617,11 +4617,6 @@ FOOTER
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18);
 }
 
-/* Hide badge when 0 */
-.cartBadge.isZero {
-  display: none !important;
-}
-
 /* ===============================
    CART EMPTY STATE (NICE)
    =============================== */
@@ -5274,6 +5269,12 @@ FOOTER
   background: #fff5f5;
 }
 
+/* Force HTML hidden attribute to always hide */
+[hidden] {
+  display: none !important;
+}
+
+
 /* =========================
    CART PROMO BOX (RIGHT PANEL)
 ========================= */
@@ -5451,4 +5452,90 @@ body.storePage #stallGrade.gradeC {
 body.storePage #stallGrade.gradeD {
   background: #9ca3af;
   color: #fff;
+}
+
+/* ======================================================
+   QR PAYMENT PAGE
+   ====================================================== */
+
+/* Layout: center the QR section on the page */
+.qrPage .page {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+/* Container: keep content centered and predictable */
+.qrPage .payWrap {
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* Title */
+.qrPage .payTitle {
+  text-align: center;
+  font-size: 1.8rem; 
+  margin: 0;
+}
+
+/* Amount row */
+.qrPage .payAmountRow {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: 10px;
+  width: 100%;
+  margin: 14px 0 22px;
+}
+
+.qrPage .payCurrency {
+  font-size: 1.1rem;
+  opacity: 0.7;
+}
+
+.qrPage .payAmount {
+  font-size: 4rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+/* QR block */
+.qrPage .qrBox {
+  margin: 16px 0;
+  text-align: center;
+}
+
+.qrPage .qrImg {
+  width: 600px;     
+  max-width: 90vw;
+  height: auto;
+  object-fit: contain;
+}
+
+/* "Scan to Pay..." text */
+.qrPage .qrHint {
+  font-size: 1.6rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+/* Confirm button (fatter + bigger + bold) */
+.qrPage .payConfirmBtn {
+  width: 600px;
+  padding: 28px;       
+  background: #3ee13e;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.4rem;     
+  font-weight: 900;       
+  letter-spacing: 0.5px;
+  cursor: pointer;
+}
+
+.qrPage .payConfirmBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }

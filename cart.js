@@ -4,13 +4,11 @@
  * - Guest: localStorage hp_cart
  * - Renders cart page + updates badges
  * - Payment method selector + Proceed button states
+ * - NEW: One payment for many stall orders (QR + Card only)
  *************************************************/
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import {
-  getAuth,
-  onAuthStateChanged,
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   getFirestore,
   doc,
@@ -52,8 +50,21 @@ let lastPricing = {
 };
 
 const userDocRef = (uid) => doc(db, "users", uid);
-
 const cartDocRef = (uid) => doc(db, "carts", uid);
+
+async function getStallNameById(stallId) {
+  if (!stallId) return "";
+  try {
+    // ✅ If your collection is not called "stalls", change it here
+    const snap = await getDoc(doc(db, "stalls", stallId));
+    if (!snap.exists()) return "";
+    const d = snap.data();
+    return d.stallName || d.name || d.title || "";
+  } catch (e) {
+    console.warn("getStallNameById failed:", e);
+    return "";
+  }
+}
 
 /* ------------------------------ Promo (Firestore) --------------------------------*/
 let appliedPromo = null;
@@ -62,13 +73,10 @@ const promoColRef = () => collection(db, "promotions");
 const promoDocRef = (promoId) => doc(db, "promotions", promoId);
 
 // users/{uid}/promoClaims/{promoId}
-const promoClaimRef = (uid, promoId) =>
-  doc(db, "users", uid, "promoClaims", promoId);
+const promoClaimRef = (uid, promoId) => doc(db, "users", uid, "promoClaims", promoId);
 
 async function getPromoByCode(codeRaw) {
-  const code = String(codeRaw || "")
-    .trim()
-    .toUpperCase();
+  const code = String(codeRaw || "").trim().toUpperCase();
   if (!code) return null;
 
   const q = query(promoColRef(), where("code", "==", code), limit(1));
@@ -103,6 +111,26 @@ function inferMinSpend(promo) {
   const text = `${promo.desc || ""}`;
   const m = text.match(/\$([0-9]+(?:\.[0-9]+)?)/);
   return m ? Number(m[1]) : 0;
+}
+
+/** ✅ NEW helper: consistent discount calculation for order creation */
+function calcPromoDiscount(promo, subtotal) {
+  if (!promo) return 0;
+
+  const expMs = toMs(promo.expiresAt);
+  if (expMs && Date.now() > expMs) return 0;
+
+  const type = String(promo.type || "cash").toLowerCase();
+
+  let discount = 0;
+  if (type === "cash") discount = inferCashValue(promo);
+
+  if (type === "percent") {
+    const pct = Number(promo.percent ?? promo.value ?? promo.discount) || 0;
+    discount = subtotal * (pct / 100);
+  }
+
+  return Math.min(discount, subtotal);
 }
 
 async function clearAppliedPromo(message = "") {
@@ -230,14 +258,12 @@ function validateDeliveryFields() {
   const postalEl = document.getElementById("delPostal");
   const unitEl = document.getElementById("delUnit");
 
-  const address = addressEl.value.trim();
-  const postal = postalEl.value.trim();
-  const unit = unitEl.value.trim();
+  const address = addressEl?.value?.trim() || "";
+  const postal = postalEl?.value?.trim() || "";
+  const unit = unitEl?.value?.trim() || "";
 
   // reset visuals
-  [addressEl, postalEl, unitEl].forEach((el) =>
-    el.classList.remove("isInvalid"),
-  );
+  [addressEl, postalEl, unitEl].forEach((el) => el && el.classList.remove("isInvalid"));
   showReq("reqAddress", false);
   showReq("reqPostal", false);
   showReq("reqUnit", false);
@@ -246,19 +272,19 @@ function validateDeliveryFields() {
 
   if (!address) {
     showReq("reqAddress", true);
-    addressEl.classList.add("isInvalid");
+    addressEl && addressEl.classList.add("isInvalid");
     ok = false;
   }
 
   if (!/^\d{6}$/.test(postal)) {
     showReq("reqPostal", true);
-    postalEl.classList.add("isInvalid");
+    postalEl && postalEl.classList.add("isInvalid");
     ok = false;
   }
 
   if (!unit) {
     showReq("reqUnit", true);
-    unitEl.classList.add("isInvalid");
+    unitEl && unitEl.classList.add("isInvalid");
     ok = false;
   }
 
@@ -310,8 +336,7 @@ function mergeCarts(existing = [], incoming = []) {
       const addQty = Number(x.qty ?? 1) || 1;
       cur.qty = (Number(cur.qty ?? 1) || 1) + addQty;
 
-      const unit =
-        Number(cur.unitPrice ?? cur.basePrice ?? cur.price ?? 0) || 0;
+      const unit = Number(cur.unitPrice ?? cur.basePrice ?? cur.price ?? 0) || 0;
       cur.totalPrice = unit * (Number(cur.qty ?? 1) || 1);
 
       map.set(k, cur);
@@ -321,17 +346,6 @@ function mergeCarts(existing = [], incoming = []) {
   return Array.from(map.values());
 }
 
-function round2(n) {
-  return Number(Number(n || 0).toFixed(2));
-}
-
-function calcSubtotal(stallItems) {
-  return round2(
-    stallItems.reduce((sum, it) => sum + Number(it.lineTotal || 0), 0),
-  );
-}
-
-/* ------------------------------ Payment method + Proceed button --------------------------------*/
 function getSelectedPayMethod() {
   const checked = document.querySelector('input[name="payMethod"]:checked');
   return checked ? checked.value : "";
@@ -360,22 +374,20 @@ function syncProceedBtn() {
 }
 
 function clearPaySelection() {
-  document
-    .querySelectorAll('input[name="payMethod"]')
-    .forEach((r) => (r.checked = false));
+  document.querySelectorAll('input[name="payMethod"]').forEach((r) => (r.checked = false));
   syncProceedBtn();
 }
 
 // When user changes payment method, update button color/state
 document.addEventListener("change", (e) => {
-  if (!e.target.matches('input[name="payMethod"]')) return;
-  syncProceedBtn();
+  if (e.target.matches('input[name="payMethod"]')) syncProceedBtn();
 });
 
 document.addEventListener("change", (e) => {
-  if (!e.target.matches('input[name="fulfillment"]')) return;
-  render();
-  syncProceedBtn();
+  if (e.target.matches('input[name="fulfillment"]')) {
+    render();
+    syncProceedBtn();
+  }
 });
 
 document.addEventListener("input", (e) => {
@@ -388,7 +400,7 @@ function calcDeliveryFee(subtotal) {
   // Free delivery for larger orders
   if (subtotal >= 30) fee = 0;
 
-  // Optional: small peak surcharge (keep it simple)
+  // Optional: peak surcharge
   const now = new Date();
   const hour = now.getHours();
   const isPeak = (hour >= 11 && hour < 14) || (hour >= 18 && hour < 21);
@@ -409,7 +421,6 @@ async function render() {
   const promoBox = document.getElementById("promoBox");
 
   const count = calcCount(cart);
-
   updateBadges(count);
   if (subText) subText.textContent = `${count} item${count === 1 ? "" : "s"}`;
 
@@ -430,7 +441,6 @@ async function render() {
     fulfillBox && (fulfillBox.style.display = "none");
 
     await clearAppliedPromo();
-
     return;
   }
 
@@ -455,8 +465,7 @@ async function render() {
     const required = Array.isArray(it.required) ? it.required : [];
     const variantLabel = it.variantLabel || it.variant || "";
 
-    const unitPrice =
-      Number(it.unitPrice ?? it.basePrice ?? it.price ?? 0) || 0;
+    const unitPrice = Number(it.unitPrice ?? it.basePrice ?? it.price ?? 0) || 0;
     const line = Number(it.totalPrice) || unitPrice * qty;
 
     subtotal += line;
@@ -522,18 +531,13 @@ async function render() {
   const MIN_SUBTOTAL = 15;
   const MAX_SMALL_FEE = 4;
 
-  // Get fulfillment choice
   const fulfillment =
     document.querySelector('input[name="fulfillment"]:checked')?.value ||
     "pickup";
 
-  // Show / hide delivery address fields
   const deliveryFields = document.getElementById("deliveryFields");
-  if (deliveryFields) {
-    deliveryFields.hidden = fulfillment !== "delivery";
-  }
+  if (deliveryFields) deliveryFields.hidden = fulfillment !== "delivery";
 
-  // Only apply fee for delivery when subtotal is below minimum
   let smallOrderFee = 0;
   if (fulfillment === "delivery" && subtotal < MIN_SUBTOTAL) {
     const diff = MIN_SUBTOTAL - subtotal;
@@ -543,7 +547,6 @@ async function render() {
 
   const showSmall = fulfillment === "delivery" && subtotal < MIN_SUBTOTAL;
 
-  // message
   const smallOrderMsg = document.getElementById("smallOrderMsg");
   if (smallOrderMsg) {
     smallOrderMsg.hidden = !showSmall;
@@ -552,15 +555,12 @@ async function render() {
     }
   }
 
-  // divider
   const smallOrderDivider = document.getElementById("smallOrderDivider");
   if (smallOrderDivider) smallOrderDivider.hidden = !showSmall;
 
-  // remove row border ONLY when message is shown (prevents double lines)
   const smallOrderRow = document.getElementById("smallOrderRow");
   if (smallOrderRow) smallOrderRow.classList.toggle("noBorder", showSmall);
 
-  // Promo (placeholder – real logic comes next)
   // ===============================
   // Promo (Firestore)
   // ===============================
@@ -576,32 +576,23 @@ async function render() {
     } else {
       const type = String(appliedPromo.type || "cash").toLowerCase();
 
-      if (type === "cash") {
-        promoDiscount = inferCashValue(appliedPromo);
-      }
+      if (type === "cash") promoDiscount = inferCashValue(appliedPromo);
 
       if (type === "percent") {
         const pct =
-          Number(
-            appliedPromo.percent ?? appliedPromo.discount ?? appliedPromo.value,
-          ) || 0;
-
+          Number(appliedPromo.percent ?? appliedPromo.discount ?? appliedPromo.value) || 0;
         promoDiscount = subtotal * (pct / 100);
       }
 
-      // Safety cap: discount cannot exceed subtotal
       promoDiscount = Math.min(promoDiscount, subtotal);
     }
   }
 
   // ===============================
-  // Delivery fee (realistic simulation)
+  // Delivery fee
   // ===============================
   let deliveryFee = 0;
-
-  if (fulfillment === "delivery") {
-    deliveryFee = calcDeliveryFee(subtotal);
-  }
+  if (fulfillment === "delivery") deliveryFee = calcDeliveryFee(subtotal);
 
   // ===============================
   // Update Summary UI
@@ -611,27 +602,21 @@ async function render() {
   document.getElementById("sumSmallFee").textContent = money(smallOrderFee);
   document.getElementById("sumDelivery").textContent = money(deliveryFee);
 
-  const total = Math.max(
-    0,
-    subtotal - promoDiscount + smallOrderFee + deliveryFee,
-  );
+  const total = Math.max(0, subtotal - promoDiscount + smallOrderFee + deliveryFee);
   document.getElementById("sumTotal").textContent = money(total);
 
-  lastPricing = {
-    subtotal,
-    promoDiscount,
-    smallOrderFee,
-    deliveryFee,
-    total,
-  };
+  lastPricing = { subtotal, promoDiscount, smallOrderFee, deliveryFee, total };
 
-  // Keep button in correct state after render
   syncProceedBtn();
 }
 
-/* ------------------------------ Qty buttons (cart page) --------------------------------*/
+/* ------------------------------ CLICK HANDLER (FIXED) --------------------------------*/
 document.addEventListener("click", async (e) => {
   const proceed = e.target.closest("#checkoutBtn");
+
+  // ==============================
+  // A) CHECKOUT BUTTON
+  // ==============================
   if (proceed) {
     const method = getSelectedPayMethod();
     if (!method) {
@@ -657,10 +642,8 @@ document.addEventListener("click", async (e) => {
 
       addressObj = v.addressObj;
 
-      // ✅ Save address ONLY if checkbox is checked (delivery only)
-      const saveChecked = Boolean(
-        document.getElementById("saveAddrChk")?.checked,
-      );
+      // ✅ Save address ONLY if checkbox is checked
+      const saveChecked = Boolean(document.getElementById("saveAddrChk")?.checked);
 
       if (saveChecked) {
         if (!currentUser) {
@@ -693,9 +676,10 @@ document.addEventListener("click", async (e) => {
       return;
     }
 
+    // ✅ Normalise items
     const items = cart.map((it) => {
       const qty = Number(it.qty ?? 1) || 1;
-      const unitPrice = Number(it.unitPrice ?? 0) || 0;
+      const unitPrice = Number(it.unitPrice ?? it.basePrice ?? it.price ?? 0) || 0;
 
       return {
         stallId: it.stallId || null,
@@ -712,7 +696,8 @@ document.addEventListener("click", async (e) => {
         required: Array.isArray(it.required) ? it.required : [],
       };
     });
-    // ✅ Split cart into multiple orders (one order per stall)
+
+    // ✅ Group by stall
     const itemsByStall = new Map();
     for (const it of items) {
       const sid = it.stallId;
@@ -727,14 +712,21 @@ document.addEventListener("click", async (e) => {
       return;
     }
 
-    const isCash = method === "cash";
-    const createdOrderIds = [];
-
     try {
+      const createdOrderIds = [];
+
+      // Grand totals (QR/CARD one payment)
+      let grandSubtotal = 0;
+      let grandPromo = 0;
+      let grandSmallFee = 0;
+      let grandDelivery = 0;
+      let grandTotal = 0;
+
+      // 1) Create one ORDER per stall
       for (const sid of stallIds) {
         const stallItems = itemsByStall.get(sid);
+        const stallName = await getStallNameById(sid);
 
-        // ---- pricing per stall ----
         const subtotal = stallItems.reduce(
           (sum, it) => sum + Number(it.lineTotal || 0),
           0,
@@ -748,23 +740,33 @@ document.addEventListener("click", async (e) => {
         const deliveryFee =
           fulfillment === "delivery" ? calcDeliveryFee(subtotal) : 0;
 
-        const promoDiscount = Number((appliedPromo?.discount || 0).toFixed(2));
+        const promoDiscount = calcPromoDiscount(appliedPromo, subtotal);
 
         const total = Math.max(
           0,
           subtotal - promoDiscount + smallOrderFee + deliveryFee,
         );
 
+        // accumulate for grand totals
+        grandSubtotal += subtotal;
+        grandPromo += promoDiscount;
+        grandSmallFee += smallOrderFee;
+        grandDelivery += deliveryFee;
+        grandTotal += total;
+
         const orderPayload = {
           stallId: sid,
-          userId: currentUser.uid,
+          stallName: stallName || "",
 
+          userId: currentUser.uid,
           customerUid: currentUser.uid,
           customerName: currentUser.displayName || currentUser.email || "Guest",
           customerEmail: currentUser.email || "",
 
           createdAt: serverTimestamp(),
-          status: isCash ? "pending_payment" : "paid",
+          status: "pending_payment",
+
+          checkoutId: null, // filled for QR/CARD
 
           items: stallItems,
 
@@ -775,7 +777,8 @@ document.addEventListener("click", async (e) => {
 
           payment: {
             method,
-            paidAt: isCash ? null : serverTimestamp(),
+            status: "pending",
+            paidAt: null,
             ref: "",
           },
 
@@ -797,31 +800,81 @@ document.addEventListener("click", async (e) => {
         createdOrderIds.push(ref.id);
       }
 
-      // clear cart after ALL orders created
+      // 2) CASH: no checkout grouping
+      if (method === "cash") {
+        await saveCart([]);
+        await clearAppliedPromo();
+
+        if (createdOrderIds.length === 1) {
+          window.location.href = `orders.html?orderId=${createdOrderIds[0]}`;
+        } else {
+          alert(`Created ${createdOrderIds.length} orders (one per stall).`);
+          window.location.href = `orders.html`;
+        }
+        return;
+      }
+
+      // 3) QR/CARD: create ONE checkout doc (one payment)
+      const checkoutPayload = {
+        userId: currentUser.uid,
+        createdAt: serverTimestamp(),
+        orderIds: createdOrderIds,
+
+        fulfillment: {
+          type: fulfillment,
+          address: fulfillment === "delivery" ? addressObj : null,
+        },
+
+        payment: {
+          method, // paynow_nets OR card
+          status: "pending",
+          paidAt: null,
+          ref: "",
+        },
+
+        promo: {
+          promoId: appliedPromo?.id || null,
+          code: appliedPromo?.code || "NONE",
+        },
+
+        pricing: {
+          subtotal: Number(grandSubtotal.toFixed(2)),
+          promoDiscount: Number(grandPromo.toFixed(2)),
+          smallOrderFee: Number(grandSmallFee.toFixed(2)),
+          deliveryFee: Number(grandDelivery.toFixed(2)),
+          total: Number(grandTotal.toFixed(2)),
+        },
+      };
+
+      const checkoutRef = await addDoc(collection(db, "checkouts"), checkoutPayload);
+      const checkoutId = checkoutRef.id;
+
+      // Link each order to checkoutId
+      for (const oid of createdOrderIds) {
+        await setDoc(doc(db, "orders", oid), { checkoutId }, { merge: true });
+      }
+
+      // Clear cart after everything created
       await saveCart([]);
       await clearAppliedPromo();
 
-      // redirect logic
-      if (createdOrderIds.length === 1) {
-        const orderId = createdOrderIds[0];
-        if (method === "cash")
-          window.location.href = `orders.html?orderId=${orderId}`;
-        else if (method === "paynow_nets")
-          window.location.href = `qr.html?orderId=${orderId}`;
-        else window.location.href = `card.html?orderId=${orderId}`;
+      // Redirect to payment pages
+      if (method === "paynow_nets") {
+        window.location.href = `qr.html?checkoutId=${checkoutId}`;
       } else {
-        alert(`Created ${createdOrderIds.length} orders (one per stall).`);
-        window.location.href = `orders.html`; // customer order history
+        window.location.href = `card.html?checkoutId=${checkoutId}`;
       }
     } catch (err) {
       console.error(err);
       alert("Could not create order(s). Try again.");
     }
 
-    return;
+    return; // ✅ prevent falling into qty logic
   }
 
-  // +/- qty buttons
+  // ==============================
+  // B) +/- QTY BUTTONS
+  // ==============================
   const btn = e.target.closest("[data-act]");
   if (!btn) return;
 
@@ -840,10 +893,9 @@ document.addEventListener("click", async (e) => {
     else cart[i].qty = qty - 1;
   }
 
-  // Recompute totalPrice if unitPrice exists
   const unit =
-    Number(cart[i]?.unitPrice ?? cart[i]?.basePrice ?? cart[i]?.price ?? 0) ||
-    0;
+    Number(cart[i]?.unitPrice ?? cart[i]?.basePrice ?? cart[i]?.price ?? 0) || 0;
+
   if (cart[i]) cart[i].totalPrice = unit * (Number(cart[i].qty ?? 1) || 1);
 
   await saveCart(cart);
@@ -900,19 +952,15 @@ document.addEventListener("click", async (e) => {
 
     // 1️⃣ Enforce stall restriction
     if (promo.stallId) {
-      const cartStallIds = Array.from(
-        new Set(cart.map((it) => it.stallId).filter(Boolean)),
-      );
+      const cartStallIds = Array.from(new Set(cart.map((it) => it.stallId).filter(Boolean)));
 
       if (!cartStallIds.includes(promo.stallId)) {
-        if (msg)
-          msg.textContent =
-            "This promo is only valid for Tiong Bahru Chicken Rice.";
+        if (msg) msg.textContent = "This promo is only valid for Tiong Bahru Chicken Rice.";
         return;
       }
     }
 
-    // 2️⃣ Enforce required item keyword (e.g. Chicken Rice)
+    // 2️⃣ Enforce required item keyword
     if (promo.requiredKeyword) {
       const keyword = promo.requiredKeyword.toLowerCase();
 
@@ -922,8 +970,7 @@ document.addEventListener("click", async (e) => {
       });
 
       if (!hasRequiredItem) {
-        if (msg)
-          msg.textContent = "Add Chicken Rice to your cart to use this promo.";
+        if (msg) msg.textContent = "Add Chicken Rice to your cart to use this promo.";
         return;
       }
     }
@@ -937,12 +984,11 @@ document.addEventListener("click", async (e) => {
 
     const minSpend = inferMinSpend(promo);
     if (minSpend > 0 && subtotal < minSpend) {
-      if (msg)
-        msg.textContent = `Minimum spend $${minSpend.toFixed(2)} required.`;
+      if (msg) msg.textContent = `Minimum spend $${minSpend.toFixed(2)} required.`;
       return;
     }
 
-    // ✅ transaction: decrement redemptionsLeft + claimOnce enforcement (if signed in)
+    // ✅ transaction: decrement redemptionsLeft + claimOnce enforcement
     await runTransaction(db, async (tx) => {
       const pRef = promoDocRef(promo.id);
       const pSnap = await tx.get(pRef);
@@ -959,8 +1005,7 @@ document.addEventListener("click", async (e) => {
       if (claimOnce && currentUser) {
         const cRef = promoClaimRef(currentUser.uid, promo.id);
         const cSnap = await tx.get(cRef);
-        if (cSnap.exists())
-          throw new Error("You have already claimed this promo.");
+        if (cSnap.exists()) throw new Error("You have already claimed this promo.");
         tx.set(cRef, { claimedAt: serverTimestamp(), code: latest.code });
       }
 
@@ -969,20 +1014,16 @@ document.addEventListener("click", async (e) => {
       }
     });
 
-    // store promoId for render()
     appliedPromo = promo;
 
     // ✅ persist promo per user
-    if (currentUser) {
-      await saveAppliedPromoToUser(currentUser.uid, promo);
-    }
+    await saveAppliedPromoToUser(currentUser.uid, promo);
 
     if (msg) msg.textContent = `Promo "${promo.code}" applied!`;
     render();
   } catch (err) {
     console.error(err);
-    if (msg)
-      msg.textContent = err?.message || "Could not apply promo. Try again.";
+    if (msg) msg.textContent = err?.message || "Could not apply promo. Try again.";
   }
 });
 
@@ -998,13 +1039,11 @@ async function consumeVoucherHandoffFromAccount() {
   try {
     const promo = await getPromoByCode(code);
     if (!promo) {
-      // If voucher code doesn't exist in promotions, just clear the handoff
       localStorage.removeItem("hawkerpoint_applied_promo");
       localStorage.removeItem("hawkerpoint_applied_voucher_docid");
       return;
     }
 
-    // Optional: expiry check
     const expMs = toMs(promo.expiresAt);
     if (expMs && Date.now() > expMs) {
       await clearAppliedPromo("Promo expired and was removed.");
@@ -1013,7 +1052,6 @@ async function consumeVoucherHandoffFromAccount() {
       return;
     }
 
-    // ✅ ADD THIS WHOLE BLOCK HERE (before appliedPromo = promo)
     await runTransaction(db, async (tx) => {
       const pRef = promoDocRef(promo.id);
       const pSnap = await tx.get(pRef);
@@ -1030,8 +1068,7 @@ async function consumeVoucherHandoffFromAccount() {
       if (claimOnce && currentUser) {
         const cRef = promoClaimRef(currentUser.uid, promo.id);
         const cSnap = await tx.get(cRef);
-        if (cSnap.exists())
-          throw new Error("You have already claimed this promo.");
+        if (cSnap.exists()) throw new Error("You have already claimed this promo.");
         tx.set(cRef, { claimedAt: serverTimestamp(), code: latest.code });
       }
 
@@ -1040,22 +1077,16 @@ async function consumeVoucherHandoffFromAccount() {
       }
     });
 
-    // ✅ Apply promo in cart
     appliedPromo = promo;
-
-    // ✅ Persist on user doc so it survives refresh
     await saveAppliedPromoToUser(currentUser.uid, promo);
 
-    // ✅ Clear the handoff so it applies only once
     localStorage.removeItem("hawkerpoint_applied_promo");
     localStorage.removeItem("hawkerpoint_applied_voucher_docid");
 
-    // (Optional) UI message if you're on cart page
     const msg = document.getElementById("redeemMsg");
     if (msg) msg.textContent = `Promo "${promo.code}" applied from vouchers.`;
   } catch (e) {
     console.warn("Voucher handoff apply failed:", e);
-
     localStorage.removeItem("hawkerpoint_applied_promo");
     localStorage.removeItem("hawkerpoint_applied_voucher_docid");
   }
@@ -1064,6 +1095,7 @@ async function consumeVoucherHandoffFromAccount() {
 /* ------------------------------ Auth state: migrate + rerender --------------------------------*/
 onAuthStateChanged(auth, async (u) => {
   currentUser = u;
+
   // ✅ Load applied promo for this user (account only)
   if (u) {
     await consumeVoucherHandoffFromAccount();

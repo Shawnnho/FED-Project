@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Hawker Point — Cart</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="home.html" aria-label="Hawker Point Home">
+          <img src="images/logo.png" alt="Hawker Point" class="brand-logo" />
+        </a>
+
+        <nav class="nav" aria-label="Primary navigation">
+          <a class="pill active" href="home.html">Home</a>
+          <a class="pill" href="promotions.html">Promotions</a>
+          <a class="pill" href="orders.html">Orders</a>
+          <a class="pill" href="feedback.html">Feedback</a>
+          <a class="pill" href="hygiene.html">Hygiene</a>
+
+          <a class="pill cartPill" href="cart.html">
+            Cart <span id="cartCount" class="cartBadge isZero">0</span>
+          </a>
+
+          <a class="pill account" href="account.html">
+            Account <span class="notif" id="notifCount" hidden></span>
+          </a>
+        </nav>
+
+        <button
+          id="menuBtn"
+          class="menuBtn"
+          type="button"
+          aria-label="Open menu"
+          aria-expanded="false"
+        >
+          ☰
+        </button>
+      </div>
+
+      <div id="navBackdrop" class="navBackdrop"></div>
+
+      <nav id="navMobile" class="navMobile" aria-label="Mobile navigation">
+        <a class="mLink" href="home.html">Home</a>
+        <a class="mLink" href="promotions.html">Promotions</a>
+        <a class="mLink" href="orders.html">Orders</a>
+        <a class="mLink" href="feedback.html">Feedback</a>
+        <a class="mLink" href="hygiene.html">Hygiene</a>
+
+        <a class="mLink" href="cart.html">
+          Cart <span id="cartCountMobile" class="cartBadge isZero">0</span>
+        </a>
+
+        <a class="mLink active" href="account.html">
+          Account <span class="mNotif" id="mNotifCount" hidden></span>
+        </a>
+      </nav>
+    </header>
+
+    <main class="qrPage">
+      <section class="payWrap">
+        <h1 class="payTitle">Amount To Pay</h1>
+
+        <div class="payAmountRow">
+          <span class="payCurrency">SGD</span>
+          <span id="amountText" class="payAmount">0.00</span>
+        </div>
+
+        <div class="qrBox">
+            <img
+                src="images/PaynowandNETSQRCode.png"
+                alt="PayNow / NETS Scan to Pay"
+                class="qrImg"
+            />
+            <p class="qrHint">Scan to Pay using PayNow or NETS</p>
+        </div>
+
+        <p id="statusText" class="payStatus"></p>
+
+        <button id="confirmBtn" class="payConfirmBtn" type="button">
+          Confirm
+        </button>
+      </section>
+    </main>
+    
+    <script type="module" src="menu.js"></script>
+    <script type="module" src="qr.js"></script>
+  </body>
+</html>
