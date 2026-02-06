@@ -13,8 +13,11 @@ import {
   getFirestore,
   doc,
   getDoc,
+  setDoc,
+  serverTimestamp,
+  arrayUnion,
+  arrayRemove,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
 
 const firebaseConfig = {
   apiKey: "AIzaSyC-NTWADB-t1OGl7NbdyMVXjpVjnqjpTXg",
@@ -28,6 +31,22 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+
+const params = new URLSearchParams(window.location.search);
+const stallId = params.get("stallId");
+
+async function toggleFavouriteStore(uid, stallId, isFav) {
+  const userRef = doc(db, "users", uid);
+
+  await setDoc(
+    userRef,
+    {
+      favourites: isFav ? arrayRemove(stallId) : arrayUnion(stallId),
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true },
+  );
+}
 
 /* Hide / show any link pointing to restricted pages (works for pills + hamburger) */
 function setRestrictedLinksVisible(visible) {
@@ -107,3 +126,28 @@ document.addEventListener("DOMContentLoaded", () => {
     setRestrictedLinksVisible(role !== "guest");
   });
 });
+
+document.addEventListener(
+  "click",
+  async (e) => {
+    const heart = e.target.closest(".likeBtn");
+    if (!heart) return; // ✅ ADD THIS LINE
+
+    const user = auth.currentUser;
+    if (!user) return;
+
+    if (!stallId) {
+      console.error("Missing stallId in URL");
+      return;
+    }
+
+    const isFavBeforeToggle = heart.classList.contains("active");
+
+    try {
+      await toggleFavouriteStore(user.uid, stallId, isFavBeforeToggle);
+    } catch (err) {
+      console.error("Failed to save favourite:", err);
+    }
+  },
+  true,
+);

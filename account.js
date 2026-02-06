@@ -37,6 +37,7 @@ import {
   query,
   where,
   updateDoc,
+  onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* Firebase Config */
@@ -563,11 +564,32 @@ onAuthStateChanged(auth, async (user) => {
         : "—";
 
     // =========================
-    // FAVOURITES (Saved Stores)
+    // FAVOURITES (Saved Stores / Saved Items)
     // =========================
     const savedStoresEl = document.getElementById("savedStores");
-    const favs = Array.isArray(data?.favourites) ? data.favourites : [];
-    if (savedStoresEl) savedStoresEl.textContent = favs.length;
+    const savedItemsEl = document.getElementById("savedItems");
+
+    onSnapshot(doc(db, "users", user.uid), (snap) => {
+      const d = snap.exists() ? snap.data() : {};
+      const favs = Array.isArray(d?.favourites) ? d.favourites : [];
+
+      // ✅ Store IDs like "kopi-fellas" (has "-")
+      const storeFavs = favs.filter(
+        (x) => typeof x === "string" && x.includes("-"),
+      );
+
+      // ✅ Menu item IDs like "ckg27s5LO..." (no "-")
+      const itemFavs = favs.filter(
+        (x) => typeof x === "string" && !x.includes("-"),
+      );
+
+      if (savedStoresEl) savedStoresEl.textContent = String(storeFavs.length);
+      if (savedItemsEl) savedItemsEl.textContent = String(itemFavs.length);
+    });
+
+    // =========================
+    // Account Avatar Icon 
+    // ========================
 
     // avatar (account-based)
     if (accAvatar) {
