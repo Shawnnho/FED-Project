@@ -459,12 +459,15 @@ addToCartBtn.addEventListener("click", () => {
   cart.push({
     centreId,
 
-    // ✅ keep UID for nested lookups
+    // keep UID for nested lookups
     stallUid,
     stallPath: `centres/${centreId}/stalls/${stallUid}`,
 
-    // ✅ store public stall id (slug) for orders/prefix/counters
-    stallId: STALL?.publicStallId || stallId,
+    // IMPORTANT: keep UID for orders so stall-dashboard still finds them
+    stallId: stallUid,
+
+    //  keep slug separately for prefix + counters
+    publicStallId: STALL?.publicStallId || "",
 
     itemId: ITEM.id,
     name: ITEM.name,

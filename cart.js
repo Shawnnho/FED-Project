@@ -786,6 +786,7 @@ document.addEventListener("click", async (e) => {
 
       return {
         stallId: it.stallId || null,
+        publicStallId: it.publicStallId || null,
         centreId: it.centreId || null,
         centreName: it.centreName || "",
         itemId: it.itemId || null,
@@ -905,7 +906,9 @@ document.addEventListener("click", async (e) => {
           },
         };
 
-        const orderNo = await nextOrderNoForStall(sid, centreId);
+        const publicId = stallItems?.[0]?.publicStallId || sid; // ✅ slug if available
+        const orderNo = await nextOrderNoForStall(publicId, centreId);
+
         const ref = await addDoc(collection(db, "orders"), {
           ...orderPayload,
           orderNo, // ✅ BEST UX ID stored in Firestore
