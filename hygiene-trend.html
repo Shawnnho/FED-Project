@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Hawker Point — Hygiene Trend</title>
     <link rel="stylesheet" href="styles.css" />
-     <link rel="stylesheet" href="hygiene.css" />
+    <link rel="stylesheet" href="hygiene.css" />
   </head>
 
   <body>
@@ -62,13 +62,12 @@
 
     <main class="page trendPage">
       <div class="htGrid">
-        
         <!-- SIDEBAR (Matches History Page Style) -->
         <aside class="hhSidebar desktopOnly">
-          <a href="hygiene.html" class="hhBackLink">‹ Back</a>
-          
+          <a href="#" class="hhBackLink" id="deskBackBtn">‹ Back</a>
+
           <div class="hhStallInfo">
-            <img id="stallImg" src="" alt="Stall Image" class="hhStallImg">
+            <img id="stallImg" src="" alt="Stall Image" class="hhStallImg" />
             <h2 id="stallName" class="hhStallName">Loading...</h2>
           </div>
 
@@ -80,11 +79,10 @@
 
         <!-- MAIN CONTENT -->
         <div class="htContent">
-          
           <!-- 1. Score Trend Chart -->
           <section class="hygieneCard trendChartCard">
             <h3>Hygiene Score Trend</h3>
-            
+
             <div class="chartWrap bigChart" id="chartWrap">
               <div class="chartGrid">
                 <div class="chartLine"></div>
@@ -94,9 +92,12 @@
               </div>
               <!-- Bars injected by JS -->
             </div>
-            
+
             <div class="chartFooter">
-              <span style="color:#16a34a; font-weight:900;">▲ Score improved by 5%</span> compared to last inspection.
+              <span style="color: #16a34a; font-weight: 900"
+                >▲ Score improved by 5%</span
+              >
+              compared to last inspection.
             </div>
           </section>
 
@@ -112,7 +113,9 @@
             <!-- 3. Market Comparison -->
             <section class="hygieneCard">
               <h3>Market comparison</h3>
-              <p class="subLabel">Compared to the other stalls using this app</p>
+              <p class="subLabel">
+                Compared to the other stalls using this app
+              </p>
 
               <div class="marketStats">
                 <div class="mStat">
@@ -132,10 +135,12 @@
                   <span id="avgCentreScoreLabel">Average Centre Score: —%</span>
                   <span class="compStoreLabel">This store</span>
                 </div>
-                
+
                 <div class="compTrack">
-                  <div class="compBar" style="width: 85%;"></div> <!-- Average -->
-                  <div class="compMarker" style="left: 94%;"> <!-- Store -->
+                  <div class="compBar" style="width: 85%"></div>
+                  <!-- Average -->
+                  <div class="compMarker" style="left: 94%">
+                    <!-- Store -->
                     <div class="compLine"></div>
                     <div class="compVal">94%</div>
                   </div>
@@ -143,7 +148,6 @@
               </div>
             </section>
           </div>
-
         </div>
       </div>
     </main>

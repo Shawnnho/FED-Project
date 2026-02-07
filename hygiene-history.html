@@ -62,13 +62,12 @@
 
     <main class="page historyPage">
       <div class="hhGrid">
-        
         <!-- SIDEBAR (Desktop) -->
         <aside class="hhSidebar desktopOnly">
-          <a href="hygiene.html" class="hhBackLink">‹ Back</a>
-          
+          <a href="#" class="hhBackLink" id="deskBackBtn">‹ Back</a>
+
           <div class="hhStallInfo">
-            <img id="stallImg" src="" alt="Stall Image" class="hhStallImg">
+            <img id="stallImg" src="" alt="Stall Image" class="hhStallImg" />
             <h2 id="stallName" class="hhStallName">Loading...</h2>
           </div>
 
@@ -80,7 +79,6 @@
 
         <!-- MAIN CONTENT -->
         <section class="hhContent">
-          
           <!-- Desktop Title -->
           <h2 class="hhPageTitle desktopOnly">Inspection History Log</h2>
 
@@ -88,7 +86,7 @@
           <div class="hhControls">
             <!-- Search -->
             <div class="hhSearch">
-              <input id="searchInput" type="text" placeholder="Search">
+              <input id="searchInput" type="text" placeholder="Search" />
             </div>
 
             <!-- Filters (Desktop Dropdowns) -->
@@ -140,8 +138,10 @@
 
           <!-- FOOTER / PAGINATION -->
           <div class="hhFooter">
-            <div class="hhCount desktopOnly" id="recordCount">Showing 0 records</div>
-            
+            <div class="hhCount desktopOnly" id="recordCount">
+              Showing 0 records
+            </div>
+
             <div class="hhPagination desktopOnly">
               <button class="pgBtn">‹</button>
               <button class="pgBtn active">1</button>
@@ -152,9 +152,10 @@
               <button class="pgBtn">›</button>
             </div>
 
-            <button id="loadMoreBtn" class="loadMoreBtn mobileOnly">Load More Record</button>
+            <button id="loadMoreBtn" class="loadMoreBtn mobileOnly">
+              Load More Record
+            </button>
           </div>
-
         </section>
       </div>
     </main>

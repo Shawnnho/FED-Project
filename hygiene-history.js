@@ -1,5 +1,14 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 /* Firebase Config */
 const firebaseConfig = {
@@ -13,6 +22,8 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth();
+let userRole = "customer";
 
 /* =========================
    Data & State
@@ -24,7 +35,11 @@ let currentFilter = { q: "", year: "", grade: "" };
 function formatDate(timestamp) {
   if (!timestamp) return "—";
   const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-  return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  return date.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 }
 
 // Generate reference number from date
@@ -95,15 +110,19 @@ async function getLatestScore(stallId) {
     const q = query(
       collection(db, "inspections"),
       where("stallId", "==", stallId),
-      where("status", "==", "completed")
+      where("status", "==", "completed"),
     );
     const snap = await getDocs(q);
     if (!snap.empty) {
       const latest = snap.docs
-        .map(d => d.data())
+        .map((d) => d.data())
         .sort((a, b) => {
-          const dateA = a.dateTs?.toDate ? a.dateTs.toDate() : new Date(a.dateTs || 0);
-          const dateB = b.dateTs?.toDate ? b.dateTs.toDate() : new Date(b.dateTs || 0);
+          const dateA = a.dateTs?.toDate
+            ? a.dateTs.toDate()
+            : new Date(a.dateTs || 0);
+          const dateB = b.dateTs?.toDate
+            ? b.dateTs.toDate()
+            : new Date(b.dateTs || 0);
           return dateB - dateA;
         })[0];
       return latest?.score || 78;
@@ -120,7 +139,7 @@ async function loadInspectionData() {
     const q = query(
       collection(db, "inspections"),
       where("stallId", "==", id),
-      where("status", "==", "completed")
+      where("status", "==", "completed"),
     );
     const snap = await getDocs(q);
 
@@ -131,9 +150,11 @@ async function loadInspectionData() {
     }
 
     // Transform inspection data
-    allHistory = snap.docs.map(doc => {
+    allHistory = snap.docs.map((doc) => {
       const d = doc.data();
-      const dateObj = d.dateTs?.toDate ? d.dateTs.toDate() : new Date(d.dateTs || 0);
+      const dateObj = d.dateTs?.toDate
+        ? d.dateTs.toDate()
+        : new Date(d.dateTs || 0);
       const dateStr = formatDate(d.dateTs);
       const year = String(dateObj.getFullYear());
 
@@ -145,7 +166,7 @@ async function loadInspectionData() {
         remarks: d.remarks || "No remarks provided",
         ref: generateRef(dateStr),
         officer: d.officer || "NEA Officer",
-        year
+        year,
       };
     });
 
@@ -166,8 +187,12 @@ async function loadInspectionData() {
 function render() {
   const q = currentFilter.q.toLowerCase();
 
-  const filtered = allHistory.filter(h => {
-    const matchQ = !q || h.dateStr.toLowerCase().includes(q) || h.remarks.toLowerCase().includes(q) || h.ref.toLowerCase().includes(q);
+  const filtered = allHistory.filter((h) => {
+    const matchQ =
+      !q ||
+      h.dateStr.toLowerCase().includes(q) ||
+      h.remarks.toLowerCase().includes(q) ||
+      h.ref.toLowerCase().includes(q);
     const matchYear = !currentFilter.year || h.year === currentFilter.year;
     const matchGrade = !currentFilter.grade || h.grade === currentFilter.grade;
     return matchQ && matchYear && matchGrade;
@@ -182,9 +207,18 @@ function render() {
   }
 
   // Desktop Table
-  tableBody.innerHTML = filtered.slice(0, 8).map(h => {
-    const badgeClass = h.grade === 'A' ? 'badgeGreen' : (h.grade === 'B' ? 'badgeBlue' : (h.grade === 'C' ? 'badgeOrange' : 'badgeRed'));
-    return `
+  tableBody.innerHTML = filtered
+    .slice(0, 8)
+    .map((h) => {
+      const badgeClass =
+        h.grade === "A"
+          ? "badgeGreen"
+          : h.grade === "B"
+            ? "badgeBlue"
+            : h.grade === "C"
+              ? "badgeOrange"
+              : "badgeRed";
+      return `
       <tr>
         <td><span style="font-weight:700">${h.dateStr}</span></td>
         <td><span style="font-weight:600">${h.score}/100</span></td>
@@ -192,14 +226,31 @@ function render() {
         <td>${h.remarks}</td>
       </tr>
     `;
-  }).join("");
+    })
+    .join("");
 
   // Mobile Cards
-  mobileList.innerHTML = filtered.slice(0, 5).map(h => {
-    const borderClass = h.grade === 'A' ? 'borderGreen' : (h.grade === 'B' ? 'borderBlue' : (h.grade === 'C' ? 'borderOrange' : 'borderRed'));
-    const badgeClass = h.grade === 'A' ? 'badgeGreen' : (h.grade === 'B' ? 'badgeBlue' : (h.grade === 'C' ? 'badgeOrange' : 'badgeRed'));
+  mobileList.innerHTML = filtered
+    .slice(0, 5)
+    .map((h) => {
+      const borderClass =
+        h.grade === "A"
+          ? "borderGreen"
+          : h.grade === "B"
+            ? "borderBlue"
+            : h.grade === "C"
+              ? "borderOrange"
+              : "borderRed";
+      const badgeClass =
+        h.grade === "A"
+          ? "badgeGreen"
+          : h.grade === "B"
+            ? "badgeBlue"
+            : h.grade === "C"
+              ? "badgeOrange"
+              : "badgeRed";
 
-    return `
+      return `
       <div class="hhMobileCard ${borderClass}">
         <div class="mcHead">
           <div>
@@ -225,9 +276,27 @@ function render() {
         </div>
       </div>
     `;
-  }).join("");
+    })
+    .join("");
 
   recordCount.textContent = `Showing ${Math.min(8, filtered.length)} of ${filtered.length} records`;
+}
+
+auth.onAuthStateChanged(async (user) => {
+  if (!user) return;
+
+  const snap = await getDoc(doc(db, "users", user.uid));
+  if (snap.exists()) {
+    userRole = snap.data().role || "customer";
+  }
+});
+
+function goBackSmart() {
+  if (userRole === "storeholder") {
+    window.location.href = "stall-hygiene.html";
+  } else {
+    window.history.back();
+  }
 }
 
 /* =========================
@@ -249,9 +318,9 @@ gradeSelect.addEventListener("change", (e) => {
 });
 
 // Mobile Pills
-pills.forEach(btn => {
+pills.forEach((btn) => {
   btn.addEventListener("click", () => {
-    pills.forEach(b => b.classList.remove("active"));
+    pills.forEach((b) => b.classList.remove("active"));
     btn.classList.add("active");
 
     const val = btn.dataset.filter;
@@ -270,8 +339,13 @@ pills.forEach(btn => {
 });
 
 // Mobile Back
-document.getElementById("mobileBackBtn")?.addEventListener("click", () => {
-  window.history.back();
+document
+  .getElementById("mobileBackBtn")
+  ?.addEventListener("click", goBackSmart);
+
+document.getElementById("deskBackBtn")?.addEventListener("click", (e) => {
+  e.preventDefault();
+  goBackSmart();
 });
 
 // Run

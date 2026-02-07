@@ -1,5 +1,14 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 /* Firebase Config */
 const firebaseConfig = {
@@ -13,6 +22,8 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth();
+let userRole = "customer";
 
 /* =========================
    Helper Functions
@@ -31,7 +42,11 @@ function getGradeColor(grade) {
 function formatDate(timestamp) {
   if (!timestamp) return "—";
   const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-  return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  return date.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 }
 
 // Calculate grade from score
@@ -40,6 +55,23 @@ function calculateGrade(score) {
   if (score >= 70) return "B";
   if (score >= 55) return "C";
   return "D";
+}
+
+auth.onAuthStateChanged(async (user) => {
+  if (!user) return;
+
+  const snap = await getDoc(doc(db, "users", user.uid));
+  if (snap.exists()) {
+    userRole = snap.data().role || "customer";
+  }
+});
+
+function goBackSmart() {
+  if (userRole === "storeholder") {
+    window.location.href = "stall-hygiene.html";
+  } else {
+    window.history.back();
+  }
 }
 
 /* =========================
@@ -105,15 +137,19 @@ async function getLatestInspection(stallId) {
     const q = query(
       collection(db, "inspections"),
       where("stallId", "==", stallId),
-      where("status", "==", "completed")
+      where("status", "==", "completed"),
     );
     const snap = await getDocs(q);
     if (!snap.empty) {
-      const inspections = snap.docs.map(d => d.data());
+      const inspections = snap.docs.map((d) => d.data());
       // Sort by date descending and return first
       return inspections.sort((a, b) => {
-        const dateA = a.dateTs?.toDate ? a.dateTs.toDate() : new Date(a.dateTs || 0);
-        const dateB = b.dateTs?.toDate ? b.dateTs.toDate() : new Date(b.dateTs || 0);
+        const dateA = a.dateTs?.toDate
+          ? a.dateTs.toDate()
+          : new Date(a.dateTs || 0);
+        const dateB = b.dateTs?.toDate
+          ? b.dateTs.toDate()
+          : new Date(b.dateTs || 0);
         return dateB - dateA;
       })[0];
     }
@@ -135,28 +171,35 @@ async function renderChart(stallId, currentGrade) {
     const q = query(
       collection(db, "inspections"),
       where("stallId", "==", stallId),
-      where("status", "==", "completed")
+      where("status", "==", "completed"),
     );
     const snap = await getDocs(q);
 
     if (snap.empty) {
-      chartWrap.innerHTML = '<p class="chartEmpty">No inspection records yet</p>';
+      chartWrap.innerHTML =
+        '<p class="chartEmpty">No inspection records yet</p>';
       if (chartFooter) chartFooter.innerHTML = "";
       return;
     }
 
     // Get last 5 inspections, sorted by date ascending
     const inspections = snap.docs
-      .map(d => d.data())
+      .map((d) => d.data())
       .sort((a, b) => {
-        const dateA = a.dateTs?.toDate ? a.dateTs.toDate() : new Date(a.dateTs || 0);
-        const dateB = b.dateTs?.toDate ? b.dateTs.toDate() : new Date(b.dateTs || 0);
+        const dateA = a.dateTs?.toDate
+          ? a.dateTs.toDate()
+          : new Date(a.dateTs || 0);
+        const dateB = b.dateTs?.toDate
+          ? b.dateTs.toDate()
+          : new Date(b.dateTs || 0);
         return dateA - dateB;
       })
       .slice(-5);
 
     inspections.forEach((insp) => {
-      const date = insp.dateTs?.toDate ? insp.dateTs.toDate() : new Date(insp.dateTs || 0);
+      const date = insp.dateTs?.toDate
+        ? insp.dateTs.toDate()
+        : new Date(insp.dateTs || 0);
       const year = String(date.getFullYear());
       const score = insp.score;
       const grade = insp.grade || calculateGrade(score);
@@ -193,7 +236,6 @@ async function renderChart(stallId, currentGrade) {
     } else {
       if (chartFooter) chartFooter.innerHTML = "";
     }
-
   } catch (e) {
     console.error("Error rendering chart:", e);
     chartWrap.innerHTML = '<p class="chartEmpty">Error loading chart data</p>';
@@ -203,7 +245,8 @@ async function renderChart(stallId, currentGrade) {
 // Render breakdown scores
 function renderBreakdown(breakdown) {
   if (!breakdown) {
-    breakdownList.innerHTML = '<p style="padding:20px; font-size:14px; color:#6b7280;">No detailed breakdown available</p>';
+    breakdownList.innerHTML =
+      '<p style="padding:20px; font-size:14px; color:#6b7280;">No detailed breakdown available</p>';
     return;
   }
 
@@ -211,15 +254,16 @@ function renderBreakdown(breakdown) {
     { key: "foodHygiene", label: "Food Hygiene" },
     { key: "personalHygiene", label: "Personal Hygiene" },
     { key: "equipment", label: "Equipment" },
-    { key: "premises", label: "Premises" }
+    { key: "premises", label: "Premises" },
   ];
 
-  breakdownList.innerHTML = categories.map(cat => {
-    const score = breakdown[cat.key] || 0;
-    const grade = calculateGrade(score);
-    const color = getGradeColor(grade);
+  breakdownList.innerHTML = categories
+    .map((cat) => {
+      const score = breakdown[cat.key] || 0;
+      const grade = calculateGrade(score);
+      const color = getGradeColor(grade);
 
-    return `
+      return `
       <div class="bdRow">
         <div class="bdTop">
           <span class="bdLabel">${cat.label}</span>
@@ -230,7 +274,8 @@ function renderBreakdown(breakdown) {
         </div>
       </div>
     `;
-  }).join("");
+    })
+    .join("");
 }
 
 // Render market comparison
@@ -242,7 +287,9 @@ async function renderMarketComparison(stallId, centreId, stallScore) {
 
   try {
     // Get all stalls in the same centre from centres/*/stalls/* subcollection
-    const stallsSnap = await getDocs(collection(db, "centres", centreId, "stalls"));
+    const stallsSnap = await getDocs(
+      collection(db, "centres", centreId, "stalls"),
+    );
 
     // Get latest inspection score for each stall in the centre
     const centreScores = [];
@@ -254,7 +301,7 @@ async function renderMarketComparison(stallId, centreId, stallScore) {
       if (inspection && inspection.score) {
         centreScores.push({
           stallId: sid,
-          score: inspection.score
+          score: inspection.score,
         });
       }
     }
@@ -266,15 +313,17 @@ async function renderMarketComparison(stallId, centreId, stallScore) {
     centreScores.sort((a, b) => b.score - a.score);
 
     // Calculate ranking and percentile
-    const ranking = centreScores.findIndex(s => s.stallId === stallId) + 1;
+    const ranking = centreScores.findIndex((s) => s.stallId === stallId) + 1;
     const total = centreScores.length;
-    const percentile = total > 1 ? Math.round(((total - ranking) / (total - 1)) * 100) : 0;
+    const percentile =
+      total > 1 ? Math.round(((total - ranking) / (total - 1)) * 100) : 0;
 
     // Calculate average centre score
-    const avgScore = Math.round(centreScores.reduce((sum, s) => sum + s.score, 0) / total);
+    const avgScore = Math.round(
+      centreScores.reduce((sum, s) => sum + s.score, 0) / total,
+    );
 
     updateMarketComparisonUI(ranking, percentile, avgScore, stallScore, total);
-
   } catch (e) {
     console.error("Error calculating market comparison:", e);
     updateMarketComparisonUI(null, null, null, null);
@@ -282,7 +331,13 @@ async function renderMarketComparison(stallId, centreId, stallScore) {
 }
 
 // Update market comparison UI elements
-function updateMarketComparisonUI(ranking, percentile, avgScore, stallScore, totalStalls) {
+function updateMarketComparisonUI(
+  ranking,
+  percentile,
+  avgScore,
+  stallScore,
+  totalStalls,
+) {
   const mStatRanking = document.querySelector(".mStat");
   const mStatPercentile = document.querySelector(".mDivider + .mStat");
   const compBar = document.querySelector(".compBar");
@@ -291,8 +346,12 @@ function updateMarketComparisonUI(ranking, percentile, avgScore, stallScore, tot
 
   if (ranking === null || totalStalls < 2) {
     // Insufficient data
-    if (mStatRanking) mStatRanking.innerHTML = '<div class="mVal">—</div><div class="mLabel">Ranked</div>';
-    if (mStatPercentile) mStatPercentile.innerHTML = '<div class="mVal">Insufficient data</div><div class="mLabel">Percentile</div>';
+    if (mStatRanking)
+      mStatRanking.innerHTML =
+        '<div class="mVal">—</div><div class="mLabel">Ranked</div>';
+    if (mStatPercentile)
+      mStatPercentile.innerHTML =
+        '<div class="mVal">Insufficient data</div><div class="mLabel">Percentile</div>';
     return;
   }
 
@@ -305,7 +364,12 @@ function updateMarketComparisonUI(ranking, percentile, avgScore, stallScore, tot
   // Update percentile
   if (mStatPercentile) {
     const percentileClass = percentile >= 90 ? "bigGreen" : "";
-    const percentileText = percentile >= 90 ? "Top 10%" : (percentile >= 50 ? "Top 50%" : `Top ${100 - percentile}%`);
+    const percentileText =
+      percentile >= 90
+        ? "Top 10%"
+        : percentile >= 50
+          ? "Top 50%"
+          : `Top ${100 - percentile}%`;
     mStatPercentile.innerHTML = `<div class="mVal ${percentileClass}">${percentileText}</div><div class="mLabel">Percentile</div>`;
   }
 
@@ -321,8 +385,13 @@ function updateMarketComparisonUI(ranking, percentile, avgScore, stallScore, tot
 }
 
 // Mobile Back
-document.getElementById("mobileBackBtn")?.addEventListener("click", () => {
-  window.history.back();
+document
+  .getElementById("mobileBackBtn")
+  ?.addEventListener("click", goBackSmart);
+
+document.getElementById("deskBackBtn")?.addEventListener("click", (e) => {
+  e.preventDefault();
+  goBackSmart();
 });
 
 // Run
