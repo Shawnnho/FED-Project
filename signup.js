@@ -25,6 +25,8 @@ import {
   setDoc,
   serverTimestamp,
   runTransaction,
+  collection,
+  getDocs,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // Firebase Config
@@ -36,6 +38,28 @@ const firebaseConfig = {
   messagingSenderId: "477538553634",
   appId: "1:477538553634:web:a14b93bbd93d33b9281f7b",
 };
+
+async function loadHawkerCentres() {
+  if (!stallCentreId) return;
+
+  try {
+    const snap = await getDocs(collection(db, "centres"));
+
+    stallCentreId.innerHTML = `<option value="">Select Hawker Centre</option>`;
+
+    snap.forEach((doc) => {
+      const data = doc.data();
+
+      const option = document.createElement("option");
+      option.value = doc.id; // 🔑 centreId
+      option.textContent = data.name || data.displayName || doc.id;
+
+      stallCentreId.appendChild(option);
+    });
+  } catch (err) {
+    console.error("Failed to load centres:", err);
+  }
+}
 
 // Firebase init
 const app = initializeApp(firebaseConfig);
@@ -98,6 +122,9 @@ roleButtons.forEach((btn) => {
     // Toggle storeholder extra fields
     if (stallFields) {
       stallFields.hidden = selectedRole !== "storeholder";
+    }
+    if (selectedRole === "storeholder") {
+      loadHawkerCentres();
     }
 
     // Reset unit preview text
@@ -307,6 +334,13 @@ function slugify(name) {
     .replace(/^-+|-+$/g, "");
 }
 
+function generateOrderPrefix(name) {
+  return name
+    .replace(/[^a-zA-Z]/g, "")
+    .toUpperCase()
+    .slice(0, 2); // e.g. Kopi-Fellas → KF
+}
+
 // Create storeholder stall doc (payment methods + operating hours later)
 async function createStoreholderStall(user) {
   const centreId = stallCentreId.value;
@@ -314,6 +348,7 @@ async function createStoreholderStall(user) {
   const baseSlug = slugify(stallName.value.trim());
   let slug = baseSlug;
   let i = 1;
+  const orderPrefix = generateOrderPrefix(stallName.value.trim());
 
   while ((await getDoc(doc(db, "stalls", slug))).exists()) {
     i += 1;
@@ -331,7 +366,7 @@ async function createStoreholderStall(user) {
       email: user.email || email.value.trim(),
       phone: phone.value.trim(),
       centreId,
-
+      orderPrefix,
       stallId: slug,
       updatedAt: serverTimestamp(),
       createdAt: serverTimestamp(),
@@ -340,15 +375,27 @@ async function createStoreholderStall(user) {
   );
 
   // centres/{centreId}/stalls/{uid}
-  await setDoc(doc(db, "centres", centreId, "stalls", user.uid), {
+  await setDoc(doc(db, "centres", centreId, "stalls", slug), {
     ownerUid: user.uid,
+    centreId,
     publicStallId: slug,
     stallName: stallName.value.trim(),
     cuisine: stallCuisine.value,
     unitNo,
     phone: phone.value.trim(),
-    createdAt: serverTimestamp(),
+    orderPrefix,
+    active: true,
+    hasMenu: false,
+    hasSetup: false,
+    menuCount: 0,
+    ratingTotal: 0,
+    ratingCount: 0,
 
+    supportsSizePricing: false,
+    supportsAddons: false,
+
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
     // Optional fields to add later (leave empty now):
     // paymentMethods: [],
     // operatingHours: {}
@@ -365,7 +412,7 @@ async function createStoreholderStall(user) {
       cuisine: stallCuisine.value,
       unitNo,
       phone: phone.value.trim(),
-
+      orderPrefix,
       active: true, // 🔑 required because home.js filters active == true
       popular: false, // optional (home.js reads it)
       hygieneGrade: "", // optional
@@ -413,22 +460,22 @@ form.addEventListener("submit", async (e) => {
 
     if (selectedRole === "storeholder") {
       statusMsg.textContent = "Creating stall & generating unit no...";
+
       try {
         await createStoreholderStall(cred.user);
+
         statusMsg.textContent =
           "✅ Storeholder account created. Redirecting...";
+        setTimeout(() => redirectByRole("storeholder"), 900);
+        return; // ✅ IMPORTANT: stop so we don't run customer code below
       } catch (e) {
         console.error("Stall creation failed:", e);
-        statusMsg.textContent =
-          "⚠️ Account created, but stall setup failed. You can complete it later.";
+        statusMsg.textContent = `❌ Stall setup failed: ${e.code || e.message}`;
+        return; // ✅ don't redirect
       }
-
-      // 🔑 ALWAYS redirect — user IS logged in
-      setTimeout(() => redirectByRole("storeholder"), 900);
-
-      return;
     }
 
+    // ✅ customer path only
     const role = await ensureUserProfile(
       cred.user,
       "customer",

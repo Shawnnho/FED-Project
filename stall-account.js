@@ -482,7 +482,7 @@ function wireEditStallDetails(user) {
         const imageFile = overlay.querySelector("#mImageFile").files?.[0];
         if (imageFile) {
           const safeName = imageFile.name.replace(/[^\w.\-]+/g, "_");
-          const path = `stallImages/${ctxCache.stallId}/${Date.now()}_${safeName}`;
+          const path = `stallimages/${ctxCache.stallId}/${Date.now()}_${safeName}`;
           const fileRef = sRef(storage, path);
 
           await uploadBytes(fileRef, imageFile);
@@ -840,9 +840,22 @@ onAuthStateChanged(auth, async (user) => {
     }
     ctxCache = ctx;
 
-    stallRef = doc(db, ctx.stallPath);
+    // Try signup-style doc first: centres/{centreId}/stalls/{uid}
+    let stallRefTry = doc(db, "centres", ctx.centreId, "stalls", user.uid);
+    let stallSnapTry = await getDoc(stallRefTry);
 
-    const publicId = u.publicStallId || ctx.stallId;
+    // If not found, fallback to the old path that used to work
+    if (!stallSnapTry.exists()) {
+      stallRefTry = doc(db, ctx.stallPath);
+      stallSnapTry = await getDoc(stallRefTry);
+    }
+
+    // Use the resolved ref/snap everywhere after this
+    stallRef = stallRefTry;
+
+    // Signup stores the public stall slug in users.stallId
+    const publicId =
+      stallCache?.publicStallId || u.publicStallId || u.stallId || ctx.stallId;
 
     // ===== Stall Active Toggle (public stalls/{stallId}) =====
     const publicRef = doc(db, "stalls", publicId);
