@@ -5406,14 +5406,14 @@ body {
   padding: 24px;
 }
 
-.container {
+/* .container {
   max-width: 720px;
   margin: auto;
   background: #fff;
   padding: 24px;
   border-radius: 12px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-}
+} */
 
 h1 {
   margin-top: 0;
