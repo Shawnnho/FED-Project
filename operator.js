@@ -12,6 +12,7 @@ import {
   collection,
   query,
   where,
+  limit,
   setDoc,
   addDoc,
   Timestamp,
@@ -42,14 +43,12 @@ let stallsRaw = [];
 let rentalsRaw = [];
 let ordersRaw = [];
 
-let billsByStall = {}; 
+let billsByStall = {};
 let stallFilter = "all";
 
+let modalStalls = [];
 
-let modalStalls = []; 
-
-
-   // Helpers
+// Helpers
 
 const safeLower = (x) => String(x || "").toLowerCase();
 
@@ -60,7 +59,9 @@ function getMonthKey(date = new Date()) {
 }
 
 function parseYMD(s) {
-  const [y, m, d] = String(s || "").split("-").map(Number);
+  const [y, m, d] = String(s || "")
+    .split("-")
+    .map(Number);
   if (!y || !m || !d) return null;
   return new Date(y, m - 1, d);
 }
@@ -123,17 +124,27 @@ function centreNameById(id) {
   return c?.name || id;
 }
 
-// stallId safety check 
+// stallId safety check
 function looksLikeUid(id) {
   return typeof id === "string" && id.length >= 20 && !id.includes("-");
 }
 
-// pick a usable stall id for operatorBills path
-function canonicalStallIdFromStallDoc(stallDocId, stallData) {
-  const publicId = stallData?.publicStallId;
-  if (!looksLikeUid(stallDocId)) return stallDocId;
-  if (publicId && !looksLikeUid(publicId)) return publicId;
-  return stallDocId;
+// ✅ Always resolve to UID for INTERNAL billing (operatorBills / rental)
+// - If already UID => use it
+// - If slug doc exists => use its ownerUid
+function resolveStallUid(stallDocId, stallData) {
+  if (!stallDocId) return null;
+  if (looksLikeUid(stallDocId)) return stallDocId;
+
+  // slug doc: stalls/{slug}.ownerUid should exist
+  const ownerUid = stallData?.ownerUid;
+  if (ownerUid && looksLikeUid(ownerUid)) return ownerUid;
+
+  // fallback: if stallData.publicStallId is UID-ish (rare)
+  const p = stallData?.publicStallId;
+  if (p && looksLikeUid(p)) return p;
+
+  return null;
 }
 
 // For Authentication one
@@ -162,7 +173,8 @@ onAuthStateChanged(auth, async (user) => {
   }
 
   const opUserLine = document.getElementById("opUserLine");
-  if (opUserLine) opUserLine.textContent = USERDOC.name || user.email || "Operator";
+  if (opUserLine)
+    opUserLine.textContent = USERDOC.name || user.email || "Operator";
 
   await loadCentres();
   await preloadRevenueForCentres();
@@ -171,12 +183,12 @@ onAuthStateChanged(auth, async (user) => {
   switchTab("centres");
 });
 
-
 //   Centres
 
 async function loadCentres() {
   const sel = document.getElementById("centreSelect");
-  if (sel) sel.innerHTML = `<option value="" disabled selected>Loading centres...</option>`;
+  if (sel)
+    sel.innerHTML = `<option value="" disabled selected>Loading centres...</option>`;
 
   const q1 = query(collection(db, "centres"), where("operatorId", "==", UID));
   const snap = await getDocs(q1);
@@ -216,12 +228,15 @@ window.onCentreChange = async () => {
   await loadRentals();
 };
 
-
-   // Tab switching
+// Tab switching
 
 window.switchTab = async (tabName) => {
-  document.querySelectorAll(".op-tab").forEach((el) => el.classList.remove("active"));
-  document.querySelectorAll(".op-menu li").forEach((el) => el.classList.remove("active"));
+  document
+    .querySelectorAll(".op-tab")
+    .forEach((el) => el.classList.remove("active"));
+  document
+    .querySelectorAll(".op-menu li")
+    .forEach((el) => el.classList.remove("active"));
 
   const tab = document.getElementById(`tab-${tabName}`);
   if (tab) tab.classList.add("active");
@@ -242,25 +257,24 @@ window.switchTab = async (tabName) => {
   if (tabName === "rentals") await loadRentals();
 };
 
-
-   // Revenue (orders)
+// Revenue (orders)
 
 async function preloadRevenueForCentres() {
   const stallToCentre = {};
 
   await Promise.all(
     CENTRES.map(async (c) => {
-      const stallsSnap = await getDocs(collection(db, "centres", c.id, "stalls"));
+      const stallsSnap = await getDocs(
+        collection(db, "centres", c.id, "stalls"),
+      );
       stallsSnap.forEach((d) => {
         const s = d.data() || {};
         // Map UID stall doc id (most common stored in orders)
         stallToCentre[d.id] = c.id;
 
-
         if (s.publicStallId) stallToCentre[s.publicStallId] = c.id;
-
       });
-    })
+    }),
   );
 
   const ordersSnap = await getDocs(collection(db, "orders"));
@@ -367,7 +381,7 @@ async function updateOverview() {
     activeStalls += stalls.filter((s) => s.active !== false).length;
 
     const rentalsSnap = await getDocs(
-      query(collection(db, "rentalAgreements"), where("centreId", "==", c.id))
+      query(collection(db, "rentalAgreements"), where("centreId", "==", c.id)),
     );
     totalRentals += rentalsSnap.size;
   }
@@ -398,7 +412,9 @@ async function loadStalls() {
   }
   if (list) list.innerHTML = "<p>Loading stalls...</p>";
 
-  const snap = await getDocs(collection(db, "centres", SELECTED_CENTRE_ID, "stalls"));
+  const snap = await getDocs(
+    collection(db, "centres", SELECTED_CENTRE_ID, "stalls"),
+  );
   stallsRaw = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
   renderStalls();
@@ -411,8 +427,8 @@ window.setStallFilter = (mode) => {
     mode === "all"
       ? "stallFilterAll"
       : mode === "active"
-      ? "stallFilterActive"
-      : "stallFilterInactive"
+        ? "stallFilterActive"
+        : "stallFilterInactive",
   );
   renderStalls();
 };
@@ -435,7 +451,8 @@ window.renderStalls = () => {
 
   if (q) {
     items = items.filter(
-      (s) => safeLower(s.stallName).includes(q) || safeLower(s.cuisine).includes(q)
+      (s) =>
+        safeLower(s.stallName).includes(q) || safeLower(s.cuisine).includes(q),
     );
   }
 
@@ -481,7 +498,10 @@ async function loadRentals() {
   }
   if (list) list.innerHTML = "<p>Loading agreements...</p>";
 
-  const q1 = query(collection(db, "rentalAgreements"), where("centreId", "==", SELECTED_CENTRE_ID));
+  const q1 = query(
+    collection(db, "rentalAgreements"),
+    where("centreId", "==", SELECTED_CENTRE_ID),
+  );
   const snap = await getDocs(q1);
   rentalsRaw = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
@@ -491,15 +511,50 @@ async function loadRentals() {
   for (const ra of rentalsRaw) {
     if (!ra.stallId) continue;
 
-    // load the stall doc from top-level stalls collection
-    const stallSnap = await getDoc(doc(db, "stalls", ra.stallId));
+    // load stall from centres/{centreId}/stalls/{stallId} (works for Maxwell too)
+    const stallSnap = await getDoc(
+      doc(
+        db,
+        "centres",
+        SELECTED_CENTRE_ID,
+        "stalls",
+        ra.stallCentreDocId || ra.stallId,
+      ),
+    );
     const stallDocData = stallSnap.exists() ? stallSnap.data() : null;
-    const canonicalStallId = canonicalStallIdFromStallDoc(ra.stallId, stallDocData);
 
-    await ensureMonthlyBill(canonicalStallId, ra.monthlyRent, monthKey);
+    // ✅ ALWAYS BILL UNDER UID (safe for both slug stalls + UID stalls)
+    let billingStallId = ra.billingUid || ra.stallId;
 
-    const billSnap = await getDoc(doc(db, "stalls", canonicalStallId, "operatorBills", monthKey));
-    billsByStall[canonicalStallId] = billSnap.exists() ? billSnap.data() : null;
+    // 1) if rental agreement stores a slug like "asia-wok", read stalls/{slug} and use its ownerUid
+    if (!looksLikeUid(billingStallId)) {
+      const slugSnap = await getDoc(doc(db, "stalls", billingStallId));
+      if (slugSnap.exists()) {
+        const slugData = slugSnap.data() || {};
+        const resolved = resolveStallUid(billingStallId, slugData);
+        if (resolved) billingStallId = resolved;
+      }
+    }
+
+    // 2) if still not UID, try lookup by publicStallId
+    if (!looksLikeUid(billingStallId)) {
+      const q = query(
+        collection(db, "stalls"),
+        where("publicStallId", "==", billingStallId),
+        limit(1),
+      );
+      const s = await getDocs(q);
+      if (!s.empty) billingStallId = s.docs[0].id;
+    }
+
+    await ensureMonthlyBill(billingStallId, ra.monthlyRent, monthKey);
+
+    const billSnap = await getDoc(
+      doc(db, "stalls", billingStallId, "operatorBills", monthKey),
+    );
+
+    billsByStall[billingStallId] = billSnap.exists() ? billSnap.data() : null;
+    ra._billingStallId = billingStallId; // store for UI + save button
   }
 
   renderRentals(monthKey);
@@ -527,8 +582,10 @@ window.renderRentals = (monthKeyOverride) => {
   }
 
   items.sort((a, b) => {
-    if (sortMode === "rentDesc") return Number(b.monthlyRent || 0) - Number(a.monthlyRent || 0);
-    if (sortMode === "rentAsc") return Number(a.monthlyRent || 0) - Number(b.monthlyRent || 0);
+    if (sortMode === "rentDesc")
+      return Number(b.monthlyRent || 0) - Number(a.monthlyRent || 0);
+    if (sortMode === "rentAsc")
+      return Number(a.monthlyRent || 0) - Number(b.monthlyRent || 0);
 
     const A = toMs(a.createdAt);
     const B = toMs(b.createdAt);
@@ -547,15 +604,15 @@ window.renderRentals = (monthKeyOverride) => {
       const start = ra.startDate || "-";
       const end = computeEndInclusiveFromStart(ra.startDate);
 
-      const canonicalStallId = ra.stallId; 
-      const bill = billsByStall[canonicalStallId] || {};
+      const stallKey = ra._billingStallId;
+      const bill = billsByStall[stallKey] || {};
 
       return `
         <div class="ra-card">
           <div class="ra-left">
             <h4>${ra.stallName || "Unknown Stall"}</h4>
             <p>Unit No: <b>${ra.unitNo || "-"}</b></p>
-            <p class="muted">Stall ID: <b>${canonicalStallId || "-"}</b></p>
+           <p class="muted">Stall ID: <b>${stallKey || "-"}</b></p>
             <p class="muted">Owner UID: <b>${ra.ownerUid || "-"}</b></p>
 
             <div class="item-meta">
@@ -599,9 +656,10 @@ window.renderRentals = (monthKeyOverride) => {
                 </label>
               </div>
 
-              <button class="bill-save" onclick="saveMonthlyBill('${canonicalStallId}', '${ra.id}', '${monthKey}')">
-                Save Monthly Bill
-              </button>
+<button class="bill-save" onclick="saveMonthlyBill('${stallKey}', '${ra.id}', '${monthKey}')">
+  Save Monthly Bill
+</button>
+
             </div>
           </div>
         </div>
@@ -612,44 +670,71 @@ window.renderRentals = (monthKeyOverride) => {
 
 async function ensureMonthlyBill(stallId, rent, monthKey) {
   const ref = doc(db, "stalls", stallId, "operatorBills", monthKey);
-  const snap = await getDoc(ref);
-  if (snap.exists()) return;
 
-  const now = new Date();
-  const dueDate = new Date(now.getFullYear(), now.getMonth(), 15);
+  let snap;
+  try {
+    snap = await getDoc(ref);
+  } catch (e) {
+    console.error("DENIED reading bill doc:", ref.path, e);
+    throw e;
+  }
 
-  await setDoc(ref, {
-    month: monthKey,
-    rent: Number(rent || 0),
-    utilities: 0,
-    cleaningFee: 0,
-    penalty: 0,
-    other: 0,
-    total: Number(rent || 0),
-    dueDate: Timestamp.fromDate(dueDate),
-    status: "unpaid",
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-  });
+  if (snap.exists()) {
+    const data = snap.data() || {};
+    if (data.centreId !== SELECTED_CENTRE_ID) {
+      try {
+        await setDoc(ref, { centreId: SELECTED_CENTRE_ID }, { merge: true });
+      } catch (e) {
+        console.error("DENIED fixing bill doc:", ref.path, e);
+        throw e;
+      }
+    }
+    return;
+  }
+
+  try {
+    await setDoc(ref, {
+      stallId,
+      centreId: SELECTED_CENTRE_ID,
+      month: monthKey,
+      rent: Number(rent || 0),
+      paid: false,
+      createdAt: serverTimestamp(),
+    });
+  } catch (e) {
+    console.error("DENIED creating bill doc:", ref.path, e);
+    throw e;
+  }
 }
 
 window.saveMonthlyBill = async (stallId, rentalDocId, monthKey) => {
   // monthKey is passed from button so UI & write are always same month
   try {
-    const utilities = Number(document.getElementById(`util-${rentalDocId}`)?.value || 0);
-    const cleaningFee = Number(document.getElementById(`clean-${rentalDocId}`)?.value || 0);
-    const penalty = Number(document.getElementById(`pen-${rentalDocId}`)?.value || 0);
-    const other = Number(document.getElementById(`other-${rentalDocId}`)?.value || 0);
-    const rent = Number(document.getElementById(`rent-${rentalDocId}`)?.value || 0);
+    const utilities = Number(
+      document.getElementById(`util-${rentalDocId}`)?.value || 0,
+    );
+    const cleaningFee = Number(
+      document.getElementById(`clean-${rentalDocId}`)?.value || 0,
+    );
+    const penalty = Number(
+      document.getElementById(`pen-${rentalDocId}`)?.value || 0,
+    );
+    const other = Number(
+      document.getElementById(`other-${rentalDocId}`)?.value || 0,
+    );
+    const rent = Number(
+      document.getElementById(`rent-${rentalDocId}`)?.value || 0,
+    );
 
     const total = rent + utilities + cleaningFee + penalty + other;
 
-    const now = new Date();
-    const dueDate = new Date(now.getFullYear(), now.getMonth(), 15);
+    const [yy, mm] = monthKey.split("-");
+    const dueDate = new Date(Number(yy), Number(mm) - 1, 15, 0, 0, 0, 0);
 
     await setDoc(
       doc(db, "stalls", stallId, "operatorBills", monthKey),
       {
+        centreId: SELECTED_CENTRE_ID,
         month: monthKey,
         rent,
         utilities,
@@ -658,10 +743,9 @@ window.saveMonthlyBill = async (stallId, rentalDocId, monthKey) => {
         other,
         total,
         dueDate: Timestamp.fromDate(dueDate),
-        status: "unpaid",
         updatedAt: serverTimestamp(),
       },
-      { merge: true }
+      { merge: true },
     );
 
     alert(`Saved operator bill for ${monthKey} (Stall ${stallId})`);
@@ -679,9 +763,7 @@ window.saveMonthlyBill = async (stallId, rentalDocId, monthKey) => {
   }
 };
 
-
-   // Add Rental Agreement (Modal)
-  
+// Add Rental Agreement (Modal)
 
 window.openAddRentalModal = async () => {
   if (!SELECTED_CENTRE_ID) {
@@ -715,9 +797,9 @@ async function loadStallsForModal() {
 
   sel.innerHTML = `<option value="" disabled selected>Loading stalls...</option>`;
 
-  //reads from top-level stalls collection
-  const q1 = query(collection(db, "stalls"), where("centreId", "==", SELECTED_CENTRE_ID));
-  const snap = await getDocs(q1);
+  const snap = await getDocs(
+    collection(db, "centres", SELECTED_CENTRE_ID, "stalls"),
+  );
 
   modalStalls = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
@@ -740,8 +822,6 @@ async function loadStallsForModal() {
     const stall = modalStalls.find((x) => x.id === pickedId);
     const ownerName = document.getElementById("addRentalOwnerName");
     if (ownerName && stall?.ownerName) ownerName.value = stall.ownerName;
-
-    
   };
 }
 
@@ -757,8 +837,11 @@ window.createRentalAgreementFromModal = async () => {
 
   const stall = modalStalls.find((x) => x.id === stallDocId) || {};
 
-  const ownerName = document.getElementById("addRentalOwnerName")?.value?.trim() || "";
-  const monthlyRent = Number(document.getElementById("addRentalMonthlyRent")?.value || 0);
+  const ownerName =
+    document.getElementById("addRentalOwnerName")?.value?.trim() || "";
+  const monthlyRent = Number(
+    document.getElementById("addRentalMonthlyRent")?.value || 0,
+  );
   const startDate = document.getElementById("addRentalStartDate")?.value || "";
 
   if (!ownerName) {
@@ -774,21 +857,30 @@ window.createRentalAgreementFromModal = async () => {
     return;
   }
 
-  // stall id for bills + agreement
-  const canonicalStallId = canonicalStallIdFromStallDoc(stallDocId, stall);
+  // ownerUid is nice to have, but NOT required to create an agreement
+  if (!stall.ownerUid) {
+    console.warn("Creating agreement: stall is missing ownerUid", stallDocId);
+  }
 
   try {
     // Allow creating agreements even if one already exists:
-    
+
+    // Top-level stall id for billing (slug)
+    const topLevelStallId = stall.publicStallId || stall.stallId || stallDocId;
+
     await addDoc(collection(db, "rentalAgreements"), {
       centreId: SELECTED_CENTRE_ID,
 
-      // store the legit stallId so bill writes go to the correct path
-      stallId: canonicalStallId,
+      // ✅ use TOP-LEVEL stall id for bills
+      stallId: topLevelStallId, // keep slug for display/search
+      billingUid: stall.ownerUid || "", // ✅ add this for guaranteed billing
 
-      stallName: stall.stallName || canonicalStallId,
+      // ✅ keep nested centre-stall doc id for reading stall details
+      stallCentreDocId: stallDocId,
+
+      stallName: stall.stallName || topLevelStallId,
       unitNo: stall.unitNo || "-",
-      ownerUid: stall.ownerUid || stall.ownerId || "", 
+      ownerUid: stall.ownerUid || stall.ownerId || "",
       ownerName,
       monthlyRent,
       startDate,

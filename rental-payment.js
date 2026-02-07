@@ -38,18 +38,47 @@ const db = getFirestore(app);
 
 const $ = (id) => document.getElementById(id);
 
-// Pull monthlyRent from rentalAgreements by stallId
-async function getAgreementByStallId(stallId) {
-  if (!stallId) return null;
+// Helpers
 
+async function getOperatorBillBoth(uidStallId, publicStallId, month) {
+  // 1️⃣ Try UID path (correct + future-proof)
+  if (uidStallId) {
+    const uidRef = doc(db, "stalls", uidStallId, "operatorBills", month);
+    const uidSnap = await getDoc(uidRef);
+    if (uidSnap.exists()) {
+      return { path: "uid", ref: uidRef, data: uidSnap.data() };
+    }
+  }
+
+  // 2️⃣ Fallback: legacy slug path (asia-wok)
+  if (publicStallId) {
+    const slugRef = doc(db, "stalls", publicStallId, "operatorBills", month);
+    const slugSnap = await getDoc(slugRef);
+    if (slugSnap.exists()) {
+      console.warn("⚠ Using legacy slug bill:", publicStallId, month);
+      return { path: "slug", ref: slugRef, data: slugSnap.data() };
+    }
+  }
+
+  return null;
+}
+
+async function getAgreementByStallIdBoth(uidStallId, publicStallId) {
   const colRef = collection(db, "rentalAgreements");
-  const q = query(colRef, where("stallId", "==", stallId), limit(1));
-  const snap = await getDocs(q);
 
-  if (snap.empty) return null;
+  if (uidStallId) {
+    const q1 = query(colRef, where("stallId", "==", uidStallId), limit(1));
+    const s1 = await getDocs(q1);
+    if (!s1.empty) return { id: s1.docs[0].id, ...s1.docs[0].data() };
+  }
 
-  const d = snap.docs[0];
-  return { id: d.id, ...d.data() };
+  if (publicStallId) {
+    const q2 = query(colRef, where("stallId", "==", publicStallId), limit(1));
+    const s2 = await getDocs(q2);
+    if (!s2.empty) return { id: s2.docs[0].id, ...s2.docs[0].data() };
+  }
+
+  return null;
 }
 
 function setText(id, v) {
@@ -153,7 +182,10 @@ async function getOperatorBill(stallId, month) {
   const snap = await getDoc(ref);
 
   if (!snap.exists()) {
-    const ag = await getAgreementByStallId(stallId);
+    const ag = await getAgreementByStallIdBoth(
+      stallId,
+      window.__stallData?.publicStallId,
+    );
     const rent = safeNum(ag?.monthlyRent);
 
     return {
@@ -302,6 +334,22 @@ async function getPaymentsForMonth(stallId, month) {
   return rows;
 }
 
+async function getOperatorPaidLifetime(stallId) {
+  // Easiest approach: fetch all payments and filter payTo == "operator"
+  // (OK for small datasets; if you expect lots of rows, we can paginate)
+  const colRef = collection(db, "stalls", stallId, "payments");
+
+  const snap = await getDocs(colRef);
+
+  let total = 0;
+  snap.forEach((d) => {
+    const p = d.data() || {};
+    if (p.payTo === "operator") total += safeNum(p.amount);
+  });
+
+  return total;
+}
+
 function sumPayments(payments) {
   let total = 0;
   for (const p of payments) total += safeNum(p.amount);
@@ -391,11 +439,24 @@ function computeOverdue(dueDate, status) {
 }
 
 async function ensureBillDocExists(stallId, month) {
+  const res = await getOperatorBillBoth(
+    stallId,
+    window.__stallData?.publicStallId,
+    month,
+  );
+
+  if (res) return; // already exists somewhere valid
+
   const ref = doc(db, "stalls", stallId, "operatorBills", month);
+
   const snap = await getDoc(ref);
   if (snap.exists()) return;
 
-  const ag = await getAgreementByStallId(stallId);
+  const ag = await getAgreementByStallIdBoth(
+    stallId,
+    window.__stallData?.publicStallId,
+  );
+
   const rent = safeNum(ag?.monthlyRent);
   const [y, m] = month.split("-");
   const due = new Date(Number(y), Number(m) - 1, 15, 0, 0, 0, 0); // default due date: 15th
@@ -426,14 +487,66 @@ async function loadPaymentSummary(stallId, stallData) {
   // Ensure a bill doc exists
   await ensureBillDocExists(stallId, month);
 
-  const bill = await getOperatorBill(stallId, month);
+  const res = await getOperatorBillBoth(
+    stallId,
+    stallData?.publicStallId,
+    month,
+  );
+
+  let bill;
+
+  if (!res) {
+    const ag = await getAgreementByStallIdBoth(
+      stallId,
+      stallData?.publicStallId,
+    );
+
+    const rent = safeNum(ag?.monthlyRent);
+    bill = {
+      exists: false,
+      rent,
+      utilities: 0,
+      cleaningFee: 0,
+      penalty: 0,
+      other: 0,
+      total: rent,
+      dueDate: null,
+      status: "unpaid",
+      paidAt: null,
+    };
+  } else {
+    const b = res.data;
+    bill = {
+      exists: true,
+      rent: safeNum(b.rent),
+      utilities: safeNum(b.utilities),
+      cleaningFee: safeNum(b.cleaningFee),
+      penalty: safeNum(b.penalty),
+      other: safeNum(b.other),
+      total:
+        safeNum(b.total) ||
+        safeNum(b.rent) +
+          safeNum(b.utilities) +
+          safeNum(b.cleaningFee) +
+          safeNum(b.penalty) +
+          safeNum(b.other),
+      dueDate: b.dueDate || null,
+      status: b.status || "unpaid",
+      paidAt: b.paidAt || null,
+    };
+
+    // 👇 keep ref so updates go to SAME place
+    bill.__ref = res.ref;
+  }
+
   const timesheets = await getStaffTimesheets(stallId, start, end);
   const staffAgg = aggregateStaff(timesheets);
   const payHist = await getPaymentsForMonth(stallId, month);
 
-  const operatorDue = bill.total;
-  const staffDue = staffAgg.totalPay;
+  const operatorDue = bill.status === "paid" ? 0 : bill.total;
+  const staffDue = staffAgg.overallStatus === "Paid" ? 0 : staffAgg.totalPay;
   const grandDue = operatorDue + staffDue;
+
   const paidThisMonth = sumPayments(payHist);
 
   // Fill summary cards
@@ -441,6 +554,8 @@ async function loadPaymentSummary(stallId, stallData) {
   setText("staffDueNum", money(staffDue));
   setText("grandDueNum", money(grandDue));
   setText("paidThisMonthNum", money(paidThisMonth));
+  const operatorPaidLifetime = await getOperatorPaidLifetime(stallId);
+  setText("operatorPaidLifetimeNum", money(operatorPaidLifetime));
 
   // Operator breakdown
   setText("rentLine", money(bill.rent));
@@ -503,7 +618,19 @@ async function loadPaymentSummary(stallId, stallData) {
 
   // Month-to-month comparison
   const prev = prevMonthKey(month);
-  const prevBill = await getOperatorBill(stallId, prev);
+  const prevRes = await getOperatorBillBoth(
+    stallId,
+    window.__stallData?.publicStallId,
+    prev,
+  );
+
+  const prevBill = prevRes
+    ? {
+        rent: safeNum(prevRes.data.rent),
+        total: safeNum(prevRes.data.total),
+      }
+    : { rent: 0, total: 0 };
+
   const prevTimesheets = await getStaffTimesheets(
     stallId,
     ...Object.values(startEndOfMonthFromKey(prev)),
@@ -556,7 +683,8 @@ async function markOperatorPaid(stallId) {
   const method = $("payMethod")?.value || "paynow";
   const note = ($("payNote")?.value || "").trim();
 
-  const ref = doc(db, "stalls", stallId, "operatorBills", st.month);
+  const ref = st.bill.__ref;
+  if (!ref) throw new Error("No operator bill ref found");
 
   await updateDoc(ref, {
     status: "paid",
@@ -567,7 +695,7 @@ async function markOperatorPaid(stallId) {
   await addPayment(stallId, {
     month: st.month,
     payTo: "operator",
-    amount: st.totals.operatorDue,
+    amount: safeNum(st.bill.total),
     method,
     note,
   });
@@ -767,8 +895,22 @@ onAuthStateChanged(auth, async (user) => {
 
     setText("ownerName", u.name || "User");
 
-    // 2) This is your UID stall doc id (zDsG3...)
-    const uidStallId = u.stallId || null;
+    // 2) Resolve stall doc id (users.stallId might be UID OR slug like "asia-wok")
+    let uidStallId = u.stallId || null;
+
+    const looksLikeUid = (id) =>
+      typeof id === "string" && id.length >= 20 && !id.includes("-");
+
+    if (uidStallId && !looksLikeUid(uidStallId)) {
+      // it's a slug (e.g. "asia-wok") -> read stalls/{slug} to get ownerUid
+      const slugSnap = await getDoc(doc(db, "stalls", uidStallId));
+      if (slugSnap.exists()) {
+        const slugData = slugSnap.data() || {};
+        if (slugData.ownerUid && looksLikeUid(slugData.ownerUid)) {
+          uidStallId = slugData.ownerUid; // ✅ now we use the real UID stall doc
+        }
+      }
+    }
 
     if (!uidStallId) {
       setStatus("❌ No stallId found in users doc.", true);
@@ -780,8 +922,21 @@ onAuthStateChanged(auth, async (user) => {
     const uidSnap = await getDoc(doc(db, "stalls", uidStallId));
     if (uidSnap.exists()) uidStallData = uidSnap.data() || {};
 
-    // Get the public slug id (kopi-fellas)
-    const publicId = uidStallData.publicStallId || null;
+    let publicId = uidStallData.publicStallId || null;
+
+    // 🔁 fallback: read from centre stall doc
+    if (!publicId && u.centreId) {
+      const centreSnap = await getDoc(
+        doc(db, "centres", u.centreId, "stalls", uidStallId),
+      );
+
+      if (centreSnap.exists()) {
+        const c = centreSnap.data() || {};
+        publicId = c.publicStallId || c.slug || null;
+      }
+    }
+
+    uidStallData.publicStallId = publicId;
 
     console.log("uidStallId =", uidStallId);
     console.log("publicId =", publicId);
