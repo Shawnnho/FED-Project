@@ -680,32 +680,21 @@ async function ensureMonthlyBill(stallId, rent) {
 }
 
 window.saveMonthlyBill = async (stallId, rentalDocId) => {
+  // month key like 2026-01
+  const now = new Date();
+  const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+
   try {
-    // month key like 2026-01
-    const now = new Date();
-    const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const utilities = Number(document.getElementById(`util-${rentalDocId}`)?.value || 0);
+    const cleaningFee = Number(document.getElementById(`clean-${rentalDocId}`)?.value || 0);
+    const penalty = Number(document.getElementById(`pen-${rentalDocId}`)?.value || 0);
+    const other = Number(document.getElementById(`other-${rentalDocId}`)?.value || 0);
+    const rent = Number(document.getElementById(`rent-${rentalDocId}`)?.value || 0);
 
-    const utilities = Number(
-      document.getElementById(`util-${rentalDocId}`)?.value || 0,
-    );
-    const cleaningFee = Number(
-      document.getElementById(`clean-${rentalDocId}`)?.value || 0,
-    );
-    const penalty = Number(
-      document.getElementById(`pen-${rentalDocId}`)?.value || 0,
-    );
-    const other = Number(
-      document.getElementById(`other-${rentalDocId}`)?.value || 0,
-    );
-
-    const rent = Number(
-      document.getElementById(`rent-${rentalDocId}`)?.value || 0,
-    );
     const total = rent + utilities + cleaningFee + penalty + other;
-
-    // default due date = 15th of this month
     const dueDate = new Date(now.getFullYear(), now.getMonth(), 15);
 
+    // ✅ ONLY the save is inside this try
     await setDoc(
       doc(db, "stalls", stallId, "operatorBills", monthKey),
       {
@@ -720,16 +709,24 @@ window.saveMonthlyBill = async (stallId, rentalDocId) => {
         status: "unpaid",
         updatedAt: serverTimestamp(),
       },
-      { merge: true },
+      { merge: true }
     );
 
     alert(`Saved operator bill for ${monthKey} (Stall ${stallId})`);
+
+  } catch (err) {
+    console.error("SAVE BILL FAILED:", err);
+    alert(`Save failed: ${err.message}`);
+    return; // stop here if save failed
+  }
+  
+  try {
     await loadRentals();
   } catch (err) {
-    console.error(err);
-    alert(`Save failed: ${err.message}`);
+    console.warn("Saved bill but refresh failed:", err?.message || err);
   }
 };
+
 
 /* =========================
    Logout
