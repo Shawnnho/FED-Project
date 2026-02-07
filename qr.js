@@ -53,8 +53,8 @@ async function markCheckoutPaid(checkout) {
   const ref = `QR-${Date.now()}`;
 
   const paymentData = {
-    method: "qr",
-    status: "paid",
+    method: "PayNow / NETS QR",
+    status: "Paid",
     paidAt: serverTimestamp(),
     ref,
   };

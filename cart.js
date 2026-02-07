@@ -346,6 +346,14 @@ function mergeCarts(existing = [], incoming = []) {
   return Array.from(map.values());
 }
 
+function prettyPayMethod(method) {
+    const x = String(method || "").toLowerCase();
+    if (x === "cash") return "Cash";
+    if (x === "paynow_nets") return "PayNow / NETS QR";
+    if (x === "card") return "Credit / Debit Card";
+    return method || "—";
+}
+
 function getSelectedPayMethod() {
   const checked = document.querySelector('input[name="payMethod"]:checked');
   return checked ? checked.value : "";
@@ -776,7 +784,7 @@ document.addEventListener("click", async (e) => {
           },
 
           payment: {
-            method,
+            method: prettyPayMethod(method),
             status: "pending",
             paidAt: null,
             ref: "",
@@ -818,6 +826,7 @@ document.addEventListener("click", async (e) => {
       const checkoutPayload = {
         userId: currentUser.uid,
         createdAt: serverTimestamp(),
+        status: "pending_payment",
         orderIds: createdOrderIds,
 
         fulfillment: {
@@ -826,7 +835,7 @@ document.addEventListener("click", async (e) => {
         },
 
         payment: {
-          method, // paynow_nets OR card
+          method: prettyPayMethod(method),
           status: "pending",
           paidAt: null,
           ref: "",

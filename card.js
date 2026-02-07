@@ -182,8 +182,8 @@ async function main(user) {
       const last4 = cardDigits.slice(-4);
 
       const paymentData = {
-        method: "card",
-        status: "paid",
+        method: "Credit / Debit Card",
+        status: "Paid",
         paidAt: serverTimestamp(),
         ref: `CARD-${Date.now()}`,
         last4,
