@@ -768,25 +768,25 @@ onAuthStateChanged(auth, async (user) => {
     setText("ownerName", u.name || "User");
 
     // 2) Get stall using stallPath
-    let stallData = {};
+    const stallId = u.stallId || null;
 
-    if (u.stallPath) {
-      const stallRef = doc(db, u.stallPath); // u.stallPath like "centres/.../stalls/..."
-      const stallSnap = await getDoc(stallRef);
-      if (stallSnap.exists()) {
-        stallData = stallSnap.data() || {};
-      }
+    if (!stallId) {
+      setStatus(
+        "❌ No stallId found in users doc. Please set users/{uid}.stallId to the stall slug.",
+        true,
+      );
+      return;
     }
 
-    // 3) Display stall name
-    setText("stallName", stallData.stallName || "—");
+    let stallData = {};
+    const topRef = doc(db, "stalls", stallId);
+    const topSnap = await getDoc(topRef);
+    if (topSnap.exists()) {
+      stallData = topSnap.data() || {};
+    }
 
-    // 4) Store globals used by refresh/month change buttons
-    // 4) Decide stallId (since rentalAgreements is tagged via stallId)
-    const stallId =
-      u.stallId ||
-      stallData.stallId ||
-      (u.stallPath ? u.stallPath.split("/").pop() : null);
+// 3) Display stall name
+    setText("stallName", stallData.stallName || "—");
 
     if (!stallId) {
       setStatus("❌ No stallId found for this account.", true);

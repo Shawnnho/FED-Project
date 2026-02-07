@@ -842,8 +842,10 @@ onAuthStateChanged(auth, async (user) => {
 
     stallRef = doc(db, ctx.stallPath);
 
+    const publicId = u.publicStallId || ctx.stallId;
+
     // ===== Stall Active Toggle (public stalls/{stallId}) =====
-    const publicRef = doc(db, "stalls", ctx.stallId);
+    const publicRef = doc(db, "stalls", publicId);
     let currentActive = true;
 
     try {
@@ -976,7 +978,7 @@ onAuthStateChanged(auth, async (user) => {
     let hygieneToShow = s.hygieneGrade;
 
     try {
-      const pubSnap = await getDoc(doc(db, "stalls", ctx.stallId));
+      const pubSnap = await getDoc(doc(db, "stalls", publicId));
       if (pubSnap.exists()) {
         const pub = pubSnap.data() || {};
         if (pub.hygieneGrade) hygieneToShow = pub.hygieneGrade;

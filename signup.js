@@ -91,7 +91,6 @@ roleButtons.forEach((btn) => {
 
     // Guest = no login
     if (selectedRole === "guest") {
-      
       window.location.href = "home.html?mode=guest";
       return;
     }
@@ -300,10 +299,26 @@ async function generateUniqueUnitNoForCentre(centreId) {
   return unitNo;
 }
 
+function slugify(name) {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 // Create storeholder stall doc (payment methods + operating hours later)
 async function createStoreholderStall(user) {
   const centreId = stallCentreId.value;
   const unitNo = await generateUniqueUnitNoForCentre(centreId);
+  const baseSlug = slugify(stallName.value.trim());
+  let slug = baseSlug;
+  let i = 1;
+
+  while ((await getDoc(doc(db, "stalls", slug))).exists()) {
+    i += 1;
+    slug = `${baseSlug}-${i}`;
+  }
 
   if (unitPreview) unitPreview.value = unitNo;
 
@@ -317,8 +332,7 @@ async function createStoreholderStall(user) {
       phone: phone.value.trim(),
       centreId,
 
-      stallId: user.uid, // because you store stall doc as centres/{centreId}/stalls/{uid}
-      stallPath: `centres/${centreId}/stalls/${user.uid}`,
+      stallId: slug,
       updatedAt: serverTimestamp(),
       createdAt: serverTimestamp(),
     },
@@ -328,6 +342,7 @@ async function createStoreholderStall(user) {
   // centres/{centreId}/stalls/{uid}
   await setDoc(doc(db, "centres", centreId, "stalls", user.uid), {
     ownerUid: user.uid,
+    publicStallId: slug,
     stallName: stallName.value.trim(),
     cuisine: stallCuisine.value,
     unitNo,
@@ -341,10 +356,11 @@ async function createStoreholderStall(user) {
 
   // ALSO create global stall doc so home.js can show it
   await setDoc(
-    doc(db, "stalls", user.uid),
+    doc(db, "stalls", slug),
     {
       ownerUid: user.uid,
       centreId,
+      publicStallId: slug,
       stallName: stallName.value.trim(),
       cuisine: stallCuisine.value,
       unitNo,

@@ -132,65 +132,57 @@ function setPaidAtAndPickup(paidAtTsOrDate) {
   }
 }
 
+function getOrderDisplayNo(o) {
+  return o?.orderNo || o?.displayOrderNo || `Order ${o?.id?.slice(-6)}`;
+}
+
+function getOrderLocation(o) {
+  return (
+    o?.centreName ||
+    o?.hawkerCentreName ||
+    o?.locationName ||
+    o?.centreId ||
+    ""
+  );
+}
+
 function renderItems(orders) {
   const container = document.getElementById("prItems");
   if (!container) return;
   container.innerHTML = "";
 
-  const allItems = [];
-  for (const o of orders) {
-    const items = Array.isArray(o.items) ? o.items : [];
-    for (const it of items) {
-      allItems.push({
-        stallName: o.stallName || "",
-        name: it.name || "Item",
-        qty: Number(it.qty ?? 1) || 1,
-        img: it.img || "images/defaultFood.png",
-        variantLabel: it.variantLabel || "",
-        addons: Array.isArray(it.addons) ? it.addons : [],
-        required: Array.isArray(it.required) ? it.required : [],
-        note: it.note || "",
-      });
-    }
-  }
+  orders.forEach((o) => {
+    const orderNo = getOrderDisplayNo(o);
+    const location = getOrderLocation(o);
 
-  if (!allItems.length) {
-    container.innerHTML = `<div class="pr-itemCard"><div><div class="pr-itemName">No items found</div></div></div>`;
-    return;
-  }
+    (o.items || []).forEach((it) => {
+      const card = document.createElement("div");
+      card.className = "pr-itemCard";
 
-  for (const it of allItems) {
-    const addonsText = it.addons.length
-      ? `Add-ons: ${it.addons
-          .map((a) => a.label || a.name || "")
-          .filter(Boolean)
-          .join(", ")}`
-      : "";
+      const meta = [
+        `Order No: ${orderNo}`,
+        location ? `Location: ${location}` : "",
+        `${it.qty} x (${o.stallName})`,
+        it.variantLabel ? `Selected: ${it.variantLabel}` : "",
+        it.addons?.length
+          ? `Add-ons: ${it.addons.map(a => a.label || a.name).join(", ")}`
+          : "",
+        it.note ? `Note: ${it.note}` : ""
+      ].filter(Boolean);
 
-    const reqText = it.required.length
-      ? `Options: ${it.required.map((r) => `${r.groupTitle || "Option"}: ${r.optionLabel || ""}`).join(", ")}`
-      : "";
+      card.innerHTML = `
+        <div>
+          <div class="pr-itemName">${it.name}</div>
+          <div class="pr-itemMeta">${meta.join("<br>")}</div>
+        </div>
+        <img class="pr-itemImg" src="${it.img || "images/defaultFood.png"}" />
+      `;
 
-    const metaLines = [
-      `${it.qty} x ${it.stallName ? `(${it.stallName})` : ""}`.trim(),
-      it.variantLabel ? `Selected: ${it.variantLabel}` : "",
-      addonsText,
-      reqText,
-      it.note ? `Note: ${it.note}` : "",
-    ].filter(Boolean);
-
-    const card = document.createElement("div");
-    card.className = "pr-itemCard";
-    card.innerHTML = `
-      <div>
-        <div class="pr-itemName">${it.name}</div>
-        <div class="pr-itemMeta">${metaLines.join("<br/>")}</div>
-      </div>
-      <img class="pr-itemImg" src="${it.img}" alt="${it.name}" />
-    `;
-    container.appendChild(card);
-  }
+      container.appendChild(card);
+    });
+  });
 }
+
 
 function showError(msg) {
   const loading = document.getElementById("prLoading");

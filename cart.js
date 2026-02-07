@@ -750,6 +750,8 @@ document.addEventListener("click", async (e) => {
 
       return {
         stallId: it.stallId || null,
+        centreId: it.centreId || null,
+        centreName: it.centreName || "",
         itemId: it.itemId || null,
         name: it.name || "Item",
         img: it.img || "",
@@ -824,6 +826,9 @@ document.addEventListener("click", async (e) => {
         const orderPayload = {
           stallId: sid,
           stallName: stallName || "",
+
+          centreId: stallItems?.[0]?.centreId || null,
+          centreName: stallItems?.[0]?.centreName || "",
 
           userId: currentUser.uid,
           customerUid: currentUser.uid,

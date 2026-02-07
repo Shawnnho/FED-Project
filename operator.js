@@ -251,8 +251,14 @@ async function preloadRevenueForCentres() {
         collection(db, "centres", c.id, "stalls"),
       );
       stallsSnap.forEach((d) => {
-        // IMPORTANT: d.id must match order.stallId (e.g. "BhFcNBORt5cDQhpg4OdmlBsIMoD2")
-        stallToCentre[d.id] = c.id;
+        const s = d.data() || {};
+
+        // use your canonical stall doc id (e.g. "asia-wok", "fat-buddies")
+        const stallId = s.publicStallId;
+
+        if (stallId) {
+          stallToCentre[stallId] = c.id;
+        }
       });
     }),
   );
@@ -487,6 +493,11 @@ window.renderStalls = () => {
    Rentals (per selected centre)
    rentalAgreements: { centreId, stallName, ownerName, monthlyRent, startDate, endDate, createdAt }
 ========================= */
+
+function looksLikeUid(id) {
+  return typeof id === "string" && id.length >= 20 && !id.includes("-");
+}
+
 async function loadRentals() {
   const list = document.getElementById("rentalList");
   if (!SELECTED_CENTRE_ID) {
@@ -510,10 +521,19 @@ async function loadRentals() {
   for (const r of rentalsRaw) {
     if (!r.stallId) continue;
 
+    // 🚫 prevent creating stalls/{UID}
+    if (looksLikeUid(r.stallId)) {
+      console.warn(
+        "❌ rentalAgreements has UID stallId. Fix this rental doc:",
+        r.id,
+        r.stallId,
+      );
+      continue;
+    }
+
     // auto-create bill if missing
     await ensureMonthlyBill(r.stallId, r.monthlyRent);
 
-    // 🔥 load saved bill so UI reflects it
     const billSnap = await getDoc(
       doc(db, "stalls", r.stallId, "operatorBills", monthKey),
     );
@@ -561,6 +581,13 @@ window.renderRentals = () => {
 
   list.innerHTML = items
     .map((r) => {
+      // 🚫 hide rentals with bad (UID) stallId so you can't save bills into stalls/{UID}
+      if (looksLikeUid(r.stallId)) {
+        console.warn("Hiding rental with UID stallId:", r.id, r.stallId);
+        return `<div class="ra-card"><p style="color:red">
+Bad rentalAgreement: stallId is UID (${r.stallId}). Fix rentalAgreements/${r.id}.
+</p></div>`;
+      }
       const bill = billsByStall[r.stallId] || {};
       const rent = money(r.monthlyRent || 0);
       const start = r.startDate || "-";
@@ -650,7 +677,6 @@ async function ensureMonthlyBill(stallId, rent) {
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
-  
 }
 
 window.saveMonthlyBill = async (stallId, rentalDocId) => {
@@ -699,7 +725,6 @@ window.saveMonthlyBill = async (stallId, rentalDocId) => {
 
     alert(`Saved operator bill for ${monthKey} (Stall ${stallId})`);
     await loadRentals();
-
   } catch (err) {
     console.error(err);
     alert(`Save failed: ${err.message}`);

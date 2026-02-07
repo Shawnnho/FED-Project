@@ -1937,15 +1937,17 @@ select {
 /* =========================================
    4. CONTENT CARDS (Feedback Options)
 ========================================= */
-.container {
+.feedbackPage .container {
   display: flex;
   justify-content: center;
   gap: 30px;
   padding: 40px 20px;
   flex-wrap: wrap;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-.options {
+.feedbackPage .options {
   background: #ebebeb;
   height: 450px;
   width: 340px;
@@ -1959,7 +1961,7 @@ select {
   box-shadow: none;
 }
 
-.options h3 {
+.feedbackPage .options h3 {
   font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   font-size: 24px;
   font-weight: 650;
@@ -1969,7 +1971,7 @@ select {
   margin-bottom: 8px;
 }
 
-.options p {
+.feedbackPage.options p {
   font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   font-size: 15px;
   font-weight: 500;
@@ -1978,14 +1980,14 @@ select {
   line-height: 1.4;
 }
 
-.icon-img {
+.feedbackPage .icon-img {
   width: 100px;
   height: 100px;
   object-fit: contain;
   margin-bottom: 0;
 }
 
-.buttons {
+.feedbackPage .buttons {
   width: 80%;
   background: #f4a261;
   border: none;
@@ -1999,7 +2001,7 @@ select {
   margin-top: auto;
 }
 
-.buttons:hover {
+.feedbackPage.buttons:hover {
   background: #e08e4d;
 }
 
