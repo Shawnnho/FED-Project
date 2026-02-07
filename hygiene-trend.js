@@ -241,8 +241,8 @@ async function renderMarketComparison(stallId, centreId, stallScore) {
   }
 
   try {
-    // Get all stalls in the same centre
-    const stallsSnap = await getDocs(query(collection(db, "stalls"), where("centreId", "==", centreId), where("active", "==", true)));
+    // Get all stalls in the same centre from centres/*/stalls/* subcollection
+    const stallsSnap = await getDocs(collection(db, "centres", centreId, "stalls"));
 
     // Get latest inspection score for each stall in the centre
     const centreScores = [];

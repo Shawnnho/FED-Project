@@ -180,16 +180,41 @@ async function loadStalls() {
     preselectId = userStallId;
   }
 
-  const q = query(collection(db, "stalls"), where("active", "==", true));
-  const snap = await getDocs(q);
+  // Load stalls from centres/*/stalls/* subcollections (NEA format)
+  try {
+    const centresSnap = await getDocs(collection(db, "centres"));
+    const stallsList = [];
 
-  stallsCache = snap.docs.map(d => ({
-    id: d.id,
-    name: d.data().stallName || d.data().name || "Unknown Stall",
-    grade: d.data().hygieneGrade || d.data().grade || "B",
-    licenseIssued: d.data().licenseIssued,
-    licenseExpiry: d.data().licenseExpiry
-  })).sort((a,b) => a.name.localeCompare(b.name));
+    for (const centreDoc of centresSnap.docs) {
+      const centreId = centreDoc.id;
+      const stallsSnap = await getDocs(
+        collection(db, "centres", centreId, "stalls"),
+      );
+
+      stallsSnap.forEach((stallDoc) => {
+        const data = stallDoc.data();
+        // Only include active stalls
+        if (data.active !== false) {
+          const stallPath = `centres/${centreId}/stalls/${stallDoc.id}`;
+          stallsList.push({
+            id: stallDoc.id,
+            stallPath: stallPath,
+            centreId: centreId,
+            name: data.stallName || data.name || "Unknown Stall",
+            grade: data.hygieneGrade || data.grade || "B",
+            licenseIssued: data.licenseIssued,
+            licenseExpiry: data.licenseExpiry
+          });
+        }
+      });
+    }
+
+    stallsCache = stallsList.sort((a,b) => a.name.localeCompare(b.name));
+
+  } catch (err) {
+    console.error("Error loading stalls:", err);
+    stallsCache = [];
+  }
 
   // For storeholder, filter to only their stall
   let displayStalls = stallsCache;
@@ -428,7 +453,10 @@ function renderHistory(history, currentGrade) {
 if (viewHistoryBtn) {
   viewHistoryBtn.addEventListener("click", () => {
     if (currentStallId) {
-      window.location.href = `hygiene-history.html?id=${currentStallId}`;
+      // Get centreId from cache for navigation
+      const stallData = stallsCache.find(s => s.id === currentStallId);
+      const centreId = stallData?.centreId || "";
+      window.location.href = `hygiene-history.html?id=${currentStallId}&centreId=${centreId}`;
     } else {
       alert("Please select a stall first.");
     }
@@ -439,7 +467,10 @@ if (viewHistoryBtn) {
 if (viewTrendBtn) {
   viewTrendBtn.addEventListener("click", () => {
     if (currentStallId) {
-      window.location.href = `hygiene-trend.html?id=${currentStallId}`;
+      // Get centreId from cache for navigation
+      const stallData = stallsCache.find(s => s.id === currentStallId);
+      const centreId = stallData?.centreId || "";
+      window.location.href = `hygiene-trend.html?id=${currentStallId}&centreId=${centreId}`;
     } else {
       alert("Please select a stall first.");
     }
