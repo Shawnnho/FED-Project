@@ -8,7 +8,10 @@
  *************************************************/
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   getFirestore,
   doc,
@@ -37,6 +40,45 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+
+function pad(n, len = 6) {
+  return String(n).padStart(len, "0");
+}
+
+// Keep it simple: one counter per stall
+function stallCounterRef(stallId) {
+  return doc(db, "counters", `orderNo_${stallId}`);
+}
+
+// Optional: if you stored prefix in stall doc, use that.
+// Otherwise this fallback makes "ST-000001"
+async function getOrderPrefixForStall(stallId) {
+  try {
+    const s = await getDoc(doc(db, "stalls", stallId));
+    if (s.exists()) {
+      const d = s.data() || {};
+      return (d.orderPrefix || d.prefix || d.code || "ST")
+        .toString()
+        .toUpperCase();
+    }
+  } catch {}
+  return "ST";
+}
+
+// Transaction: increment counter + return next orderNo string
+async function nextOrderNoForStall(stallId) {
+  const prefix = await getOrderPrefixForStall(stallId);
+  const ref = stallCounterRef(stallId);
+
+  const next = await runTransaction(db, async (tx) => {
+    const snap = await tx.get(ref);
+    const cur = snap.exists() ? Number(snap.data().next || 1) : 1;
+    tx.set(ref, { next: cur + 1 }, { merge: true });
+    return cur;
+  });
+
+  return `${prefix}-${pad(next)}`; // e.g. KF-000123
+}
 
 const CART_KEY = "hp_cart";
 let currentUser = null;
@@ -73,10 +115,13 @@ const promoColRef = () => collection(db, "promotions");
 const promoDocRef = (promoId) => doc(db, "promotions", promoId);
 
 // users/{uid}/promoClaims/{promoId}
-const promoClaimRef = (uid, promoId) => doc(db, "users", uid, "promoClaims", promoId);
+const promoClaimRef = (uid, promoId) =>
+  doc(db, "users", uid, "promoClaims", promoId);
 
 async function getPromoByCode(codeRaw) {
-  const code = String(codeRaw || "").trim().toUpperCase();
+  const code = String(codeRaw || "")
+    .trim()
+    .toUpperCase();
   if (!code) return null;
 
   const q = query(promoColRef(), where("code", "==", code), limit(1));
@@ -263,7 +308,9 @@ function validateDeliveryFields() {
   const unit = unitEl?.value?.trim() || "";
 
   // reset visuals
-  [addressEl, postalEl, unitEl].forEach((el) => el && el.classList.remove("isInvalid"));
+  [addressEl, postalEl, unitEl].forEach(
+    (el) => el && el.classList.remove("isInvalid"),
+  );
   showReq("reqAddress", false);
   showReq("reqPostal", false);
   showReq("reqUnit", false);
@@ -336,7 +383,8 @@ function mergeCarts(existing = [], incoming = []) {
       const addQty = Number(x.qty ?? 1) || 1;
       cur.qty = (Number(cur.qty ?? 1) || 1) + addQty;
 
-      const unit = Number(cur.unitPrice ?? cur.basePrice ?? cur.price ?? 0) || 0;
+      const unit =
+        Number(cur.unitPrice ?? cur.basePrice ?? cur.price ?? 0) || 0;
       cur.totalPrice = unit * (Number(cur.qty ?? 1) || 1);
 
       map.set(k, cur);
@@ -347,11 +395,11 @@ function mergeCarts(existing = [], incoming = []) {
 }
 
 function prettyPayMethod(method) {
-    const x = String(method || "").toLowerCase();
-    if (x === "cash") return "Cash";
-    if (x === "paynow_nets") return "PayNow / NETS QR";
-    if (x === "card") return "Credit / Debit Card";
-    return method || "—";
+  const x = String(method || "").toLowerCase();
+  if (x === "cash") return "Cash";
+  if (x === "paynow_nets") return "PayNow / NETS QR";
+  if (x === "card") return "Credit / Debit Card";
+  return method || "—";
 }
 
 function getSelectedPayMethod() {
@@ -382,7 +430,9 @@ function syncProceedBtn() {
 }
 
 function clearPaySelection() {
-  document.querySelectorAll('input[name="payMethod"]').forEach((r) => (r.checked = false));
+  document
+    .querySelectorAll('input[name="payMethod"]')
+    .forEach((r) => (r.checked = false));
   syncProceedBtn();
 }
 
@@ -473,7 +523,8 @@ async function render() {
     const required = Array.isArray(it.required) ? it.required : [];
     const variantLabel = it.variantLabel || it.variant || "";
 
-    const unitPrice = Number(it.unitPrice ?? it.basePrice ?? it.price ?? 0) || 0;
+    const unitPrice =
+      Number(it.unitPrice ?? it.basePrice ?? it.price ?? 0) || 0;
     const line = Number(it.totalPrice) || unitPrice * qty;
 
     subtotal += line;
@@ -588,7 +639,9 @@ async function render() {
 
       if (type === "percent") {
         const pct =
-          Number(appliedPromo.percent ?? appliedPromo.discount ?? appliedPromo.value) || 0;
+          Number(
+            appliedPromo.percent ?? appliedPromo.discount ?? appliedPromo.value,
+          ) || 0;
         promoDiscount = subtotal * (pct / 100);
       }
 
@@ -610,7 +663,10 @@ async function render() {
   document.getElementById("sumSmallFee").textContent = money(smallOrderFee);
   document.getElementById("sumDelivery").textContent = money(deliveryFee);
 
-  const total = Math.max(0, subtotal - promoDiscount + smallOrderFee + deliveryFee);
+  const total = Math.max(
+    0,
+    subtotal - promoDiscount + smallOrderFee + deliveryFee,
+  );
   document.getElementById("sumTotal").textContent = money(total);
 
   lastPricing = { subtotal, promoDiscount, smallOrderFee, deliveryFee, total };
@@ -651,7 +707,9 @@ document.addEventListener("click", async (e) => {
       addressObj = v.addressObj;
 
       // ✅ Save address ONLY if checkbox is checked
-      const saveChecked = Boolean(document.getElementById("saveAddrChk")?.checked);
+      const saveChecked = Boolean(
+        document.getElementById("saveAddrChk")?.checked,
+      );
 
       if (saveChecked) {
         if (!currentUser) {
@@ -687,7 +745,8 @@ document.addEventListener("click", async (e) => {
     // ✅ Normalise items
     const items = cart.map((it) => {
       const qty = Number(it.qty ?? 1) || 1;
-      const unitPrice = Number(it.unitPrice ?? it.basePrice ?? it.price ?? 0) || 0;
+      const unitPrice =
+        Number(it.unitPrice ?? it.basePrice ?? it.price ?? 0) || 0;
 
       return {
         stallId: it.stallId || null,
@@ -804,7 +863,14 @@ document.addEventListener("click", async (e) => {
           },
         };
 
-        const ref = await addDoc(collection(db, "orders"), orderPayload);
+        const orderNo = await nextOrderNoForStall(sid);
+
+        const ref = await addDoc(collection(db, "orders"), {
+          ...orderPayload,
+          orderNo, // ✅ BEST UX ID stored in Firestore
+          orderId: orderNo, // optional (since your dashboard checks data.orderId first)
+        });
+
         createdOrderIds.push(ref.id);
       }
 
@@ -855,7 +921,10 @@ document.addEventListener("click", async (e) => {
         },
       };
 
-      const checkoutRef = await addDoc(collection(db, "checkouts"), checkoutPayload);
+      const checkoutRef = await addDoc(
+        collection(db, "checkouts"),
+        checkoutPayload,
+      );
       const checkoutId = checkoutRef.id;
 
       // Link each order to checkoutId
@@ -903,7 +972,8 @@ document.addEventListener("click", async (e) => {
   }
 
   const unit =
-    Number(cart[i]?.unitPrice ?? cart[i]?.basePrice ?? cart[i]?.price ?? 0) || 0;
+    Number(cart[i]?.unitPrice ?? cart[i]?.basePrice ?? cart[i]?.price ?? 0) ||
+    0;
 
   if (cart[i]) cart[i].totalPrice = unit * (Number(cart[i].qty ?? 1) || 1);
 
@@ -961,10 +1031,14 @@ document.addEventListener("click", async (e) => {
 
     // 1️⃣ Enforce stall restriction
     if (promo.stallId) {
-      const cartStallIds = Array.from(new Set(cart.map((it) => it.stallId).filter(Boolean)));
+      const cartStallIds = Array.from(
+        new Set(cart.map((it) => it.stallId).filter(Boolean)),
+      );
 
       if (!cartStallIds.includes(promo.stallId)) {
-        if (msg) msg.textContent = "This promo is only valid for Tiong Bahru Chicken Rice.";
+        if (msg)
+          msg.textContent =
+            "This promo is only valid for Tiong Bahru Chicken Rice.";
         return;
       }
     }
@@ -979,7 +1053,8 @@ document.addEventListener("click", async (e) => {
       });
 
       if (!hasRequiredItem) {
-        if (msg) msg.textContent = "Add Chicken Rice to your cart to use this promo.";
+        if (msg)
+          msg.textContent = "Add Chicken Rice to your cart to use this promo.";
         return;
       }
     }
@@ -993,7 +1068,8 @@ document.addEventListener("click", async (e) => {
 
     const minSpend = inferMinSpend(promo);
     if (minSpend > 0 && subtotal < minSpend) {
-      if (msg) msg.textContent = `Minimum spend $${minSpend.toFixed(2)} required.`;
+      if (msg)
+        msg.textContent = `Minimum spend $${minSpend.toFixed(2)} required.`;
       return;
     }
 
@@ -1014,7 +1090,8 @@ document.addEventListener("click", async (e) => {
       if (claimOnce && currentUser) {
         const cRef = promoClaimRef(currentUser.uid, promo.id);
         const cSnap = await tx.get(cRef);
-        if (cSnap.exists()) throw new Error("You have already claimed this promo.");
+        if (cSnap.exists())
+          throw new Error("You have already claimed this promo.");
         tx.set(cRef, { claimedAt: serverTimestamp(), code: latest.code });
       }
 
@@ -1032,7 +1109,8 @@ document.addEventListener("click", async (e) => {
     render();
   } catch (err) {
     console.error(err);
-    if (msg) msg.textContent = err?.message || "Could not apply promo. Try again.";
+    if (msg)
+      msg.textContent = err?.message || "Could not apply promo. Try again.";
   }
 });
 
@@ -1077,7 +1155,8 @@ async function consumeVoucherHandoffFromAccount() {
       if (claimOnce && currentUser) {
         const cRef = promoClaimRef(currentUser.uid, promo.id);
         const cSnap = await tx.get(cRef);
-        if (cSnap.exists()) throw new Error("You have already claimed this promo.");
+        if (cSnap.exists())
+          throw new Error("You have already claimed this promo.");
         tx.set(cRef, { claimedAt: serverTimestamp(), code: latest.code });
       }
 

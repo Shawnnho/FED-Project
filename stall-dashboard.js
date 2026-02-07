@@ -389,9 +389,11 @@ function mapOrderDoc(d) {
 
   // Display order id
   const displayId =
-    data.orderId ||
     data.orderNo ||
-    (d.id.length > 10 ? `#${d.id.slice(0, 6)}` : `#${d.id}`);
+    data.orderId ||
+    (d.id.length > 10
+      ? `#${d.id.slice(-6).toUpperCase()}`
+      : `#${d.id.toUpperCase()}`);
 
   const customer =
     data.customerName ||

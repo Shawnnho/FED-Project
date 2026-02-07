@@ -6,8 +6,15 @@
  *************************************************/
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* ✅ Use SAME config as your other files */
 const firebaseConfig = {
@@ -61,7 +68,9 @@ function setDeliveryBox(fulfillment) {
 }
 
 function makeDisplayId(prefix, id) {
-  const short = String(id || "").slice(-6).toUpperCase();
+  const short = String(id || "")
+    .slice(-6)
+    .toUpperCase();
   return `#${prefix}-${short}`;
 }
 
@@ -96,11 +105,15 @@ function addMinutes(date, mins) {
 
 function formatTimeOnly(d) {
   if (!d) return "—";
-  return d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+  return d.toLocaleTimeString(undefined, {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 function setPaidAtAndPickup(paidAtTsOrDate) {
-  const paidDate = paidAtTsOrDate instanceof Date ? paidAtTsOrDate : tsToDate(paidAtTsOrDate);
+  const paidDate =
+    paidAtTsOrDate instanceof Date ? paidAtTsOrDate : tsToDate(paidAtTsOrDate);
 
   // Paid At
   const paidAtEl = document.getElementById("prPaidAt");
@@ -148,11 +161,14 @@ function renderItems(orders) {
 
   for (const it of allItems) {
     const addonsText = it.addons.length
-      ? `Add-ons: ${it.addons.map(a => a.label || a.name || "").filter(Boolean).join(", ")}`
+      ? `Add-ons: ${it.addons
+          .map((a) => a.label || a.name || "")
+          .filter(Boolean)
+          .join(", ")}`
       : "";
 
     const reqText = it.required.length
-      ? `Options: ${it.required.map(r => `${r.groupTitle || "Option"}: ${r.optionLabel || ""}`).join(", ")}`
+      ? `Options: ${it.required.map((r) => `${r.groupTitle || "Option"}: ${r.optionLabel || ""}`).join(", ")}`
       : "";
 
     const metaLines = [
@@ -212,7 +228,10 @@ async function loadByCheckoutId(checkoutId) {
 
   // UI fill
   const orderIdEl = document.getElementById("prOrderId");
-  if (orderIdEl) orderIdEl.textContent = makeDisplayId("CO", checkoutId);
+  if (orderIdEl) {
+    const ids = orders.map((o) => o.orderNo || makeDisplayId("OD", o.id));
+    orderIdEl.textContent = ids.length === 1 ? ids[0] : ids.join(", ");
+  }
 
   // ✅ Delivery details
   setDeliveryBox(checkout?.fulfillment);
@@ -220,19 +239,28 @@ async function loadByCheckoutId(checkoutId) {
   // ✅ PaidAt from CHECKOUT (QR/Card)
   setPaidAtAndPickup(checkout?.payment?.paidAt);
 
-  const stallNames = Array.from(new Set(orders.map(o => o.stallName).filter(Boolean)));
+  const stallNames = Array.from(
+    new Set(orders.map((o) => o.stallName).filter(Boolean)),
+  );
   const stallsEl = document.getElementById("prStalls");
-  if (stallsEl) stallsEl.textContent = stallNames.length ? stallNames.join(", ") : "Multiple stalls";
+  if (stallsEl)
+    stallsEl.textContent = stallNames.length
+      ? stallNames.join(", ")
+      : "Multiple stalls";
 
   const payMethodEl = document.getElementById("prPayMethod");
-  if (payMethodEl) payMethodEl.textContent = prettyPayMethod(checkout?.payment?.method || orders[0]?.payment?.method);
+  if (payMethodEl)
+    payMethodEl.textContent = prettyPayMethod(
+      checkout?.payment?.method || orders[0]?.payment?.method,
+    );
 
   const totalEl = document.getElementById("prTotalPaid");
   if (totalEl) totalEl.textContent = `$${money(checkout?.pricing?.total)}`;
 
   // View status button -> orders filtered by checkoutId
   const btnStatus = document.getElementById("btnStatus");
-  if (btnStatus) btnStatus.href = `orders.html?checkoutId=${encodeURIComponent(checkoutId)}`;
+  if (btnStatus)
+    btnStatus.href = `orders.html?checkoutId=${encodeURIComponent(checkoutId)}`;
 
   renderItems(orders);
 
@@ -252,7 +280,8 @@ async function loadByOrderId(orderId) {
   const order = { id: oSnap.id, ...oSnap.data() };
 
   const orderIdEl = document.getElementById("prOrderId");
-  if (orderIdEl) orderIdEl.textContent = makeDisplayId("OD", orderId);
+  if (orderIdEl)
+    orderIdEl.textContent = order.orderNo || makeDisplayId("OD", orderId);
 
   // ✅ Delivery details
   setDeliveryBox(order?.fulfillment);
@@ -261,7 +290,8 @@ async function loadByOrderId(orderId) {
   if (stallsEl) stallsEl.textContent = order.stallName || "—";
 
   const payMethodEl = document.getElementById("prPayMethod");
-  if (payMethodEl) payMethodEl.textContent = prettyPayMethod(order?.payment?.method);
+  if (payMethodEl)
+    payMethodEl.textContent = prettyPayMethod(order?.payment?.method);
 
   const totalEl = document.getElementById("prTotalPaid");
   if (totalEl) totalEl.textContent = `$${money(order?.pricing?.total)}`;
@@ -270,7 +300,8 @@ async function loadByOrderId(orderId) {
   setPaidAtAndPickup(order?.payment?.paidAt);
 
   const btnStatus = document.getElementById("btnStatus");
-  if (btnStatus) btnStatus.href = `orders.html?orderId=${encodeURIComponent(orderId)}`;
+  if (btnStatus)
+    btnStatus.href = `orders.html?orderId=${encodeURIComponent(orderId)}`;
 
   renderItems([order]);
 

@@ -119,7 +119,9 @@ function renderOrderCard(orderId, o, opts = {}) {
     <div class="legal-card" style="padding:14px; border-radius:16px; box-shadow:0 8px 22px rgba(0,0,0,.08); background:#fff; margin:12px 0;">
       <div style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;">
         <div>
-          <div style="font-weight:900; font-size:16px;">Order ${esc(orderId.slice(-6).toUpperCase())}</div>
+          <div style="font-weight:900; font-size:16px;">
+  Order ${esc(o.orderNo || o.orderId || orderId.slice(-6).toUpperCase())}
+</div>
           <div class="legal-muted">Created: ${esc(createdAt)}</div>
         </div>
         <div style="text-align:right;">

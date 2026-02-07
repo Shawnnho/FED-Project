@@ -330,6 +330,24 @@ function getOrderStallKey(o) {
   );
 }
 
+const stallNameCache = new Map();
+
+async function getStallNameById(stallId) {
+  if (!stallId) return "Unknown";
+  if (stallNameCache.has(stallId)) return stallNameCache.get(stallId);
+
+  try {
+    const snap = await getDoc(doc(db, "stalls", stallId));
+    const name = snap.exists()
+      ? snap.data()?.stallName || "Unknown"
+      : "Unknown";
+    stallNameCache.set(stallId, name);
+    return name;
+  } catch {
+    return "Unknown";
+  }
+}
+
 async function loadOrderHistorySummary(uid) {
   // Default UI
   if (sumTotal) sumTotal.textContent = "0";
@@ -372,8 +390,16 @@ async function loadOrderHistorySummary(uid) {
 
   // Favourite stall = most frequent stall key
   const counts = new Map();
+
   for (const o of orders) {
-    const key = getOrderStallKey(o);
+    const rawKey = getOrderStallKey(o);
+
+    // if the key looks like a stallId (long uid-ish), resolve to stallName
+    const key =
+      rawKey && rawKey.length > 20
+        ? await getStallNameById(o.stallId || o.stallID || rawKey)
+        : rawKey;
+
     counts.set(key, (counts.get(key) || 0) + 1);
   }
 

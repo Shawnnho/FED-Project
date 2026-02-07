@@ -185,7 +185,10 @@ function renderOrders(orders, checkoutIdFilter) {
 
   if (q) {
     filtered = filtered.filter((o) => {
-      const id = String(o.displayId || o.id || "").toLowerCase();
+      const id = String(
+        o.orderNo || o.orderId || o.displayId || o.id || "",
+      ).toLowerCase();
+
       const stallName = String(
         o.stallName ||
           o.stall?.stallName ||
@@ -242,7 +245,8 @@ function renderOrders(orders, checkoutIdFilter) {
         : "Pickup"
       : "Pickup";
 
-    const displayId = o.displayId || makeDisplayId("OD", o.id);
+    const displayId =
+      o.orderNo || o.orderId || o.displayId || makeDisplayId("OD", o.id);
 
     const href = o.checkoutId
       ? `payment_recieved.html?checkoutId=${encodeURIComponent(o.checkoutId)}`
