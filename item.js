@@ -37,7 +37,9 @@ const db = getFirestore(app);
 ========================= */
 const params = new URLSearchParams(window.location.search);
 const centreId = params.get("centreId");
-const stallId = params.get("stallId");
+const stallId = params.get("stallId"); // ✅ public id (slug) for orders
+const stallUid = params.get("stallUid") || stallId; // ✅ uid for centres/... path
+
 const itemId = params.get("itemId");
 
 if (!centreId || !stallId || !itemId) {
@@ -235,15 +237,19 @@ function renderVariantsIfAny() {
 }
 
 async function loadStall() {
-  const ref = doc(db, "centres", centreId, "stalls", stallId);
+  // ✅ ALWAYS use UID for centres path
+  const ref = doc(db, "centres", centreId, "stalls", stallUid);
   const snap = await getDoc(ref);
 
   if (!snap.exists()) return;
 
   const d = snap.data();
+
+  // ✅ SAVE public stall id (slug) for later
   STALL = {
     supportsAddons: d.supportsAddons !== false,
     supportsSizePricing: d.supportsSizePricing !== false,
+    publicStallId: d.publicStallId || "", // ⭐ THIS IS THE KEY FIX
   };
 }
 
@@ -251,7 +257,7 @@ async function loadStall() {
    LOAD ITEM
 ========================= */
 async function loadItem() {
-  const ref = doc(db, "centres", centreId, "stalls", stallId, "menu", itemId);
+  const ref = doc(db, "centres", centreId, "stalls", stallUid, "menu", itemId);
   const snap = await getDoc(ref);
 
   if (!snap.exists()) {
@@ -336,7 +342,7 @@ async function loadAddons() {
     return;
   }
 
-  const ref = collection(db, "centres", centreId, "stalls", stallId, "addons");
+  const ref = collection(db, "centres", centreId, "stalls", stallUid, "addons");
   const snap = await getDocs(ref);
 
   const rawAddons = snap.docs.map((d) => {
@@ -452,14 +458,18 @@ addToCartBtn.addEventListener("click", () => {
 
   cart.push({
     centreId,
-    stallId,
-    stallPath: `centres/${centreId}/stalls/${stallId}`,
+
+    // ✅ keep UID for nested lookups
+    stallUid,
+    stallPath: `centres/${centreId}/stalls/${stallUid}`,
+
+    // ✅ store public stall id (slug) for orders/prefix/counters
+    stallId: STALL?.publicStallId || stallId,
 
     itemId: ITEM.id,
     name: ITEM.name,
     img: ITEM.img,
 
-    // variant support
     variantKey: ITEM.variantKey || null,
     variantLabel: ITEM.variantLabel || "",
 
@@ -472,14 +482,16 @@ addToCartBtn.addEventListener("click", () => {
   });
 
   writeCart(cart);
-  window.location.href = `menu.html?centreId=${centreId}&stallId=${stallId}`;
+  const publicId = STALL?.publicStallId || stallId;
+  window.location.href = `menu.html?centreId=${centreId}&stallId=${publicId}&stallUid=${stallUid}`;
 });
 
 /* =========================
    NAV
 ========================= */
 closeBtn.addEventListener("click", () => {
-  window.location.href = `menu.html?centreId=${centreId}&stallId=${stallId}`;
+  const publicId = STALL?.publicStallId || stallId;
+  window.location.href = `menu.html?centreId=${centreId}&stallId=${publicId}&stallUid=${stallUid}`;
 });
 
 /* =========================
