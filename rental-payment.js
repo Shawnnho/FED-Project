@@ -767,38 +767,54 @@ onAuthStateChanged(auth, async (user) => {
 
     setText("ownerName", u.name || "User");
 
-    // 2) Get stall using stallPath
-    const stallId = u.stallId || null;
+    // 2) This is your UID stall doc id (zDsG3...)
+    const uidStallId = u.stallId || null;
 
-    if (!stallId) {
-      setStatus(
-        "❌ No stallId found in users doc. Please set users/{uid}.stallId to the stall slug.",
-        true,
+    if (!uidStallId) {
+      setStatus("❌ No stallId found in users doc.", true);
+      return;
+    }
+
+    // Read UID stall doc: stalls/{uidStallId}
+    let uidStallData = {};
+    const uidSnap = await getDoc(doc(db, "stalls", uidStallId));
+    if (uidSnap.exists()) uidStallData = uidSnap.data() || {};
+
+    // Get the public slug id (kopi-fellas)
+    const publicId = uidStallData.publicStallId || null;
+
+    console.log("uidStallId =", uidStallId);
+    console.log("publicId =", publicId);
+    console.log("uidStallData =", uidStallData);
+    console.log("uidStallData keys =", Object.keys(uidStallData || {}));
+
+    //  Display stall name (use centre stall doc like stall-account)
+    let displayName =
+      uidStallData.stallName ||
+      uidStallData.name ||
+      uidStallData.displayName ||
+      uidStallData.title;
+
+    if (!displayName && u.centreId) {
+      const centreId = u.centreId;
+
+      const centreSnap = await getDoc(
+        doc(db, "centres", centreId, "stalls", uidStallId),
       );
-      return;
+
+      if (centreSnap.exists()) {
+        const c = centreSnap.data() || {};
+        displayName = c.stallName || c.name || c.displayName || c.title;
+      }
     }
 
-    let stallData = {};
-    const topRef = doc(db, "stalls", stallId);
-    const topSnap = await getDoc(topRef);
-    if (topSnap.exists()) {
-      stallData = topSnap.data() || {};
-    }
+    setText("stallName", displayName || uidStallId);
 
-// 3) Display stall name
-    setText("stallName", stallData.stallName || "—");
+    // IMPORTANT: all billing subcollections remain under UID stall doc
+    window.__payStallId = uidStallId;
+    window.__stallData = uidStallData;
 
-    if (!stallId) {
-      setStatus("❌ No stallId found for this account.", true);
-      return;
-    }
-
-    // 5) Store globals used by refresh/month change buttons
-    window.__payStallId = stallId;
-    window.__stallData = stallData;
-
-    // 6) Load page using stallId
-    await loadPaymentSummary(stallId, stallData);
+    await loadPaymentSummary(uidStallId, uidStallData);
   } catch (err) {
     console.error(err);
     setStatus(`❌ Failed to load payments: ${err.code || err.message}`, true);
