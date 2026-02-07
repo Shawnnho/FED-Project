@@ -96,23 +96,33 @@
         </select>
       </div>
 
-      <!-- Pending section -->
-      <h2 class="ordersSectionTitle">Pending</h2>
-      <p class="ordersSectionHint">
-        Orders that are not collected / not completed yet.
-      </p>
-      <section id="ordersPendingList" class="ordersGrid"></section>
-      <div id="ordersPendingEmpty" class="ordersEmptyBox" hidden>
-        No pending orders.
+      <!-- Tabs -->
+      <div class="ordersTabs">
+        <button class="ordersTab isActive" type="button" data-tab="pending">
+          Pending
+          <span id="pendingCount" class="tabCount">0</span>
+        </button>
+
+        <button class="ordersTab" type="button" data-tab="completed">
+          Completed
+          <span id="completedCount" class="tabCount">0</span>
+        </button>
       </div>
 
-      <!-- Completed section -->
-      <h2 class="ordersSectionTitle" style="margin-top: 18px">Completed</h2>
-      <p class="ordersSectionHint">Orders that are already done.</p>
-      <section id="ordersCompletedList" class="ordersGrid"></section>
-      <div id="ordersCompletedEmpty" class="ordersEmptyBox" hidden>
-        No completed orders.
-      </div>
+      <!-- Lists -->
+      <section id="ordersPendingWrap">
+        <section id="ordersPendingList" class="ordersGrid"></section>
+        <div id="ordersPendingEmpty" class="ordersEmptyBox" hidden>
+          No pending orders.
+        </div>
+      </section>
+
+      <section id="ordersCompletedWrap" hidden>
+        <section id="ordersCompletedList" class="ordersGrid"></section>
+        <div id="ordersCompletedEmpty" class="ordersEmptyBox" hidden>
+          No completed orders.
+        </div>
+      </section>
 
       <!-- Optional banner when ?checkoutId=... is used -->
       <div

@@ -6196,3 +6196,82 @@ body.storePage #stallGrade.gradeD {
 .orderLeft {
   min-width: 0;
 }
+/* Tabs */
+.ordersTabs {
+  display: flex;
+  gap: 10px;
+  margin: 6px 0 14px;
+}
+
+.ordersTab {
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-weight: 900;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ordersTab.isActive {
+  background: #fff;
+  border-color: rgba(255, 138, 0, 0.55);
+  box-shadow: 0 10px 20px rgba(255, 138, 0, 0.18);
+}
+
+.tabCount {
+  min-width: 26px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 900;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+/* Status pill base */
+.orderStatusPill {
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: capitalize;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Status colors */
+.orderStatusPill.stPay {
+  background: rgba(255, 59, 48, 0.12); /* red-ish */
+  border-color: rgba(255, 59, 48, 0.35);
+}
+
+.orderStatusPill.stPaid {
+  background: rgba(0, 122, 255, 0.12); /* blue */
+  border-color: rgba(0, 122, 255, 0.35);
+}
+
+.orderStatusPill.stPrep {
+  background: rgba(255, 149, 0, 0.14); /* orange */
+  border-color: rgba(255, 149, 0, 0.4);
+}
+
+.orderStatusPill.stReady {
+  background: rgba(52, 199, 89, 0.14); /* green */
+  border-color: rgba(52, 199, 89, 0.45);
+}
+
+.orderStatusPill.stDone {
+  background: rgba(142, 142, 147, 0.16); /* gray */
+  border-color: rgba(142, 142, 147, 0.4);
+}
+
+.orderStatusPill.stDefault {
+  background: rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.1);
+}

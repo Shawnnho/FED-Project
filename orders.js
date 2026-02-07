@@ -86,6 +86,7 @@ async function loadOrdersForOwner(userUid, checkoutIdFilter) {
   let orders = await tryField("userId");
   if (!orders.length) orders = await tryField("uid");
   if (!orders.length) orders = await tryField("buyerId");
+  if (!orders.length) orders = await tryField("customerUid");
 
   return orders;
 }
@@ -106,6 +107,47 @@ function isCompletedStatus(status) {
 // Pending = anything NOT completed
 function isPendingStatus(status) {
   return !isCompletedStatus(status);
+}
+
+function statusClass(status) {
+  const s = String(status || "").toLowerCase();
+
+  // completed
+  if (s === "completed" || s === "collected" || s === "done") return "stDone";
+
+  // pending payment
+  if (s.includes("pending_payment") || s.includes("pending")) return "stPay";
+
+  // paid/processing
+  if (s.includes("paid") || s.includes("processing")) return "stPaid";
+
+  // kitchen flow
+  if (s.includes("preparing")) return "stPrep";
+  if (s.includes("ready")) return "stReady";
+
+  return "stDefault";
+}
+
+function wireTabs() {
+  const tabBtns = document.querySelectorAll(".ordersTab[data-tab]");
+  const wrapPending = document.getElementById("ordersPendingWrap");
+  const wrapCompleted = document.getElementById("ordersCompletedWrap");
+
+  if (!tabBtns.length || !wrapPending || !wrapCompleted) return;
+
+  function setTab(name) {
+    tabBtns.forEach((b) =>
+      b.classList.toggle("isActive", b.dataset.tab === name),
+    );
+    wrapPending.hidden = name !== "pending";
+    wrapCompleted.hidden = name !== "completed";
+  }
+
+  tabBtns.forEach((btn) => {
+    btn.addEventListener("click", () => setTab(btn.dataset.tab));
+  });
+
+  setTab("pending"); // default
 }
 
 function renderOrders(orders, checkoutIdFilter) {
@@ -174,6 +216,12 @@ function renderOrders(orders, checkoutIdFilter) {
   pending.sort((a, b) => ts(b) - ts(a));
   completed.sort((a, b) => ts(b) - ts(a));
 
+  // ✅ ADD HERE (tab counts)
+  const pendingCountEl = document.getElementById("pendingCount");
+  const completedCountEl = document.getElementById("completedCount");
+  if (pendingCountEl) pendingCountEl.textContent = String(pending.length);
+  if (completedCountEl) completedCountEl.textContent = String(completed.length);
+
   // ----------------------------
   // Render helper
   // ----------------------------
@@ -208,7 +256,7 @@ function renderOrders(orders, checkoutIdFilter) {
         <div class="orderLeft">
           <div class="orderTopRow">
             <div class="orderIdRow">Order: ${displayId}</div>
-            <span class="orderStatusPill">${statusText || "pending"}</span>
+            <span class="orderStatusPill ${statusClass(o.status)}">${statusText || "pending"}</span>
           </div>
 
           <div class="orderMainTitle">${stallName}</div>
@@ -260,12 +308,14 @@ onAuthStateChanged(auth, async (user) => {
     const orders = await loadOrdersForOwner(user.uid, checkoutIdFilter);
     const state = { orders, checkoutId: checkoutIdFilter };
     wireFilters(state);
+    wireTabs();
     renderOrders(state.orders, state.checkoutId);
   } catch (err) {
     console.error(err);
     // If something fails, show empty state rather than breaking the page
     const state = { orders: [], checkoutId: getQueryParam("checkoutId") };
     wireFilters(state);
+    wireTabs();
     renderOrders(state.orders, state.checkoutId);
   }
 });
