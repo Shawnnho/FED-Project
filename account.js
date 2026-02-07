@@ -332,20 +332,63 @@ function getOrderStallKey(o) {
 
 const stallNameCache = new Map();
 
-async function getStallNameById(stallId) {
+async function getStallNameById(stallId, centreId = null) {
   if (!stallId) return "Unknown";
-  if (stallNameCache.has(stallId)) return stallNameCache.get(stallId);
+  const cacheKey = `${stallId}@@${centreId || ""}`;
+  if (stallNameCache.has(cacheKey)) return stallNameCache.get(cacheKey);
+
+  const pickName = (d) => (d?.stallName || d?.name || d?.title || "").trim();
 
   try {
-    const snap = await getDoc(doc(db, "stalls", stallId));
-    const name = snap.exists()
-      ? snap.data()?.stallName || "Unknown"
-      : "Unknown";
-    stallNameCache.set(stallId, name);
-    return name;
-  } catch {
-    return "Unknown";
+    // 1) top-level stalls/{stallId}
+    let snap = await getDoc(doc(db, "stalls", stallId));
+    if (snap.exists()) {
+      const d = snap.data() || {};
+      const name = pickName(d);
+      if (name) {
+        stallNameCache.set(cacheKey, name);
+        return name;
+      }
+      if (d.publicStallId) {
+        const snap2 = await getDoc(doc(db, "stalls", d.publicStallId));
+        if (snap2.exists()) {
+          const name2 = pickName(snap2.data());
+          if (name2) {
+            stallNameCache.set(cacheKey, name2);
+            return name2;
+          }
+        }
+      }
+    }
+
+    // 2) nested centres/{centreId}/stalls/{stallId}
+    if (centreId) {
+      const n = await getDoc(doc(db, "centres", centreId, "stalls", stallId));
+      if (n.exists()) {
+        const d = n.data() || {};
+        const name = pickName(d);
+        if (name) {
+          stallNameCache.set(cacheKey, name);
+          return name;
+        }
+        if (d.publicStallId) {
+          const snap2 = await getDoc(doc(db, "stalls", d.publicStallId));
+          if (snap2.exists()) {
+            const name2 = pickName(snap2.data());
+            if (name2) {
+              stallNameCache.set(cacheKey, name2);
+              return name2;
+            }
+          }
+        }
+      }
+    }
+  } catch (e) {
+    console.error("getStallNameById failed:", e);
   }
+
+  stallNameCache.set(cacheKey, "Unknown");
+  return "Unknown";
 }
 
 async function loadOrderHistorySummary(uid) {
@@ -397,7 +440,10 @@ async function loadOrderHistorySummary(uid) {
     // if the key looks like a stallId (long uid-ish), resolve to stallName
     const key =
       rawKey && rawKey.length > 20
-        ? await getStallNameById(o.stallId || o.stallID || rawKey)
+        ? await getStallNameById(
+            o.stallId || o.stallID || rawKey,
+            o.centreId || null,
+          )
         : rawKey;
 
     counts.set(key, (counts.get(key) || 0) + 1);
