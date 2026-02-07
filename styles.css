@@ -6269,8 +6269,16 @@ body.storePage #stallGrade.gradeD {
 }
 
 .orderStatusPill.stDone {
-  background: rgba(142, 142, 147, 0.16); /* gray */
-  border-color: rgba(142, 142, 147, 0.4);
+  background: #e8f7ee;
+  color: #1f7a3e;
+  border: 1px solid #bfe8cf;
+}
+
+/* Make the active "Completed" tab green */
+.ordersTab.isActive[data-tab="completed"] {
+  background: #e8f7ee;
+  border-color: #1f7a3e;
+  color: #1f7a3e;
 }
 
 .orderStatusPill.stDefault {

@@ -52,22 +52,42 @@ function stallCounterRef(stallId) {
 
 // Optional: if you stored prefix in stall doc, use that.
 // Otherwise this fallback makes "ST-000001"
-async function getOrderPrefixForStall(stallId) {
+async function getOrderPrefixForStall(stallId, centreId = null) {
   try {
-    const s = await getDoc(doc(db, "stalls", stallId));
+    // 1) top-level stalls/{stallId}
+    let s = await getDoc(doc(db, "stalls", stallId));
+
+    // 2) nested centres/{centreId}/stalls/{stallId}
+    if (!s.exists() && centreId) {
+      s = await getDoc(doc(db, "centres", centreId, "stalls", stallId));
+    }
+
     if (s.exists()) {
       const d = s.data() || {};
-      return (d.orderPrefix || d.prefix || d.code || "ST")
-        .toString()
-        .toUpperCase();
+      const raw =
+        d.orderPrefix ||
+        d.prefix ||
+        d.code ||
+        d.publicStallId || // ✅ common
+        d.publicId || // optional
+        "ST";
+
+      // keep prefix clean for order numbers (letters/numbers only)
+      return (
+        String(raw)
+          .toUpperCase()
+          .replace(/[^A-Z0-9]/g, "")
+          .slice(0, 4) || "ST"
+      );
     }
-  } catch {}
+  } catch (e) {}
+
   return "ST";
 }
 
 // Transaction: increment counter + return next orderNo string
-async function nextOrderNoForStall(stallId) {
-  const prefix = await getOrderPrefixForStall(stallId);
+async function nextOrderNoForStall(stallId, centreId = null) {
+  const prefix = await getOrderPrefixForStall(stallId, centreId);
   const ref = stallCounterRef(stallId);
 
   const next = await runTransaction(db, async (tx) => {
@@ -94,14 +114,23 @@ let lastPricing = {
 const userDocRef = (uid) => doc(db, "users", uid);
 const cartDocRef = (uid) => doc(db, "carts", uid);
 
-async function getStallNameById(stallId) {
+async function getStallNameById(stallId, centreId = null) {
   if (!stallId) return "";
+
+  const pickName = (d) => d?.stallName || d?.name || d?.title || "";
+
   try {
-    // ✅ If your collection is not called "stalls", change it here
-    const snap = await getDoc(doc(db, "stalls", stallId));
-    if (!snap.exists()) return "";
-    const d = snap.data();
-    return d.stallName || d.name || d.title || "";
+    // 1) Try top-level stalls/{stallId}
+    let snap = await getDoc(doc(db, "stalls", stallId));
+    if (snap.exists()) return pickName(snap.data());
+
+    // 2) Try nested centres/{centreId}/stalls/{stallId}
+    if (centreId) {
+      snap = await getDoc(doc(db, "centres", centreId, "stalls", stallId));
+      if (snap.exists()) return pickName(snap.data());
+    }
+
+    return "";
   } catch (e) {
     console.warn("getStallNameById failed:", e);
     return "";
@@ -794,7 +823,8 @@ document.addEventListener("click", async (e) => {
       // 1) Create one ORDER per stall
       for (const sid of stallIds) {
         const stallItems = itemsByStall.get(sid);
-        const stallName = await getStallNameById(sid);
+        const centreId = stallItems?.[0]?.centreId || null;
+        const stallName = await getStallNameById(sid, centreId);
 
         const subtotal = stallItems.reduce(
           (sum, it) => sum + Number(it.lineTotal || 0),
@@ -825,7 +855,7 @@ document.addEventListener("click", async (e) => {
 
         const orderPayload = {
           stallId: sid,
-          stallName: stallName || "",
+          ...(stallName ? { stallName } : {}),
 
           centreId: stallItems?.[0]?.centreId || null,
           centreName: stallItems?.[0]?.centreName || "",
@@ -868,8 +898,7 @@ document.addEventListener("click", async (e) => {
           },
         };
 
-        const orderNo = await nextOrderNoForStall(sid);
-
+        const orderNo = await nextOrderNoForStall(sid, centreId);
         const ref = await addDoc(collection(db, "orders"), {
           ...orderPayload,
           orderNo, // ✅ BEST UX ID stored in Firestore

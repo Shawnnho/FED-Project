@@ -17,6 +17,8 @@ import {
   query,
   where,
   getDocs,
+  doc,
+  getDoc,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* ✅ SAME config as your other files */
@@ -150,6 +152,44 @@ function wireTabs() {
   setTab("pending"); // default
 }
 
+async function enrichOrdersWithStallNames(orders) {
+  const cache = new Map(); // stallId -> stallName
+
+  for (const o of orders) {
+    if (String(o.stallName || "").trim()) continue;
+
+    const stallId = o.stallId || o.publicStallId || o.stall?.id;
+    if (!stallId) continue;
+
+    if (cache.has(stallId)) {
+      o.stallName = cache.get(stallId);
+      continue;
+    }
+
+    try {
+      const centreId = o.centreId || o.items?.[0]?.centreId || null;
+
+      let snap = await getDoc(doc(db, "stalls", stallId));
+      if (!snap.exists() && centreId) {
+        snap = await getDoc(doc(db, "centres", centreId, "stalls", stallId));
+      }
+
+      const name = snap.exists()
+        ? snap.data().stallName || snap.data().name || snap.data().title
+        : null;
+
+      if (String(name || "").trim()) {
+        cache.set(stallId, name);
+        o.stallName = name;
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  return orders;
+}
+
 function renderOrders(orders, checkoutIdFilter) {
   const bannerEl = document.getElementById("ordersBanner");
 
@@ -230,10 +270,10 @@ function renderOrders(orders, checkoutIdFilter) {
   // ----------------------------
   function cardHtml(o) {
     const stallName =
-      o.stallName ||
-      o.stall?.stallName ||
-      o.stall?.name ||
-      o.stall?.title ||
+      String(o.stallName || "").trim() ||
+      String(o.stall?.stallName || "").trim() ||
+      String(o.stall?.name || "").trim() ||
+      String(o.stall?.title || "").trim() ||
       "Unknown Stall";
 
     const paymentType = prettyPayMethod(o.payment?.method);
@@ -309,7 +349,8 @@ onAuthStateChanged(auth, async (user) => {
 
   try {
     const checkoutIdFilter = getQueryParam("checkoutId");
-    const orders = await loadOrdersForOwner(user.uid, checkoutIdFilter);
+    let orders = await loadOrdersForOwner(user.uid, checkoutIdFilter);
+    orders = await enrichOrdersWithStallNames(orders);
     const state = { orders, checkoutId: checkoutIdFilter };
     wireFilters(state);
     wireTabs();
