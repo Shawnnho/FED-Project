@@ -1,5 +1,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   getFirestore,
   collection,
@@ -96,7 +99,11 @@ function calculateGrade(score) {
 function formatDate(timestamp) {
   if (!timestamp) return "—";
   const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-  return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  return date.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 }
 
 // Calculate days remaining for license
@@ -120,7 +127,11 @@ function getLicenseStatus(daysRemaining) {
 function formatLicenseDate(timestamp) {
   if (!timestamp) return "—";
   const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  return date.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 }
 
 // Listen for auth changes
@@ -133,7 +144,7 @@ onAuthStateChanged(auth, async (user) => {
         currentUser = {
           uid: user.uid,
           role: userData.role || "customer",
-          stallId: userData.stallId || null
+          stallId: userData.stallId || null,
         };
         userRole = currentUser.role;
         userStallId = currentUser.stallId;
@@ -155,7 +166,7 @@ function applyRoleSpecificUI() {
   // Hide stall selector for storeholder (they only see their own stall)
   if (userRole === "storeholder") {
     if (stallSelect) {
-      stallSelect.closest('.selectCard')?.style.setProperty('display', 'none');
+      stallSelect.closest(".selectCard")?.style.setProperty("display", "none");
     }
   }
 
@@ -168,7 +179,8 @@ function applyRoleSpecificUI() {
 async function loadStalls() {
   // Show loading state
   if (stallSelect) {
-    stallSelect.innerHTML = '<option value="" disabled selected>Loading stalls...</option>';
+    stallSelect.innerHTML =
+      '<option value="" disabled selected>Loading stalls...</option>';
   }
 
   // Get ID from URL if present
@@ -203,14 +215,13 @@ async function loadStalls() {
             name: data.stallName || data.name || "Unknown Stall",
             grade: data.hygieneGrade || data.grade || "B",
             licenseIssued: data.licenseIssued,
-            licenseExpiry: data.licenseExpiry
+            licenseExpiry: data.licenseExpiry,
           });
         }
       });
     }
 
-    stallsCache = stallsList.sort((a,b) => a.name.localeCompare(b.name));
-
+    stallsCache = stallsList.sort((a, b) => a.name.localeCompare(b.name));
   } catch (err) {
     console.error("Error loading stalls:", err);
     stallsCache = [];
@@ -219,14 +230,14 @@ async function loadStalls() {
   // For storeholder, filter to only their stall
   let displayStalls = stallsCache;
   if (userRole === "storeholder" && userStallId) {
-    displayStalls = stallsCache.filter(s => s.id === userStallId);
+    displayStalls = stallsCache.filter((s) => s.id === userStallId);
   }
 
   // Populate Select (skip for storeholder since it's hidden)
   if (stallSelect && userRole !== "storeholder") {
-    stallSelect.innerHTML = `<option value="" disabled ${!preselectId ? 'selected' : ''}>Select Stall</option>`;
+    stallSelect.innerHTML = `<option value="" disabled ${!preselectId ? "selected" : ""}>Select Stall</option>`;
 
-    displayStalls.forEach(s => {
+    displayStalls.forEach((s) => {
       const opt = document.createElement("option");
       opt.value = s.id;
       opt.textContent = s.name;
@@ -246,7 +257,7 @@ async function loadStalls() {
     const stall = displayStalls[0];
     renderStallData(stall.id, stall.grade);
   } else if (preselectId) {
-    const stall = displayStalls.find(s => s.id === preselectId);
+    const stall = displayStalls.find((s) => s.id === preselectId);
     if (stall) {
       renderStallData(preselectId, stall.grade);
     }
@@ -257,7 +268,7 @@ async function renderStallData(stallId, currentGrade) {
   currentStallId = stallId;
 
   // Get full stall data for license info
-  const stallData = stallsCache.find(s => s.id === stallId);
+  const stallData = stallsCache.find((s) => s.id === stallId);
   const licenseIssued = stallData?.licenseIssued;
   const licenseExpiry = stallData?.licenseExpiry;
 
@@ -289,7 +300,10 @@ function renderLicenseValidity(issuedTs, expiryTs) {
   const daysRemaining = getLicenseDaysRemaining(expiryTs);
   const status = getLicenseStatus(daysRemaining);
 
-  licDays.textContent = daysRemaining >= 0 ? `${daysRemaining} Days` : `${Math.abs(daysRemaining)} Days Overdue`;
+  licDays.textContent =
+    daysRemaining >= 0
+      ? `${daysRemaining} Days`
+      : `${Math.abs(daysRemaining)} Days Overdue`;
   licStatus.textContent = status.text;
   licStatus.className = `licenseTag ${status.class}`;
 
@@ -299,7 +313,10 @@ function renderLicenseValidity(issuedTs, expiryTs) {
   const expiry = expiryTs.toDate ? expiryTs.toDate() : new Date(expiryTs);
   const totalDuration = expiry - issued;
   const elapsed = now - issued;
-  const progressPct = Math.max(0, Math.min(100, (elapsed / totalDuration) * 100));
+  const progressPct = Math.max(
+    0,
+    Math.min(100, (elapsed / totalDuration) * 100),
+  );
 
   licFill.style.width = `${progressPct}%`;
   licIssue.textContent = `Issued: ${formatLicenseDate(issuedTs)}`;
@@ -313,16 +330,16 @@ async function loadInspectionData(stallId, currentGrade) {
       const qUpcoming = query(
         collection(db, "inspections"),
         where("stallId", "==", stallId),
-        where("status", "==", "scheduled")
+        where("status", "==", "scheduled"),
       );
       const snapUpcoming = await getDocs(qUpcoming);
-      
+
       if (!snapUpcoming.empty) {
         // Show newest scheduled
         const upcoming = snapUpcoming.docs
-          .map(d => d.data())
+          .map((d) => d.data())
           .sort((a, b) => new Date(a.date) - new Date(b.date))[0]; // Earliest scheduled
-        
+
         upcomingDate.textContent = formatDate(upcoming.dateTs || upcoming.date);
         upcomingOfficer.textContent = `Officer: ${upcoming.officer}`;
         upcomingCard.style.display = "block";
@@ -337,43 +354,58 @@ async function loadInspectionData(stallId, currentGrade) {
     const inspectionsQuery = query(
       collection(db, "inspections"),
       where("stallId", "==", stallId),
-      where("status", "==", "completed")
+      where("status", "==", "completed"),
     );
     const snap = await getDocs(inspectionsQuery);
 
     if (snap.empty) {
       // No inspections - show empty state
-      chartWrap.innerHTML = '<p class="chartEmpty">No inspection records yet</p>';
+      chartWrap.querySelectorAll(".chartCol").forEach((n) => n.remove());
+      const empty = chartWrap.querySelector(".chartEmpty");
+      if (empty) {
+        empty.textContent = "No inspection records yet";
+        empty.style.display = "block";
+      }
       chartFooter.innerHTML = "";
-      historyRows.innerHTML = '<div class="emptyState" style="padding:20px; font-size:14px;">No inspection history available</div>';
+      historyRows.innerHTML =
+        '<div class="emptyState" style="padding:20px; font-size:14px;">No inspection history available</div>';
       return;
     }
 
     // Sort by date descending
     const inspections = snap.docs
-      .map(d => d.data())
+      .map((d) => d.data())
       .sort((a, b) => {
-        const dateA = a.dateTs?.toDate ? a.dateTs.toDate() : new Date(a.dateTs || 0);
-        const dateB = b.dateTs?.toDate ? b.dateTs.toDate() : new Date(b.dateTs || 0);
+        const dateA = a.dateTs?.toDate
+          ? a.dateTs.toDate()
+          : new Date(a.dateTs || 0);
+        const dateB = b.dateTs?.toDate
+          ? b.dateTs.toDate()
+          : new Date(b.dateTs || 0);
         return dateB - dateA;
       });
 
     // Get trend data (last 5 inspections, reversed for oldest to newest)
-    const trendData = inspections.slice(0, 5).reverse().map(insp => {
-      const date = insp.dateTs?.toDate ? insp.dateTs.toDate() : new Date(insp.dateTs || 0);
-      return {
-        year: String(date.getFullYear()),
-        score: insp.score,
-        grade: insp.grade,
-      };
-    });
+    const trendData = inspections
+      .slice(0, 5)
+      .reverse()
+      .map((insp) => {
+        const date = insp.dateTs?.toDate
+          ? insp.dateTs.toDate()
+          : new Date(insp.dateTs || 0);
+        return {
+          year: String(date.getFullYear()),
+          score: insp.score,
+          grade: insp.grade,
+        };
+      });
 
     // Get history data (all inspections, already sorted newest first)
-    const historyData = inspections.map(insp => ({
+    const historyData = inspections.map((insp) => ({
       date: formatDate(insp.dateTs),
       score: insp.score,
       grade: insp.grade,
-      remarks: insp.remarks || "No remarks provided"
+      remarks: insp.remarks || "No remarks provided",
     }));
 
     // Render chart
@@ -399,31 +431,57 @@ async function loadInspectionData(stallId, currentGrade) {
     } else {
       chartFooter.innerHTML = "";
     }
-
   } catch (err) {
     console.error("Error loading inspection data:", err);
-    chartWrap.innerHTML = '<p class="chartEmpty">Error loading inspection data</p>';
+    chartWrap.querySelectorAll(".chartCol").forEach((n) => n.remove());
+    const empty = chartWrap.querySelector(".chartEmpty");
+    if (empty) {
+      empty.textContent = "Error loading inspection data";
+      empty.style.display = "block";
+    }
+
     chartFooter.innerHTML = "";
-    historyRows.innerHTML = '<div class="emptyState" style="padding:20px; font-size:14px;">Error loading history</div>';
+    historyRows.innerHTML =
+      '<div class="emptyState" style="padding:20px; font-size:14px;">Error loading history</div>';
   }
 }
 
 function renderChart(trend, currentGrade) {
-  // Clear old bars (keep grid)
-  const grid = chartWrap.querySelector(".chartGrid");
-  chartWrap.innerHTML = "";
-  chartWrap.appendChild(grid);
+  // 1) ensure grid exists (because you sometimes replace chartWrap.innerHTML)
+  let grid = chartWrap.querySelector(".chartGrid");
+  if (!grid) {
+    chartWrap.innerHTML = `
+      <div class="chartGrid">
+        <div class="chartLine"></div>
+        <div class="chartLine"></div>
+        <div class="chartLine"></div>
+        <div class="chartLine"></div>
+      </div>
+      <p class="chartEmpty" style="display:none;"></p>
+    `;
+    grid = chartWrap.querySelector(".chartGrid");
+  }
 
+  // 2) remove old bars only (DON'T nuke innerHTML)
+  chartWrap.querySelectorAll(".chartCol").forEach((n) => n.remove());
+
+  // 3) hide empty/error text if present
+  const empty = chartWrap.querySelector(".chartEmpty");
+  if (empty) empty.style.display = "none";
+
+  // 4) draw bars
   trend.forEach((t) => {
     const col = document.createElement("div");
     col.className = "chartCol";
 
     const bg = getGradeColor(t.grade);
-    const heightPct = t.score; // 0 to 100
+    const heightPct = Number(t.score || 0);
 
     col.innerHTML = `
       <div class="chartBar" style="height: ${heightPct}%; background: ${bg};">
-        <div class="chartValue" style="bottom: 100%; margin-bottom: 4px; color:${bg}">${t.date}</div>
+        <div class="chartValue" style="bottom: 100%; margin-bottom: 4px; color:${bg}">
+          ${t.year}
+        </div>
       </div>
       <div class="chartLabel">${t.year}</div>
     `;
@@ -454,7 +512,7 @@ if (viewHistoryBtn) {
   viewHistoryBtn.addEventListener("click", () => {
     if (currentStallId) {
       // Get centreId from cache for navigation
-      const stallData = stallsCache.find(s => s.id === currentStallId);
+      const stallData = stallsCache.find((s) => s.id === currentStallId);
       const centreId = stallData?.centreId || "";
       window.location.href = `hygiene-history.html?id=${currentStallId}&centreId=${centreId}`;
     } else {
@@ -468,7 +526,7 @@ if (viewTrendBtn) {
   viewTrendBtn.addEventListener("click", () => {
     if (currentStallId) {
       // Get centreId from cache for navigation
-      const stallData = stallsCache.find(s => s.id === currentStallId);
+      const stallData = stallsCache.find((s) => s.id === currentStallId);
       const centreId = stallData?.centreId || "";
       window.location.href = `hygiene-trend.html?id=${currentStallId}&centreId=${centreId}`;
     } else {
