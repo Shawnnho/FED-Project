@@ -12,8 +12,8 @@ import {
   collection,
   query,
   where,
-  orderBy,
   setDoc,
+  addDoc,
   Timestamp,
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -31,31 +31,36 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
-
-/* =========================
-   State
-========================= */
+// State
 let UID = null;
 let USERDOC = null;
 
-let CENTRES = []; // centres owned by operator
+let CENTRES = [];
 let SELECTED_CENTRE_ID = null;
 
 let stallsRaw = [];
 let rentalsRaw = [];
-let ordersRaw = []; // for revenue
-let billsByStall = {}; // { [stallId]: operatorBillForMonth }
+let ordersRaw = [];
 
+let billsByStall = {}; 
 let stallFilter = "all";
 
-/* =========================
-   Helpers
-========================= */
+
+let modalStalls = []; 
+
+
+   // Helpers
+
+const safeLower = (x) => String(x || "").toLowerCase();
+
+function getMonthKey(date = new Date()) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  return `${y}-${m}`; // YYYY-MM
+}
+
 function parseYMD(s) {
-  // "2026-02-05" -> local date (not UTC)
-  const [y, m, d] = String(s || "")
-    .split("-")
-    .map(Number);
+  const [y, m, d] = String(s || "").split("-").map(Number);
   if (!y || !m || !d) return null;
   return new Date(y, m - 1, d);
 }
@@ -71,15 +76,11 @@ function formatYMD(dateObj) {
 function computeEndInclusiveFromStart(startYMD) {
   const start = parseYMD(startYMD);
   if (!start) return "-";
-
   const end = new Date(start);
-  end.setMonth(end.getMonth() + 1); // ✅ +1 month
-  end.setDate(end.getDate() - 1); // inclusive end
-
+  end.setMonth(end.getMonth() + 1);
+  end.setDate(end.getDate() - 1);
   return formatYMD(end);
 }
-
-const safeLower = (x) => String(x || "").toLowerCase();
 
 function setBadge(id, count) {
   const el = document.getElementById(id);
@@ -122,9 +123,20 @@ function centreNameById(id) {
   return c?.name || id;
 }
 
-/* =========================
-   Auth + Role guard
-========================= */
+// stallId safety check 
+function looksLikeUid(id) {
+  return typeof id === "string" && id.length >= 20 && !id.includes("-");
+}
+
+// pick a usable stall id for operatorBills path
+function canonicalStallIdFromStallDoc(stallDocId, stallData) {
+  const publicId = stallData?.publicStallId;
+  if (!looksLikeUid(stallDocId)) return stallDocId;
+  if (publicId && !looksLikeUid(publicId)) return publicId;
+  return stallDocId;
+}
+
+// For Authentication one
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = "index.html";
@@ -150,24 +162,21 @@ onAuthStateChanged(auth, async (user) => {
   }
 
   const opUserLine = document.getElementById("opUserLine");
-  if (opUserLine)
-    opUserLine.textContent = USERDOC.name || user.email || "Operator";
+  if (opUserLine) opUserLine.textContent = USERDOC.name || user.email || "Operator";
 
   await loadCentres();
-  await preloadRevenueForCentres(); // loads orders once and computes revenue per centre
+  await preloadRevenueForCentres();
   renderCentres();
   updateOverview();
   switchTab("centres");
 });
 
-/* =========================
-   Centres
-   centres/{centreId}.operatorId == UID
-========================= */
+
+//   Centres
+
 async function loadCentres() {
   const sel = document.getElementById("centreSelect");
-  if (sel)
-    sel.innerHTML = `<option value="" disabled selected>Loading centres...</option>`;
+  if (sel) sel.innerHTML = `<option value="" disabled selected>Loading centres...</option>`;
 
   const q1 = query(collection(db, "centres"), where("operatorId", "==", UID));
   const snap = await getDocs(q1);
@@ -207,16 +216,12 @@ window.onCentreChange = async () => {
   await loadRentals();
 };
 
-/* =========================
-   Tab switching
-========================= */
+
+   // Tab switching
+
 window.switchTab = async (tabName) => {
-  document
-    .querySelectorAll(".op-tab")
-    .forEach((el) => el.classList.remove("active"));
-  document
-    .querySelectorAll(".op-menu li")
-    .forEach((el) => el.classList.remove("active"));
+  document.querySelectorAll(".op-tab").forEach((el) => el.classList.remove("active"));
+  document.querySelectorAll(".op-menu li").forEach((el) => el.classList.remove("active"));
 
   const tab = document.getElementById(`tab-${tabName}`);
   if (tab) tab.classList.add("active");
@@ -237,63 +242,49 @@ window.switchTab = async (tabName) => {
   if (tabName === "rentals") await loadRentals();
 };
 
-/* =========================
-   Revenue (orders)
-   orders: { centreId, total, createdAt }
-========================= */
+
+   // Revenue (orders)
+
 async function preloadRevenueForCentres() {
-  // Build map: stallId -> centreId for centres owned by this operator
   const stallToCentre = {};
 
   await Promise.all(
     CENTRES.map(async (c) => {
-      const stallsSnap = await getDocs(
-        collection(db, "centres", c.id, "stalls"),
-      );
+      const stallsSnap = await getDocs(collection(db, "centres", c.id, "stalls"));
       stallsSnap.forEach((d) => {
         const s = d.data() || {};
+        // Map UID stall doc id (most common stored in orders)
+        stallToCentre[d.id] = c.id;
 
-        // use your canonical stall doc id (e.g. "asia-wok", "fat-buddies")
-        const stallId = s.publicStallId;
 
-        if (stallId) {
-          stallToCentre[stallId] = c.id;
-        }
+        if (s.publicStallId) stallToCentre[s.publicStallId] = c.id;
+
       });
-    }),
+    })
   );
 
-  // Load orders once
   const ordersSnap = await getDocs(collection(db, "orders"));
   ordersRaw = ordersSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
-  // Sum revenue per centre
   const byCentre = {};
-
   for (const o of ordersRaw) {
-    // Only completed
     const status = String(o.status || "").toLowerCase();
     if (status !== "completed") continue;
 
-    // Your order has stallId at root
     const stallId = o.stallId;
     const centreId = stallToCentre[stallId];
-    if (!centreId) continue; // skip orders not belonging to this operator's centres
+    if (!centreId) continue;
 
-    // Your order total is pricing.total
-    const total = Number(o.pricing?.total ?? 0);
+    const total = Number(o.pricing?.total ?? o.total ?? o.totalAmount ?? 0);
     if (!Number.isFinite(total)) continue;
 
     byCentre[centreId] = (byCentre[centreId] || 0) + total;
   }
 
-  // Attach back to centres
   CENTRES = CENTRES.map((c) => ({ ...c, revenue: byCentre[c.id] || 0 }));
 }
 
-/* =========================
-   Centres UI
-========================= */
+// Centre UI
 window.renderCentres = async () => {
   const list = document.getElementById("centreList");
   if (!list) return;
@@ -303,14 +294,11 @@ window.renderCentres = async () => {
 
   let items = CENTRES.slice();
 
-  if (q) {
-    items = items.filter((c) => safeLower(c.name || c.id).includes(q));
-  }
+  if (q) items = items.filter((c) => safeLower(c.name || c.id).includes(q));
 
   items.sort((a, b) => {
     const A = safeLower(a.name || a.id);
     const B = safeLower(b.name || b.id);
-
     if (sortMode === "za") return B.localeCompare(A);
     if (sortMode === "revenueDesc") return (b.revenue || 0) - (a.revenue || 0);
     if (sortMode === "revenueAsc") return (a.revenue || 0) - (b.revenue || 0);
@@ -365,17 +353,13 @@ window.selectCentreAndGo = async (centreId, tab) => {
 };
 
 async function updateOverview() {
-  // total stalls and active stalls across all centres
   let totalStalls = 0;
   let activeStalls = 0;
   let totalRentals = 0;
   let totalRevenue = 0;
 
-  // revenue
   for (const c of CENTRES) totalRevenue += Number(c.revenue || 0);
 
-  // stalls + rentals (we’ll aggregate by reading per centre)
-  // (fine for school project size; if huge, we can optimize later)
   for (const c of CENTRES) {
     const stallsSnap = await getDocs(collection(db, "centres", c.id, "stalls"));
     const stalls = stallsSnap.docs.map((d) => d.data());
@@ -383,7 +367,7 @@ async function updateOverview() {
     activeStalls += stalls.filter((s) => s.active !== false).length;
 
     const rentalsSnap = await getDocs(
-      query(collection(db, "rentalAgreements"), where("centreId", "==", c.id)),
+      query(collection(db, "rentalAgreements"), where("centreId", "==", c.id))
     );
     totalRentals += rentalsSnap.size;
   }
@@ -405,7 +389,6 @@ async function updateOverview() {
 
 /* =========================
    Stalls (per selected centre)
-   centres/{centreId}/stalls
 ========================= */
 async function loadStalls() {
   const list = document.getElementById("stallList");
@@ -415,9 +398,7 @@ async function loadStalls() {
   }
   if (list) list.innerHTML = "<p>Loading stalls...</p>";
 
-  const snap = await getDocs(
-    collection(db, "centres", SELECTED_CENTRE_ID, "stalls"),
-  );
+  const snap = await getDocs(collection(db, "centres", SELECTED_CENTRE_ID, "stalls"));
   stallsRaw = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
   renderStalls();
@@ -430,8 +411,8 @@ window.setStallFilter = (mode) => {
     mode === "all"
       ? "stallFilterAll"
       : mode === "active"
-        ? "stallFilterActive"
-        : "stallFilterInactive",
+      ? "stallFilterActive"
+      : "stallFilterInactive"
   );
   renderStalls();
 };
@@ -454,8 +435,7 @@ window.renderStalls = () => {
 
   if (q) {
     items = items.filter(
-      (s) =>
-        safeLower(s.stallName).includes(q) || safeLower(s.cuisine).includes(q),
+      (s) => safeLower(s.stallName).includes(q) || safeLower(s.cuisine).includes(q)
     );
   }
 
@@ -491,13 +471,8 @@ window.renderStalls = () => {
 
 /* =========================
    Rentals (per selected centre)
-   rentalAgreements: { centreId, stallName, ownerName, monthlyRent, startDate, endDate, createdAt }
+   + Monthly bills for CURRENT monthKey
 ========================= */
-
-function looksLikeUid(id) {
-  return typeof id === "string" && id.length >= 20 && !id.includes("-");
-}
-
 async function loadRentals() {
   const list = document.getElementById("rentalList");
   if (!SELECTED_CENTRE_ID) {
@@ -506,47 +481,35 @@ async function loadRentals() {
   }
   if (list) list.innerHTML = "<p>Loading agreements...</p>";
 
-  const q1 = query(
-    collection(db, "rentalAgreements"),
-    where("centreId", "==", SELECTED_CENTRE_ID),
-  );
+  const q1 = query(collection(db, "rentalAgreements"), where("centreId", "==", SELECTED_CENTRE_ID));
   const snap = await getDocs(q1);
   rentalsRaw = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
-  const now = new Date();
-  const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const monthKey = getMonthKey(new Date());
+  billsByStall = {};
 
-  billsByStall = {}; // reset cache
+  for (const ra of rentalsRaw) {
+    if (!ra.stallId) continue;
 
-  for (const r of rentalsRaw) {
-    if (!r.stallId) continue;
+    // load the stall doc from top-level stalls collection
+    const stallSnap = await getDoc(doc(db, "stalls", ra.stallId));
+    const stallDocData = stallSnap.exists() ? stallSnap.data() : null;
+    const canonicalStallId = canonicalStallIdFromStallDoc(ra.stallId, stallDocData);
 
-    // 🚫 prevent creating stalls/{UID}
-    if (looksLikeUid(r.stallId)) {
-      console.warn(
-        "❌ rentalAgreements has UID stallId. Fix this rental doc:",
-        r.id,
-        r.stallId,
-      );
-      continue;
-    }
+    await ensureMonthlyBill(canonicalStallId, ra.monthlyRent, monthKey);
 
-    // auto-create bill if missing
-    await ensureMonthlyBill(r.stallId, r.monthlyRent);
-
-    const billSnap = await getDoc(
-      doc(db, "stalls", r.stallId, "operatorBills", monthKey),
-    );
-
-    billsByStall[r.stallId] = billSnap.exists() ? billSnap.data() : null;
+    const billSnap = await getDoc(doc(db, "stalls", canonicalStallId, "operatorBills", monthKey));
+    billsByStall[canonicalStallId] = billSnap.exists() ? billSnap.data() : null;
   }
 
-  renderRentals();
+  renderRentals(monthKey);
 }
 
-window.renderRentals = () => {
+window.renderRentals = (monthKeyOverride) => {
   const list = document.getElementById("rentalList");
   if (!list) return;
+
+  const monthKey = monthKeyOverride || getMonthKey(new Date());
 
   const q = safeLower(document.getElementById("rentalSearch")?.value || "");
   const sortMode = document.getElementById("rentalSort")?.value || "newest";
@@ -554,25 +517,25 @@ window.renderRentals = () => {
   let items = rentalsRaw.slice();
 
   if (q) {
-    items = items.filter((r) => {
+    items = items.filter((ra) => {
       return (
-        safeLower(r.stallName).includes(q) ||
-        safeLower(r.ownerName).includes(q) ||
-        safeLower(r.stallId).includes(q)
+        safeLower(ra.stallName).includes(q) ||
+        safeLower(ra.ownerName).includes(q) ||
+        safeLower(ra.stallId).includes(q)
       );
     });
   }
 
   items.sort((a, b) => {
-    if (sortMode === "rentDesc")
-      return Number(b.monthlyRent || 0) - Number(a.monthlyRent || 0);
-    if (sortMode === "rentAsc")
-      return Number(a.monthlyRent || 0) - Number(b.monthlyRent || 0);
+    if (sortMode === "rentDesc") return Number(b.monthlyRent || 0) - Number(a.monthlyRent || 0);
+    if (sortMode === "rentAsc") return Number(a.monthlyRent || 0) - Number(b.monthlyRent || 0);
 
     const A = toMs(a.createdAt);
     const B = toMs(b.createdAt);
     return sortMode === "oldest" ? A - B : B - A;
   });
+
+  setBadge("badgeRentals", items.length);
 
   if (items.length === 0) {
     list.innerHTML = "<p>No rental agreements found.</p>";
@@ -580,88 +543,79 @@ window.renderRentals = () => {
   }
 
   list.innerHTML = items
-    .map((r) => {
-      // 🚫 hide rentals with bad (UID) stallId so you can't save bills into stalls/{UID}
-      if (looksLikeUid(r.stallId)) {
-        console.warn("Hiding rental with UID stallId:", r.id, r.stallId);
-        return `<div class="ra-card"><p style="color:red">
-Bad rentalAgreement: stallId is UID (${r.stallId}). Fix rentalAgreements/${r.id}.
-</p></div>`;
-      }
-      const bill = billsByStall[r.stallId] || {};
-      const rent = money(r.monthlyRent || 0);
-      const start = r.startDate || "-";
-      const end = computeEndInclusiveFromStart(r.startDate);
+    .map((ra) => {
+      const start = ra.startDate || "-";
+      const end = computeEndInclusiveFromStart(ra.startDate);
+
+      const canonicalStallId = ra.stallId; 
+      const bill = billsByStall[canonicalStallId] || {};
 
       return `
-  <div class="ra-card">
-    <div class="ra-left">
-      <h4>${r.stallName || "Unknown Stall"}</h4>
-      <p>Owner: <b>${r.ownerName || "-"}</b></p>
-      <p class="muted">Stall ID: <b>${r.stallId || "-"}</b></p>
+        <div class="ra-card">
+          <div class="ra-left">
+            <h4>${ra.stallName || "Unknown Stall"}</h4>
+            <p>Unit No: <b>${ra.unitNo || "-"}</b></p>
+            <p class="muted">Stall ID: <b>${canonicalStallId || "-"}</b></p>
+            <p class="muted">Owner UID: <b>${ra.ownerUid || "-"}</b></p>
 
-      <div class="item-meta">
-        <span>Start: ${start}</span>
-        <span>End: ${end}</span>
-      </div>
-    </div>
-
-    <div class="ra-right">
-      <div class="bill-panel">
-        <div class="bill-title">Monthly Bill</div>
-
-        <div class="bill-grid">
-          <label class="bill-field bill-span-2">
-            <span>Rent</span>
-            <div class="bill-input-row">
-              <input id="rent-${r.id}" type="number"
-  value="${Number(bill.rent ?? r.monthlyRent ?? 0)}" />
-
-              <small>/month</small>
+            <div class="item-meta">
+              <span>Start: ${start}</span>
+              <span>End: ${end}</span>
             </div>
-          </label>
+          </div>
 
-          <label class="bill-field">
-            <span>Utilities</span>
-            <input id="util-${r.id}" type="number" value="${Number(bill.utilities ?? 0)}" />
-          </label>
+          <div class="ra-right">
+            <div class="bill-panel">
+              <div class="bill-title">Monthly Bill (${monthKey})</div>
 
-          <label class="bill-field">
-            <span>Cleaning</span>
-           <input id="clean-${r.id}" type="number" value="${Number(bill.cleaningFee ?? 0)}" />
-          </label>
+              <div class="bill-grid">
+                <label class="bill-field bill-span-2">
+                  <span>Rent</span>
+                  <div class="bill-input-row">
+                    <input id="rent-${ra.id}" type="number"
+                      value="${Number(bill.rent ?? ra.monthlyRent ?? 0)}" />
+                    <small>/month</small>
+                  </div>
+                </label>
 
-          <label class="bill-field">
-            <span>Penalty</span>
-          <input id="pen-${r.id}" type="number" value="${Number(bill.penalty ?? 0)}" />
-          </label>
+                <label class="bill-field">
+                  <span>Utilities</span>
+                  <input id="util-${ra.id}" type="number" value="${Number(bill.utilities ?? 0)}" />
+                </label>
 
-          <label class="bill-field">
-            <span>Other</span>
-            <input id="other-${r.id}" type="number" value="${Number(bill.other ?? 0)}" />
-          </label>
+                <label class="bill-field">
+                  <span>Cleaning</span>
+                  <input id="clean-${ra.id}" type="number" value="${Number(bill.cleaningFee ?? 0)}" />
+                </label>
+
+                <label class="bill-field">
+                  <span>Penalty</span>
+                  <input id="pen-${ra.id}" type="number" value="${Number(bill.penalty ?? 0)}" />
+                </label>
+
+                <label class="bill-field">
+                  <span>Other</span>
+                  <input id="other-${ra.id}" type="number" value="${Number(bill.other ?? 0)}" />
+                </label>
+              </div>
+
+              <button class="bill-save" onclick="saveMonthlyBill('${canonicalStallId}', '${ra.id}', '${monthKey}')">
+                Save Monthly Bill
+              </button>
+            </div>
+          </div>
         </div>
-
-        <button class="bill-save" onclick="saveMonthlyBill('${r.stallId}', '${r.id}')">
-          Save Monthly Bill
-        </button>
-      </div>
-    </div>
-  </div>
-`;
+      `;
     })
     .join("");
 };
 
-async function ensureMonthlyBill(stallId, rent) {
-  const now = new Date();
-  const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-
+async function ensureMonthlyBill(stallId, rent, monthKey) {
   const ref = doc(db, "stalls", stallId, "operatorBills", monthKey);
   const snap = await getDoc(ref);
+  if (snap.exists()) return;
 
-  if (snap.exists()) return; // already created
-
+  const now = new Date();
   const dueDate = new Date(now.getFullYear(), now.getMonth(), 15);
 
   await setDoc(ref, {
@@ -679,11 +633,8 @@ async function ensureMonthlyBill(stallId, rent) {
   });
 }
 
-window.saveMonthlyBill = async (stallId, rentalDocId) => {
-  // month key like 2026-01
-  const now = new Date();
-  const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-
+window.saveMonthlyBill = async (stallId, rentalDocId, monthKey) => {
+  // monthKey is passed from button so UI & write are always same month
   try {
     const utilities = Number(document.getElementById(`util-${rentalDocId}`)?.value || 0);
     const cleaningFee = Number(document.getElementById(`clean-${rentalDocId}`)?.value || 0);
@@ -692,9 +643,10 @@ window.saveMonthlyBill = async (stallId, rentalDocId) => {
     const rent = Number(document.getElementById(`rent-${rentalDocId}`)?.value || 0);
 
     const total = rent + utilities + cleaningFee + penalty + other;
+
+    const now = new Date();
     const dueDate = new Date(now.getFullYear(), now.getMonth(), 15);
 
-    // ✅ ONLY the save is inside this try
     await setDoc(
       doc(db, "stalls", stallId, "operatorBills", monthKey),
       {
@@ -713,13 +665,13 @@ window.saveMonthlyBill = async (stallId, rentalDocId) => {
     );
 
     alert(`Saved operator bill for ${monthKey} (Stall ${stallId})`);
-
   } catch (err) {
     console.error("SAVE BILL FAILED:", err);
     alert(`Save failed: ${err.message}`);
-    return; // stop here if save failed
+    return;
   }
-  
+
+  // refresh list after save
   try {
     await loadRentals();
   } catch (err) {
@@ -728,9 +680,135 @@ window.saveMonthlyBill = async (stallId, rentalDocId) => {
 };
 
 
-/* =========================
-   Logout
-========================= */
+   // Add Rental Agreement (Modal)
+  
+
+window.openAddRentalModal = async () => {
+  if (!SELECTED_CENTRE_ID) {
+    alert("Select a centre first.");
+    return;
+  }
+
+  // show modal
+  const modal = document.getElementById("addRentalModal");
+  if (modal) modal.style.display = "grid";
+
+  // default start date to today
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  const startInput = document.getElementById("addRentalStartDate");
+  if (startInput) startInput.value = `${y}-${m}-${day}`;
+
+  await loadStallsForModal();
+};
+
+window.closeAddRentalModal = () => {
+  const modal = document.getElementById("addRentalModal");
+  if (modal) modal.style.display = "none";
+};
+
+async function loadStallsForModal() {
+  const sel = document.getElementById("addRentalStallSelect");
+  if (!sel) return;
+
+  sel.innerHTML = `<option value="" disabled selected>Loading stalls...</option>`;
+
+  //reads from top-level stalls collection
+  const q1 = query(collection(db, "stalls"), where("centreId", "==", SELECTED_CENTRE_ID));
+  const snap = await getDocs(q1);
+
+  modalStalls = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+  if (modalStalls.length === 0) {
+    sel.innerHTML = `<option value="" disabled selected>No stalls found for this centre</option>`;
+    return;
+  }
+
+  // build options
+  sel.innerHTML = `<option value="" disabled selected>Select stall...</option>`;
+  for (const s of modalStalls) {
+    const name = s.stallName || s.id;
+    const unit = s.unitNo ? ` (${s.unitNo})` : "";
+    sel.innerHTML += `<option value="${s.id}">${name}${unit}</option>`;
+  }
+
+  // if the stall has a owner name inputted
+  sel.onchange = () => {
+    const pickedId = sel.value;
+    const stall = modalStalls.find((x) => x.id === pickedId);
+    const ownerName = document.getElementById("addRentalOwnerName");
+    if (ownerName && stall?.ownerName) ownerName.value = stall.ownerName;
+
+    
+  };
+}
+
+window.createRentalAgreementFromModal = async () => {
+  if (!SELECTED_CENTRE_ID) return;
+
+  const sel = document.getElementById("addRentalStallSelect");
+  const stallDocId = sel?.value;
+  if (!stallDocId) {
+    alert("Pick a stall first.");
+    return;
+  }
+
+  const stall = modalStalls.find((x) => x.id === stallDocId) || {};
+
+  const ownerName = document.getElementById("addRentalOwnerName")?.value?.trim() || "";
+  const monthlyRent = Number(document.getElementById("addRentalMonthlyRent")?.value || 0);
+  const startDate = document.getElementById("addRentalStartDate")?.value || "";
+
+  if (!ownerName) {
+    alert("Owner name is required.");
+    return;
+  }
+  if (!startDate) {
+    alert("Start date is required.");
+    return;
+  }
+  if (!Number.isFinite(monthlyRent) || monthlyRent < 0) {
+    alert("Monthly rent must be 0 or more.");
+    return;
+  }
+
+  // stall id for bills + agreement
+  const canonicalStallId = canonicalStallIdFromStallDoc(stallDocId, stall);
+
+  try {
+    // Allow creating agreements even if one already exists:
+    
+    await addDoc(collection(db, "rentalAgreements"), {
+      centreId: SELECTED_CENTRE_ID,
+
+      // store the legit stallId so bill writes go to the correct path
+      stallId: canonicalStallId,
+
+      stallName: stall.stallName || canonicalStallId,
+      unitNo: stall.unitNo || "-",
+      ownerUid: stall.ownerUid || stall.ownerId || "", 
+      ownerName,
+      monthlyRent,
+      startDate,
+
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+
+    alert("Rental agreement created.");
+    closeAddRentalModal();
+
+    // refresh rentals list
+    await loadRentals();
+  } catch (err) {
+    console.error("CREATE RENTAL FAILED:", err);
+    alert(`Create rental failed: ${err.message}`);
+  }
+};
+
+// LogOut
 window.logoutOperator = async () => {
   try {
     await signOut(auth);
