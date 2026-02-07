@@ -51,9 +51,7 @@
       <div class="op-top">
         <div>
           <h2 id="centreTitle">Operator Dashboard</h2>
-          <p class="muted">
-            View your hawker centres, revenue, rental agreements and stalls.
-          </p>
+          <p class="muted">View your hawker centres, revenue, rental agreements and stalls.</p>
         </div>
 
         <div class="op-topRight">
@@ -146,6 +144,10 @@
       <section id="tab-rentals" class="op-tab">
         <div class="op-header">
           <h2>Rental Agreements (by Centre)</h2>
+
+          <button class="btn-mini primary" onclick="openAddRentalModal()">
+            <i class="fa-solid fa-plus"></i> Add Rental Agreement
+          </button>
         </div>
 
         <div class="op-card-container">
@@ -171,6 +173,53 @@
           </div>
         </div>
       </section>
+
+      <!-- ================= ADD RENTAL MODAL ================= -->
+      <div id="addRentalModal" class="modal-backdrop" style="display: none">
+        <div class="modal">
+          <div class="modal-head">
+            <h3 style="margin: 0">Add Rental Agreement</h3>
+            <button class="icon-btn" onclick="closeAddRentalModal()">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+
+          <p class="muted" style="margin-top: 6px">
+            Select an existing stall from Firestore (<code>stalls</code> collection).
+          </p>
+
+          <div class="modal-grid">
+            <label class="modal-field">
+              <span>Stall (from Firestore)</span>
+              <select id="addRentalStallSelect" class="std-input">
+                <option value="" disabled selected>Loading stalls...</option>
+              </select>
+            </label>
+
+            <label class="modal-field">
+              <span>Owner Name</span>
+              <input id="addRentalOwnerName" class="std-input" placeholder="e.g., Aishah Zahra" />
+            </label>
+
+            <label class="modal-field">
+              <span>Monthly Rent (SGD)</span>
+              <input id="addRentalMonthlyRent" class="std-input" type="number" min="0" />
+            </label>
+
+            <label class="modal-field">
+              <span>Start Date</span>
+              <input id="addRentalStartDate" class="std-input" type="date" />
+            </label>
+          </div>
+
+          <div class="modal-actions">
+            <button class="btn-mini gray" onclick="closeAddRentalModal()">Cancel</button>
+            <button class="btn-mini primary" onclick="createRentalAgreementFromModal()">
+              Create Agreement
+            </button>
+          </div>
+        </div>
+      </div>
     </main>
 
     <script type="module" src="operator.js"></script>
