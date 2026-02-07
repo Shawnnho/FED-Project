@@ -50,9 +50,11 @@ function stallCounterRef(stallId) {
   return doc(db, "counters", `orderNo_${stallId}`);
 }
 
-// Optional: if you stored prefix in stall doc, use that.
 // Otherwise this fallback makes "ST-000001"
 async function getOrderPrefixForStall(stallId, centreId = null) {
+  const readPrefix = (d) =>
+    (d?.orderPrefix || d?.orderPrefx || d?.prefix || d?.code || "").trim();
+
   try {
     // 1) top-level stalls/{stallId}
     let s = await getDoc(doc(db, "stalls", stallId));
@@ -64,21 +66,26 @@ async function getOrderPrefixForStall(stallId, centreId = null) {
 
     if (s.exists()) {
       const d = s.data() || {};
-      const raw =
-        d.orderPrefix ||
-        d.prefix ||
-        d.code ||
-        d.publicStallId || // ✅ common
-        d.publicId || // optional
-        "ST";
-
-      // keep prefix clean for order numbers (letters/numbers only)
-      return (
-        String(raw)
+      const p1 = readPrefix(d);
+      if (p1)
+        return p1
           .toUpperCase()
           .replace(/[^A-Z0-9]/g, "")
-          .slice(0, 4) || "ST"
-      );
+          .slice(0, 4);
+
+      // ✅ if this doc is an "ownerUid doc", jump to slug doc
+      const slug = (d.publicStallId || "").trim(); // e.g. "kopi-fellas"
+      if (slug) {
+        const s2 = await getDoc(doc(db, "stalls", slug));
+        if (s2.exists()) {
+          const p2 = readPrefix(s2.data());
+          if (p2)
+            return p2
+              .toUpperCase()
+              .replace(/[^A-Z0-9]/g, "")
+              .slice(0, 4);
+        }
+      }
     }
   } catch (e) {}
 
@@ -395,7 +402,7 @@ function updateBadges(count) {
 function mergeCarts(existing = [], incoming = []) {
   // Merge by: stallId + itemId + addons + required + note (so different options stay separate)
   const key = (x) =>
-    `${x.stallId || ""}|${x.itemId || x.id || x.name || ""}|` +
+    `${x.stallId || ""}|${x.itemId || x.menuItemId || x.productId || x.id || x.name || ""}|` +
     `${x.variantKey || ""}|${(x.variantLabel || "").trim()}|` +
     `${JSON.stringify(x.addons || [])}|${JSON.stringify(x.required || [])}|${(x.note || "").trim()}`;
 
