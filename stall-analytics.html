@@ -114,17 +114,11 @@
 
           <!-- Filters row -->
           <div class="anFilters">
-            <select class="anSelect" id="dateRangeMode">
-              <option value="range">Date Range</option>
-              <option value="today">Today</option>
-              <option value="week">This Week</option>
-              <option value="month">This Month</option>
-            </select>
-
-            <select class="anSelect" id="datePreset">
+            <select id="datePreset">
               <option value="today">Today</option>
               <option value="yesterday">Yesterday</option>
-              <option value="last7">Last 7 days</option>
+              <option value="last7">Last 7 Days</option>
+              <option value="month">This Month</option>
             </select>
 
             <div class="anToggle">
@@ -136,7 +130,7 @@
             </div>
 
             <button class="anIconBtn" id="chartModeBtn" title="Chart">
-              📊
+              <img src="images/icon-chart.svg" alt="Chart Icon" />
             </button>
 
             <button class="anSaveBtn" id="saveBtn">Save</button>

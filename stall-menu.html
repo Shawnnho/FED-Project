@@ -77,7 +77,8 @@
 
               <div style="display: flex; gap: 10px; align-items: center">
                 <button class="btn small primary" id="btnAdd" type="button">
-                  ➕ Add New Item
+                  <img src="images/plus.png" alt="plus" />
+                   Add New Item
                 </button>
                 <div class="status" id="status" aria-live="polite"></div>
               </div>
@@ -152,6 +153,16 @@
           <div class="hpModalRow">
             <label class="hpModalLabel">Item Name</label>
             <input id="editName" class="hpModalInput" />
+          </div>
+
+          <div class="hpModalRow">
+            <label class="hpModalLabel">Description</label>
+            <textarea
+              id="editDesc"
+              class="hpModalInput"
+              rows="3"
+              placeholder="Short description (optional)"
+            ></textarea>
           </div>
 
           <div class="hpModalRow">

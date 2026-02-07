@@ -79,6 +79,7 @@ const editClose = document.getElementById("closeEditMenu");
 const editName = document.getElementById("editName");
 const editPrice = document.getElementById("editPrice");
 const editImg = document.getElementById("editImg");
+const editDesc = document.getElementById("editDesc");
 const editImgPreview = document.getElementById("editImgPreview");
 const deleteItemBtn = document.getElementById("deleteItemBtn");
 const saveEditBtn = document.getElementById("saveEditBtn");
@@ -158,70 +159,6 @@ function renderAddonsList(addonsAll, selectedIds) {
     .join("");
 }
 
-function ensureEditPriceFields(show) {
-  const body = editModal?.querySelector(".hpModalBody");
-  if (!body) return null;
-
-  // ✅ declare ONCE
-  let wrap = document.getElementById("editPricesWrap");
-
-  // If stall does NOT support size pricing → remove block
-  if (!show) {
-    if (wrap) wrap.remove();
-    return null;
-  }
-
-  // If already exists → reuse
-  if (wrap) return wrap;
-
-  // Otherwise create
-  wrap = document.createElement("div");
-  wrap.id = "editPricesWrap";
-  wrap.className = "hpModalRow";
-  wrap.style.marginTop = "10px";
-
-  wrap.innerHTML = `
-    <label class="hpModalLabel">Multi-size prices (optional)</label>
-
-    <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:10px;">
-      <input id="editHot" class="hpModalInput" placeholder="Hot price" inputmode="decimal" />
-      <input id="editColdS" class="hpModalInput" placeholder="Cold (S) price" inputmode="decimal" />
-      <input id="editColdM" class="hpModalInput" placeholder="Cold (M) price" inputmode="decimal" />
-      <input id="editColdL" class="hpModalInput" placeholder="Cold (L) price" inputmode="decimal" />
-    </div>
-
-    <div class="muted" style="margin-top:8px; font-size:12px;">
-      Only shown for stalls that support multi-size pricing.
-    </div>
-  `;
-
-  body.appendChild(wrap);
-  return wrap;
-}
-
-function readPricesFromEdit() {
-  const hot = parseMoney(document.getElementById("editHot")?.value);
-  const cold_s = parseMoney(document.getElementById("editColdS")?.value);
-  const cold_m = parseMoney(document.getElementById("editColdM")?.value);
-  const cold_l = parseMoney(document.getElementById("editColdL")?.value);
-
-  // keep only valid > 0 values
-  const prices = {};
-  if (hot > 0) prices.hot = hot;
-  if (cold_s > 0) prices.cold_s = cold_s;
-  if (cold_m > 0) prices.cold_m = cold_m;
-  if (cold_l > 0) prices.cold_l = cold_l;
-
-  return Object.keys(prices).length ? prices : null;
-}
-
-function fillEditPrices(prices) {
-  document.getElementById("editHot").value = prices?.hot ?? "";
-  document.getElementById("editColdS").value = prices?.cold_s ?? "";
-  document.getElementById("editColdM").value = prices?.cold_m ?? "";
-  document.getElementById("editColdL").value = prices?.cold_l ?? "";
-}
-
 function setStatus(msg, isErr = false) {
   if (!statusEl) return;
   statusEl.textContent = msg || "";
@@ -260,20 +197,137 @@ function closeOverlay(modalEl) {
   document.body.style.overflow = "";
 }
 
+// ✅ Universal labels (you can keep adding keys over time)
+const PRICE_LABELS = {
+  // Drinks
+  hot: "Hot",
+  cold_s: "Cold (S)",
+  cold_m: "Cold (M)",
+  cold_l: "Cold (L)",
+
+  // Chicken rice
+  quarter_upper: "Quarter (Upper) 四分之一(上庄)",
+  quarter_lower: "Quarter (Lower) 四分之一(下庄)",
+  half: "Half (半只鸡)",
+  whole: "Whole (一只鸡)",
+
+  // Generic
+  small: "Small",
+  medium: "Medium",
+  large: "Large",
+};
+
+function prettifyKey(key) {
+  return String(key || "")
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function ensureEditPriceFields(show) {
+  const body = editModal?.querySelector(".hpModalBody");
+  if (!body) return null;
+
+  let wrap = document.getElementById("editPricesWrap");
+
+  if (!show) {
+    if (wrap) wrap.remove();
+    return null;
+  }
+  if (wrap) return wrap;
+
+  wrap = document.createElement("div");
+  wrap.id = "editPricesWrap";
+  wrap.className = "hpModalRow";
+  wrap.style.marginTop = "10px";
+
+  wrap.innerHTML = `
+    <label class="hpModalLabel">Variant prices (optional)</label>
+
+    <div id="priceRows" style="display:grid; gap:10px;"></div>
+
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+      <input id="newPriceKey" class="hpModalInput" placeholder="Key (e.g. half, cold_m)" style="flex:1; min-width:200px;" />
+      <input id="newPriceValue" class="hpModalInput" placeholder="Price" inputmode="decimal" style="width:140px;" />
+      <button type="button" id="addPriceRowBtn" class="copyBtn">Add option</button>
+    </div>
+  `;
+
+  body.appendChild(wrap);
+
+  wrap.querySelector("#addPriceRowBtn").addEventListener("click", () => {
+    const key = wrap.querySelector("#newPriceKey").value.trim();
+    const val = parseMoney(wrap.querySelector("#newPriceValue").value);
+
+    if (!key) return alert("Enter a key (e.g. half, cold_m)");
+    if (!Number.isFinite(val) || val <= 0) return alert("Enter a valid price");
+
+    addPriceRow(key, val);
+
+    wrap.querySelector("#newPriceKey").value = "";
+    wrap.querySelector("#newPriceValue").value = "";
+  });
+
+  return wrap;
+}
+
+function addPriceRow(key, value = "") {
+  const rows = document.getElementById("priceRows");
+  if (!rows) return;
+
+  if (rows.querySelector(`[data-key="${key}"]`)) return;
+
+  const label = PRICE_LABELS[key] || prettifyKey(key);
+
+  const row = document.createElement("div");
+  row.dataset.key = key;
+  row.style.display = "grid";
+  row.style.gridTemplateColumns = "1fr 140px 90px";
+  row.style.gap = "10px";
+  row.style.alignItems = "center";
+
+  row.innerHTML = `
+    <div style="font-weight:900;">${esc(label)} <span class="muted" style="font-weight:700;">(${esc(key)})</span></div>
+    <input class="hpModalInput priceVal" inputmode="decimal" placeholder="Price" value="${value}" />
+    <button type="button" class="copyBtn dangerBtn2 removePriceBtn">Remove</button>
+  `;
+
+  row
+    .querySelector(".removePriceBtn")
+    .addEventListener("click", () => row.remove());
+  rows.appendChild(row);
+}
+
+function readPricesFromEdit() {
+  const rows = document.querySelectorAll("#priceRows [data-key]");
+  const prices = {};
+
+  rows.forEach((row) => {
+    const key = row.dataset.key;
+    const v = parseMoney(row.querySelector(".priceVal")?.value);
+    if (Number.isFinite(v) && v > 0) prices[key] = v;
+  });
+
+  return Object.keys(prices).length ? prices : null;
+}
+
+function fillEditPrices(prices) {
+  const rows = document.getElementById("priceRows");
+  if (!rows) return;
+
+  rows.innerHTML = "";
+  if (!prices || typeof prices !== "object") return;
+
+  const keys = Object.keys(prices).sort((a, b) => a.localeCompare(b));
+  keys.forEach((k) => addPriceRow(k, prices[k]));
+}
+
 function formatPrices(pricesObj) {
   if (!pricesObj || typeof pricesObj !== "object") return "";
-  const labels = [
-    ["hot", "Hot"],
-    ["cold_s", "Cold (S)"],
-    ["cold_m", "Cold (M)"],
-    ["cold_l", "Cold (L)"],
-  ];
-
-  const parts = labels
-    .filter(([k]) => pricesObj[k] != null)
-    .map(([k, label]) => `${label}: ${money(pricesObj[k])}`);
-
-  return parts.join(" • ");
+  const keys = Object.keys(pricesObj).sort((a, b) => a.localeCompare(b));
+  return keys
+    .filter((k) => pricesObj[k] != null)
+    .map((k) => `${PRICE_LABELS[k] || prettifyKey(k)}: ${money(pricesObj[k])}`)
+    .join(" • ");
 }
 
 /* ================= Inject extra fields into ADD modal =================
@@ -778,6 +832,7 @@ onAuthStateChanged(auth, async (user) => {
 
         // Fill modal
         editName.value = it.name || "";
+        editDesc.value = it.desc || it.description || "";
 
         // If this item uses prices map, we won't let you edit single price (to avoid wrecking your seeded data)
         editPrice.disabled = false;
@@ -832,6 +887,10 @@ onAuthStateChanged(auth, async (user) => {
             await updateDoc(itemRef, {
               addons: supportsAddons ? selectedAddonIds : [],
               name: newName,
+
+              desc: editDesc.value.trim(),
+              description: editDesc.value.trim(),
+
               prices: pricesMap, // object or null
               hotAvailable: pricesMap ? true : (it.hotAvailable ?? true),
 

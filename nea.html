@@ -49,9 +49,38 @@
       <section id="tab-inspections" class="nea-tab active">
         <div class="nea-header">
           <h2>Inspection Management</h2>
-          <button class="btn-primary" onclick="openScheduleModal()">
-            + Schedule New
-          </button>
+
+          <div
+            style="
+              display: flex;
+              gap: 10px;
+              align-items: center;
+              flex-wrap: wrap;
+            "
+          >
+            <select
+              id="inspectionFilter"
+              class="std-input small"
+              style="width: auto"
+              onchange="loadInspections()"
+            >
+              <option value="all">All Inspections</option>
+              <option value="scheduled">Scheduled</option>
+              <option value="completed">Completed</option>
+            </select>
+
+            <button class="btn-primary" onclick="openScheduleModal()">
+              + Schedule New
+            </button>
+
+            <button
+              class="btn-primary"
+              style="background: #27ae60"
+              onclick="openCompleteModal()"
+            >
+              + Complete Inspection
+            </button>
+          </div>
         </div>
 
         <div class="nea-card-container">
@@ -100,6 +129,7 @@
           </div>
 
           <h3 style="margin-top: 10px">Upcoming & Past Inspections</h3>
+
           <div id="inspectionList" class="nea-list">
             <p>Loading inspections...</p>
           </div>
@@ -276,6 +306,148 @@
           </button>
           <button class="btn-primary" onclick="submitSchedule()">
             Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="completeModal" class="nea-modal">
+      <div
+        class="modal-content"
+        style="width: 500px; max-height: 90vh; overflow-y: auto"
+      >
+        <h3>Complete Inspection</h3>
+
+        <label>Stall</label>
+        <select
+          id="compStall"
+          class="std-input"
+          onchange="updateCurrentGradeForCompletion()"
+        >
+          <option value="" disabled selected>Select Stall</option>
+        </select>
+
+        <div
+          style="
+            background: #f1f1f1;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+          "
+        >
+          <strong>Current Grade: </strong>
+          <span id="compCurrentGrade" style="color: #e67e22; font-weight: bold"
+            >-</span
+          >
+        </div>
+
+        <label>Inspection Date</label>
+        <input type="date" id="compDate" class="std-input" />
+
+        <label>License Issued Date (optional)</label>
+        <input type="date" id="compLicenseIssued" class="std-input" />
+
+        <label>License Expiry Date (optional)</label>
+        <input type="date" id="compLicenseExpiry" class="std-input" />
+
+        <p style="font-size: 12px; color: #666; margin-top: 4px">
+          If you fill these, the stall’s license validity on the Hygiene page
+          will update.
+        </p>
+
+        <label>Officer Name</label>
+        <input
+          type="text"
+          id="compOfficer"
+          placeholder="e.g. Officer Tan"
+          class="std-input"
+        />
+
+        <label>Overall Score (0-100)</label>
+        <input
+          type="number"
+          id="compScore"
+          class="std-input"
+          min="0"
+          max="100"
+          placeholder="e.g. 85"
+        />
+        <p style="font-size: 12px; color: #666; margin-top: 4px">
+          Grade will be auto-calculated: A (85-100), B (70-84), C (55-69), D
+          (&lt;55)
+        </p>
+
+        <label>Score Breakdown</label>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px">
+          <div>
+            <label style="font-size: 13px">Food Hygiene</label>
+            <input
+              type="number"
+              id="compFoodHygiene"
+              class="std-input"
+              min="0"
+              max="100"
+              placeholder="0-100"
+            />
+          </div>
+          <div>
+            <label style="font-size: 13px">Personal Hygiene</label>
+            <input
+              type="number"
+              id="compPersonalHygiene"
+              class="std-input"
+              min="0"
+              max="100"
+              placeholder="0-100"
+            />
+          </div>
+          <div>
+            <label style="font-size: 13px">Equipment</label>
+            <input
+              type="number"
+              id="compEquipment"
+              class="std-input"
+              min="0"
+              max="100"
+              placeholder="0-100"
+            />
+          </div>
+          <div>
+            <label style="font-size: 13px">Premises</label>
+            <input
+              type="number"
+              id="compPremises"
+              class="std-input"
+              min="0"
+              max="100"
+              placeholder="0-100"
+            />
+          </div>
+        </div>
+
+        <label>Officer Remarks</label>
+        <textarea
+          id="compRemarks"
+          class="std-input"
+          rows="3"
+          placeholder="Enter inspection observations..."
+        ></textarea>
+
+        <div style="background: #f1f1f1; padding: 10px; border-radius: 6px">
+          <strong>Calculated Grade: </strong>
+          <span
+            id="compCalculatedGrade"
+            style="color: #e67e22; font-weight: bold"
+            >-</span
+          >
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn-secondary" onclick="closeCompleteModal()">
+            Cancel
+          </button>
+          <button class="btn-primary" onclick="submitCompletion()">
+            Complete Inspection
           </button>
         </div>
       </div>

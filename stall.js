@@ -12,6 +12,7 @@ import {
   getFirestore,
   doc,
   getDoc,
+  getDocs,
   setDoc,
   arrayUnion,
   arrayRemove,
@@ -40,11 +41,14 @@ const db = getFirestore(app);
 // Load stall from Firestore
 // =========================
 const params = new URLSearchParams(window.location.search);
-const id = params.get("id");
+const centreId = params.get("centreId");
+const stallId = params.get("stallId");
 
-if (!id) window.location.href = "home.html";
+if (!centreId || !stallId) {
+  window.location.href = "home.html";
+}
 
-const stallRef = doc(db, "stalls", id);
+const stallRef = doc(db, "centres", centreId, "stalls", stallId);
 
 let stall = null;
 
@@ -58,20 +62,82 @@ async function loadStall() {
 
   const d = snap.data();
 
+  const dayKey = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"][
+    new Date().getDay()
+  ];
+
+  let openTime = "";
+  let closeTime = "";
+
+  if (d.operatingHours && typeof d.operatingHours === "object") {
+    openTime = d.operatingHours?.[dayKey]?.open || "";
+    closeTime = d.operatingHours?.[dayKey]?.close || "";
+  } else {
+    // fallback to old fields if any
+    openTime = d.openTime ?? "";
+    closeTime = d.closeTime ?? "";
+  }
+
   stall = {
-    id,
-    name: d.stallName ?? d.name ?? id,
+    id: stallId,
+    centreId,
+    reviewStallId: d.reviewStallId || stallId,
+    name: d.stallName ?? d.name ?? stallId,
     cuisine: d.cuisine ?? "",
     grade: d.hygieneGrade ?? d.grade ?? "—",
     desc: d.desc ?? "",
     img: d.imageUrl ?? d.img ?? "images/default-stall.png",
-    openTime: d.openTime ?? "",
-    closeTime: d.closeTime ?? "",
+    openTime,
+    closeTime,
     unit: d.unitNo ?? "",
     location: d.location ?? "",
   };
 
   fillUI();
+  refreshRatingsFromReviews().catch(console.error);
+}
+
+async function refreshRatingsFromReviews() {
+  const reviewsRef = collection(db, "stalls", stall.reviewStallId, "reviews");
+  const qs = query(reviewsRef, orderBy("createdAt", "desc"), limit(200));
+  const snap = await getDocs(qs);
+
+  let total = 0;
+  let count = 0;
+
+  snap.forEach((d) => {
+    const r = d.data() || {};
+    const stars = Number(r.rating ?? r.stars ?? 0); // supports rating or stars
+    if (stars > 0) {
+      total += stars;
+      count += 1;
+    }
+  });
+
+  const avg = count ? total / count : 0;
+
+  if (avgText) avgText.textContent = avg.toFixed(1);
+  if (countText) countText.textContent = `(${count})`;
+
+  const pct = Math.max(0, Math.min(100, (avg / 5) * 100));
+  if (starFill) starFill.style.width = pct + "%";
+}
+
+// HELPER
+
+function to12h(hhmm) {
+  if (!hhmm || !hhmm.includes(":")) return "";
+
+  const [h, m] = hhmm.split(":").map(Number);
+  const isPM = h >= 12;
+  const hour12 = ((h + 11) % 12) + 1;
+
+  return `${hour12}:${String(m).padStart(2, "0")}${isPM ? " PM" : " AM"}`;
+}
+
+function buildHours12(open, close) {
+  if (!open || !close) return "—";
+  return `${to12h(open)} – ${to12h(close)}`;
 }
 
 // =========================
@@ -98,6 +164,12 @@ const starFill = document.getElementById("starFill");
 
 const seeReviewLink = document.getElementById("seeReviewLink");
 
+const favIcon = document.getElementById("favIcon");
+const hygBtn = document.getElementById("hygBtn");
+
+const HEART_OUTLINE = "images/like.png";
+const HEART_FILLED = "images/heart.png";
+
 function fillUI() {
   heroEl.src = stall.img;
   heroEl.alt = `${stall.name} hero image`;
@@ -106,52 +178,56 @@ function fillUI() {
   cuisineEl.textContent = stall.cuisine;
 
   gradeEl.textContent = stall.grade;
-  gradeEl.classList.remove("gradeA", "gradeB", "gradeC");
+  gradeEl.classList.remove("gradeA", "gradeB", "gradeC", "gradeD");
   gradeEl.classList.add(
-    stall.grade === "A" ? "gradeA" : stall.grade === "B" ? "gradeB" : "gradeC",
+    stall.grade === "A"
+      ? "gradeA"
+      : stall.grade === "B"
+        ? "gradeB"
+        : stall.grade === "C"
+          ? "gradeC"
+          : "gradeD",
   );
 
   descEl.textContent = stall.desc;
 
-  metaEl.textContent = `Open: ${stall.openTime} - ${stall.closeTime} • Unit ${stall.unit}`;
+  metaEl.textContent = `Open: ${buildHours12(stall.openTime, stall.closeTime)} • Unit ${stall.unit}`;
 
   if (locationEl) {
-    locationEl.textContent = `📍 ${stall.location}`;
+    locationEl.textContent = ` ${stall.location}`;
   }
 
-  if (menuLink) menuLink.href = `menu.html?id=${stall.id}`;
+  if (menuLink)
+    menuLink.href = `menu.html?centreId=${centreId}&stallId=${stallId}`;
   if (callBtn) callBtn.href = "tel:+6590000000";
   if (dirBtn) {
     dirBtn.href =
       "https://www.google.com/maps?q=" +
       encodeURIComponent(stall.location || stall.name);
   }
+  if (seeReviewLink) {
+    seeReviewLink.href = `feedback.html?id=${encodeURIComponent(stall.reviewStallId)}`;
+  }
+  if (hygBtn) {
+    hygBtn.href = `hygiene.html?id=${encodeURIComponent(stallId)}&centreId=${encodeURIComponent(centreId)}`;
+  }
 }
-
-onSnapshot(stallRef, (snap) => {
-  const d = snap.exists() ? snap.data() : {};
-  const total = Number(d.ratingTotal || 0);
-  const count = Number(d.ratingCount || 0);
-  const avg = count ? total / count : 0;
-
-  if (avgText) avgText.textContent = avg.toFixed(1);
-  if (countText) countText.textContent = `(${count})`;
-
-  const pct = Math.max(0, Math.min(100, (avg / 5) * 100));
-  if (starFill) starFill.style.width = pct + "%";
-});
 
 // =========================
 // Favourite (Firestore)
 // =========================
 function setFavUI(isFav) {
-  if (!favBtn) return;
+  if (!favBtn || !favIcon) return;
+
   favBtn.classList.toggle("active", isFav);
   favBtn.setAttribute("aria-pressed", String(isFav));
   favBtn.setAttribute(
     "aria-label",
     isFav ? "Remove favourite" : "Add to favourite",
   );
+
+  favIcon.src = isFav ? HEART_FILLED : HEART_OUTLINE;
+  favIcon.alt = isFav ? "Remove from favourite" : "Add to favourite";
 }
 
 onAuthStateChanged(auth, async (user) => {

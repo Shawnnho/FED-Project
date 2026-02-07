@@ -37,6 +37,7 @@ import {
   query,
   where,
   updateDoc,
+  onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* Firebase Config */
@@ -85,6 +86,12 @@ const voucherModal = document.getElementById("voucherModal");
 const voucherModalList = document.getElementById("voucherModalList");
 const voucherModalSub = document.getElementById("voucherModalSub");
 const closeVoucherModal = document.getElementById("closeVoucherModal");
+
+// Order History Summary DOM
+const sumTotal = document.getElementById("sumTotal");
+const sumLast = document.getElementById("sumLast");
+const sumFav = document.getElementById("sumFav");
+const viewOrdersBtn = document.getElementById("viewOrdersBtn");
 
 /* =========================
    Helpers
@@ -284,6 +291,106 @@ function expiryText(v) {
   return `Expires in ${days} days`;
 }
 
+function formatDateTime(ms) {
+  if (!ms) return "—";
+  try {
+    const d = new Date(ms);
+    return d.toLocaleString("en-SG", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return "—";
+  }
+}
+
+function getOrderCreatedMs(o) {
+  // supports Firestore Timestamp, number, or date-like
+  const v = o?.createdAt || o?.created_at || o?.orderCreatedAt;
+  if (!v) return 0;
+  if (typeof v?.toMillis === "function") return v.toMillis();
+  if (typeof v === "number") return v;
+  const asDate = new Date(v);
+  const ms = asDate.getTime();
+  return Number.isFinite(ms) ? ms : 0;
+}
+
+function getOrderStallKey(o) {
+  // prefer a human label, fall back to stallId, then "Unknown"
+  return (
+    o?.stallName ||
+    o?.stall?.name ||
+    o?.storeName ||
+    o?.stallId ||
+    o?.stallID ||
+    "Unknown"
+  );
+}
+
+async function loadOrderHistorySummary(uid) {
+  // Default UI
+  if (sumTotal) sumTotal.textContent = "0";
+  if (sumLast) sumLast.textContent = "—";
+  if (sumFav) sumFav.textContent = "—";
+
+  // Try common user fields (some projects use userId, some use customerId)
+  const ordersRef = collection(db, "orders");
+
+  const q1 = query(ordersRef, where("userId", "==", uid));
+  const q2 = query(ordersRef, where("customerId", "==", uid));
+
+  // Run both and merge unique by doc id
+  const [s1, s2] = await Promise.allSettled([getDocs(q1), getDocs(q2)]);
+
+  const byId = new Map();
+
+  if (s1.status === "fulfilled") {
+    s1.value.docs.forEach((d) => byId.set(d.id, { id: d.id, ...d.data() }));
+  }
+  if (s2.status === "fulfilled") {
+    s2.value.docs.forEach((d) => byId.set(d.id, { id: d.id, ...d.data() }));
+  }
+
+  let orders = Array.from(byId.values());
+
+  // Optional: ignore cancelled orders if you store that
+  orders = orders.filter(
+    (o) => String(o?.status || "").toLowerCase() !== "cancelled",
+  );
+
+  const total = orders.length;
+
+  // Last order = newest createdAt
+  let lastMs = 0;
+  for (const o of orders) {
+    const ms = getOrderCreatedMs(o);
+    if (ms > lastMs) lastMs = ms;
+  }
+
+  // Favourite stall = most frequent stall key
+  const counts = new Map();
+  for (const o of orders) {
+    const key = getOrderStallKey(o);
+    counts.set(key, (counts.get(key) || 0) + 1);
+  }
+
+  let fav = "—";
+  let best = 0;
+  for (const [k, c] of counts.entries()) {
+    if (c > best) {
+      best = c;
+      fav = k;
+    }
+  }
+
+  if (sumTotal) sumTotal.textContent = String(total);
+  if (sumLast) sumLast.textContent = total ? formatDateTime(lastMs) : "—";
+  if (sumFav) sumFav.textContent = total ? fav : "—";
+}
+
 async function loadUserVouchers(uid) {
   const snap = await getDocs(collection(db, "users", uid, "vouchers"));
   return snap.docs.map((d) => ({ ...d.data(), docId: d.id }));
@@ -345,14 +452,26 @@ function renderVoucherModal(vouchers) {
    Auth gate + wiring
 ========================= */
 onAuthStateChanged(auth, async (user) => {
-  // If not logged in, kick to sign in
+  const params = new URLSearchParams(window.location.search);
+  const isGuest = params.get("mode") === "guest";
+
+  // If not logged in:
   if (!user) {
-    window.location.href = "index.html";
+    // guest should go to signin, NOT bounce back to index
+    window.location.href = isGuest ? "signin.html?from=guest" : "signin.html";
     return;
   }
 
   try {
     const data = await loadProfile(user.uid, user);
+
+    // Order History Summary
+    await loadOrderHistorySummary(user.uid);
+
+    // button
+    viewOrdersBtn?.addEventListener("click", () => {
+      window.location.href = "orders.html";
+    });
 
     if (data?.deactivated) {
       setStatus("❌ This account has been deactivated.", false);
@@ -445,11 +564,27 @@ onAuthStateChanged(auth, async (user) => {
         : "—";
 
     // =========================
-    // FAVOURITES (Saved Stores)
+    // FAVOURITES (Saved Stores / Saved Items)
     // =========================
     const savedStoresEl = document.getElementById("savedStores");
-    const favs = Array.isArray(data?.favourites) ? data.favourites : [];
-    if (savedStoresEl) savedStoresEl.textContent = favs.length;
+    const savedItemsEl = document.getElementById("savedItems");
+
+    onSnapshot(doc(db, "users", user.uid), (snap) => {
+      const d = snap.exists() ? snap.data() : {};
+
+      // stores saved by menu.js
+      const storeFavs = Array.isArray(d?.favourites) ? d.favourites : [];
+
+      // items saved by STALLMENU.js
+      const itemFavs = Array.isArray(d?.favouriteItems) ? d.favouriteItems : [];
+
+      if (savedStoresEl) savedStoresEl.textContent = String(storeFavs.length);
+      if (savedItemsEl) savedItemsEl.textContent = String(itemFavs.length);
+    });
+
+    // =========================
+    // Account Avatar Icon
+    // ========================
 
     // avatar (account-based)
     if (accAvatar) {

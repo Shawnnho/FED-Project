@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Hawker Point — Hygiene</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="hygiene.css" />
+  </head>
+
+  <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="home.html" aria-label="Hawker Point Home">
+          <img src="images/logo.png" alt="Hawker Point" class="brand-logo" />
+        </a>
+
+        <nav class="nav" aria-label="Primary navigation">
+          <a class="pill" href="home.html">Home</a>
+          <a class="pill" href="promotions.html">Promotions</a>
+          <a class="pill" href="orders.html">Orders</a>
+          <a class="pill" href="feedback.html">Feedback</a>
+          <a class="pill active" href="hygiene.html">Hygiene</a>
+          <a class="pill cartPill" href="cart.html">
+            Cart <span id="cartCount" class="cartBadge isZero">0</span>
+          </a>
+
+          <a class="pill account" href="account.html">Account</a>
+          <button
+            id="neaPortalBtn"
+            class="pill"
+            style="display: none; background: #2c3e50; color: white"
+          >
+            NEA Portal
+          </button>
+        </nav>
+
+        <button
+          id="menuBtn"
+          class="menuBtn"
+          type="button"
+          aria-label="Open menu"
+          aria-expanded="false"
+        >
+          ☰
+        </button>
+      </div>
+
+      <div id="navBackdrop" class="navBackdrop"></div>
+      <nav id="navMobile" class="navMobile" aria-label="Mobile navigation">
+        <a class="mLink" href="home.html">Home</a>
+        <a class="mLink" href="promotions.html">Promotions</a>
+        <a class="mLink" href="orders.html">Orders</a>
+        <a class="mLink" href="feedback.html">Feedback</a>
+        <a class="mLink active" href="hygiene.html">Hygiene</a>
+        <a class="mLink" href="cart.html">
+          Cart <span id="cartCountMobile" class="cartBadge isZero">0</span>
+        </a>
+
+        <a class="mLink" href="account.html">Account</a>
+      </nav>
+    </header>
+
+    <main class="page hygienePage">
+      <div class="hygieneGrid">
+        <!-- LEFT COLUMN -->
+        <div class="hygieneLeft">
+          <!-- Select Stall -->
+          <section class="hygieneCard selectCard">
+            <h3>Select Stall</h3>
+            <select id="stallSelect">
+              <option value="" disabled selected>Loading stalls...</option>
+            </select>
+          </section>
+
+          <!-- Large Grade Card -->
+          <section class="gradeBigCard" id="gradeCard">
+            <div class="bigGrade" id="bigGrade">—</div>
+            <div class="gradeLabel" id="gradeLabel">Select a stall</div>
+          </section>
+
+          <!-- Upcoming Inspection Card (Storeholder only) -->
+          <section
+            class="hygieneCard upcomingCard"
+            id="upcomingCard"
+            style="display: none"
+          >
+            <h3>Upcoming Inspection</h3>
+            <div class="upcomingRow">
+              <div class="upcomingDate" id="upcomingDate">—</div>
+              <div class="upcomingTag">Scheduled</div>
+            </div>
+            <p class="upcomingOfficer" id="upcomingOfficer">Officer: —</p>
+            <p class="upcomingHint">
+              Please ensure all hygiene standards are met before the inspection
+              date.
+            </p>
+          </section>
+
+          <!-- License Info -->
+          <section class="hygieneCard licenseCard">
+            <h3>License Validity</h3>
+            <div class="licenseRow">
+              <div class="licenseDays" id="licenseDays">— Days</div>
+              <div class="licenseTag" id="licenseStatus">Unknown</div>
+            </div>
+            <div class="licenseBar">
+              <div class="licenseFill" id="licenseFill" style="width: 0%"></div>
+            </div>
+            <div class="licenseDates">
+              <span id="issueDate">Issued: —</span>
+              <span id="expiryDate">Expired: —</span>
+            </div>
+          </section>
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div class="hygieneRight">
+          <!-- Trend Chart -->
+          <section class="hygieneCard">
+            <div class="cardHead">
+              <h3>Hygiene Score Trend</h3>
+              <button id="viewTrendBtn" class="btn small ghost">View</button>
+            </div>
+
+            <div class="chartWrap" id="chartWrap">
+              <div class="chartGrid">
+                <div class="chartLine"></div>
+                <div class="chartLine"></div>
+                <div class="chartLine"></div>
+                <div class="chartLine"></div>
+              </div>
+              <!-- Bars will be injected here -->
+              <p class="chartEmpty">Select a stall to view trends</p>
+            </div>
+
+            <div class="chartFooter" id="chartFooter">
+              <!-- e.g. Score improved by 5%... -->
+            </div>
+          </section>
+
+          <!-- Inspection History -->
+          <section class="hygieneCard">
+            <div class="cardHead">
+              <h3>Inspection History</h3>
+              <button id="viewHistoryBtn" class="btn small ghost">View</button>
+            </div>
+
+            <div class="historyList" id="historyList">
+              <div class="histHead histRow">
+                <div>Date</div>
+                <div>Score</div>
+                <div>Grade</div>
+                <div>Officer Remarks</div>
+              </div>
+              <div id="historyRows">
+                <!-- Rows injected here -->
+                <div class="emptyState" style="padding: 20px; font-size: 14px">
+                  Select a stall
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <footer class="hc-footer">
+      <div class="hc-footer-inner">
+        <div class="hc-footer-brand">
+          <h3>HawkerPoint</h3>
+          <p>Empowering Hawkers. Serving Communities.</p>
+        </div>
+
+        <div class="hc-footer-links">
+          <div>
+            <h4>Platform</h4>
+            <a href="about-us.html">About Us</a>
+            <a href="how-it-works.html">How It Works</a>
+            <a href="centres.html">Centres</a>
+          </div>
+
+          <div>
+            <h4>For Stallholders</h4>
+            <a href="signup.html">Register Stall</a>
+            <a href="pricing.html">Pricing</a>
+          </div>
+
+          <div>
+            <h4>Support</h4>
+            <a href="help.html">Help Centre</a>
+            <a href="contact.html">Contact Us</a>
+            <a href="feedback.html">Feedback</a>
+          </div>
+
+          <div>
+            <h4>Legal</h4>
+            <a href="privacy.html">Privacy Policy</a>
+            <a href="terms-of-service.html">Terms of Service</a>
+          </div>
+        </div>
+
+        <div class="hc-footer-bottom">
+          <p>&copy; 2026 HawkerPoint. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+
+    <script type="module" src="cart-badge.js"></script>
+    <script type="module" src="menu.js"></script>
+    <script type="module" src="hygiene.js"></script>
+  </body>
+</html>

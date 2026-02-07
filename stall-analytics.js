@@ -120,7 +120,14 @@ function listenOrders(stallId, rangeStart, rangeEnd, cb) {
   const qOrders = query(
     ordersRef,
     where("stallId", "==", stallId),
-    where("status", "in", ["paid", "preparing", "ready", "completed"]),
+    where("status", "in", [
+      "pending_payment",
+      "paid",
+      "preparing",
+      "ready",
+      "completed",
+    ]),
+
     where("createdAt", ">=", toTs(rangeStart)),
     where("createdAt", "<=", toTs(rangeEnd)),
     orderBy("createdAt", "asc"),
@@ -150,10 +157,16 @@ function parseHHMM(str) {
 }
 
 function fmtLabel(mins) {
-  const hh = Math.floor(mins / 60);
+  let hh = Math.floor(mins / 60) % 24;
+  const mm = mins % 60;
+
   const isPM = hh >= 12;
   const hr12 = ((hh + 11) % 12) + 1;
-  return `${hr12}${isPM ? "PM" : "AM"}`;
+
+  const mmStr = String(mm).padStart(2, "0");
+  return mm === 0
+    ? `${hr12}${isPM ? "PM" : "AM"}`
+    : `${hr12}:${mmStr}${isPM ? "PM" : "AM"}`;
 }
 
 function getHoursForDate(stall, dateObj) {
@@ -193,7 +206,7 @@ function calcHourlySales(orders, whichDay, stall, stepMins = 60) {
   const endM = closeM ?? 21 * 60;
 
   // you can expand this later if you really support overnight stalls.
-  const safeEndM = endM > startM ? endM : startM + 60;
+  const safeEndM = endM > startM ? endM : endM + 24 * 60; // overnight stall
 
   // Build labels + buckets
   const labels = [];
@@ -204,14 +217,37 @@ function calcHourlySales(orders, whichDay, stall, stepMins = 60) {
     labels.push(fmtLabel(t));
     buckets.push(0);
   }
+  // ensure at least 2 points so drawChart won't replace labels with ["",""]
+  if (labels.length < 2) {
+    labels.push(fmtLabel(startM + stepMins));
+    buckets.push(0);
+  }
 
   // Bucket orders by time
   for (const o of orders) {
     const ts = o.createdAt?.toDate?.();
     if (!ts) continue;
-    if (!sameDay(ts, whichDay)) continue;
+    // allow overnight window: orders can be on whichDay OR early next day
+    const dayStart = startOfDay(whichDay);
+    const dayEnd = endOfDay(whichDay);
 
-    const mins = ts.getHours() * 60 + ts.getMinutes();
+    const nextDay = new Date(dayStart);
+    nextDay.setDate(nextDay.getDate() + 1);
+    const nextDayEnd = endOfDay(nextDay);
+
+    // if stall closes next day (close <= open), allow early next-day orders
+    const isOvernight = safeEndM > 24 * 60;
+
+    if (!isOvernight) {
+      if (ts < dayStart || ts > dayEnd) continue;
+    } else {
+      if (ts < dayStart || ts > nextDayEnd) continue;
+    }
+
+    let mins = ts.getHours() * 60 + ts.getMinutes();
+    // map early-next-day mins into "after midnight" timeline
+    if (isOvernight && ts >= nextDay) mins += 24 * 60;
+
     if (mins < startM || mins > safeEndM) continue;
 
     const idx = Math.min(
@@ -371,6 +407,49 @@ function renderRatingsUI({ avg, counts }) {
   }
 }
 
+function dayKey(d) {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x.toISOString().slice(0, 10); // YYYY-MM-DD
+}
+
+function fmtMD(d) {
+  const x = new Date(d);
+  return `${x.getDate()}/${x.getMonth() + 1}`;
+}
+
+// buckets sales by day from rangeStart..rangeEnd (inclusive)
+function calcDailySalesRange(orders, rangeStart, rangeEnd) {
+  const start = startOfDay(rangeStart);
+  const end = endOfDay(rangeEnd);
+
+  // build label days
+  const labels = [];
+  const keys = [];
+  const cur = new Date(start);
+  while (cur <= end) {
+    keys.push(dayKey(cur));
+    labels.push(fmtMD(cur));
+    cur.setDate(cur.getDate() + 1);
+  }
+
+  const buckets = new Array(keys.length).fill(0);
+  const index = new Map(keys.map((k, i) => [k, i]));
+
+  for (const o of orders) {
+    const ts = o.createdAt?.toDate?.();
+    if (!ts) continue;
+    if (ts < start || ts > end) continue;
+
+    const i = index.get(dayKey(ts));
+    if (i == null) continue;
+
+    buckets[i] += Number(o.pricing?.total ?? o.total ?? 0);
+  }
+
+  return { labels, data: buckets };
+}
+
 // =============================
 // CANVAS CHART
 // =============================
@@ -380,55 +459,145 @@ function drawChart({ labels, today, yesterday, compare }) {
 
   const ctx = canvas.getContext("2d");
 
-  // set size
-  const rect = canvas.getBoundingClientRect();
+  // ✅ measure the chart box (real layout), not the canvas itself
+  const box = canvas.parentElement; // .anChartBox
+  const rect = (box || canvas).getBoundingClientRect();
+
   const dpr = window.devicePixelRatio || 1;
-  canvas.width = Math.floor(rect.width * dpr);
-  canvas.height = Math.floor(260 * dpr);
+
+  // CSS size
+  const w = Math.max(10, rect.width);
+  const h = Math.max(10, rect.height || 260);
+
+  // backing store size
+  canvas.width = Math.floor(w * dpr);
+  canvas.height = Math.floor(h * dpr);
+
+  // draw in CSS pixels
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-  const w = rect.width;
-  const h = 260;
-
   ctx.clearRect(0, 0, w, h);
 
+  // ===== SAFETY GUARDS =====
+  if (!Array.isArray(labels)) labels = [];
+  if (!Array.isArray(today)) today = [];
+  if (!Array.isArray(yesterday)) yesterday = [];
+
+  // ✅ if only 1 label (e.g. Today in DAILY mode), duplicate it so we can draw
+  if (labels.length === 1) labels = [labels[0], labels[0]];
+  if (today.length === 1) today = [today[0], today[0]];
+  if (compare && yesterday.length === 1)
+    yesterday = [yesterday[0], yesterday[0]];
+
+  // ✅ if still empty, fallback
+  if (labels.length < 2) labels = ["", ""];
+  if (today.length < 2) today = [today[0] ?? 0, 0];
+  if (compare && yesterday.length < 2) yesterday = [yesterday[0] ?? 0, 0];
+
+  const allNowZero = (today || []).every((v) => Number(v) === 0);
+  const allPrevZero =
+    !compare || (yesterday || []).every((v) => Number(v) === 0);
+
+  if (allNowZero && allPrevZero) {
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = "rgba(0,0,0,0.55)";
+    ctx.font = "14px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("No sales in this period", w / 2, h / 2);
+    ctx.textAlign = "left";
+    return;
+  }
+
   const padL = 50,
-    padR = 20,
+    padR = 60,
     padT = 20,
-    padB = 40;
+    padB = 95;
   const cw = w - padL - padR;
   const ch = h - padT - padB;
 
   const series = compare ? today.concat(yesterday) : today;
-  const maxY = Math.max(100, ...series);
+  const rawMax = Math.max(0, ...series);
+
+  // nice axis: pad 10% and round to nearest 5
+  const padded = rawMax * 1.1;
+  const maxY = Math.max(10, Math.ceil(padded / 5) * 5);
   const minY = 0;
 
   // grid
-  ctx.strokeStyle = "rgba(0,0,0,0.18)";
+  // grid (dotted) + LEFT y-axis labels
+  ctx.strokeStyle = "rgba(0,0,0,0.25)";
   ctx.lineWidth = 1;
+  ctx.setLineDash([2, 4]);
 
   for (let i = 0; i <= 4; i++) {
     const y = padT + (ch * i) / 4;
+
+    // grid line
     ctx.beginPath();
     ctx.moveTo(padL, y);
     ctx.lineTo(padL + cw, y);
     ctx.stroke();
 
+    // y-axis value
     const val = Math.round(maxY - (maxY * i) / 4);
-    ctx.fillStyle = "rgba(0,0,0,0.55)";
-    ctx.font = "12px sans-serif";
-    ctx.fillText(String(val), 10, y + 4);
+
+    ctx.setLineDash([]);
+    ctx.fillStyle = "rgba(0,0,0,0.6)";
+    ctx.font = "14px sans-serif";
+    ctx.textAlign = "right"; // 👈 align right
+    ctx.fillText(String(val), padL - 10, y + 5);
+    ctx.setLineDash([2, 4]);
   }
 
-  // x labels
-  const stepX = cw / (labels.length - 1);
-  ctx.fillStyle = "rgba(0,0,0,0.55)";
+  ctx.setLineDash([]);
+  ctx.textAlign = "left";
+
+  // x-axis + time labels (like 7AM 8AM 9AM...)
+  const stepX = cw / Math.max(1, labels.length - 1);
+
+  // detect hourly labels (your fmtLabel makes "AM/PM")
+  const isHourly = labels.some((s) => /AM|PM/i.test(String(s)));
+
+  // draw x-axis baseline
+  const axisY = padT + ch + 10;
+  ctx.strokeStyle = "rgba(0,0,0,0.35)";
+  ctx.lineWidth = 1;
+  ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.moveTo(padL, axisY);
+  ctx.lineTo(padL + cw, axisY);
+  ctx.stroke();
+
+  // labels + ticks
+  ctx.fillStyle = "rgba(0,0,0,0.65)";
   ctx.font = "12px sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "bottom";
+
+  // for hourly, show more labels (like your screenshot)
+  const skip = isHourly ? 1 : Math.max(1, Math.ceil(labels.length / 6));
+
+  console.log("labels:", labels);
   labels.forEach((lab, i) => {
-    if (i % 2 !== 0) return;
+    if (i % skip !== 0 && i !== labels.length - 1) return;
+
     const x = padL + i * stepX;
-    ctx.fillText(lab, x - 14, padT + ch + 26);
+
+    // tick mark
+    ctx.beginPath();
+    ctx.moveTo(x, axisY);
+    ctx.lineTo(x, axisY + 6);
+    ctx.stroke();
+
+    // text under tick
+    ctx.fillText(String(lab), x, axisY + 30);
   });
+
+  ctx.textAlign = "left";
+
+  //This is used for testing
+  // ctx.fillStyle = "red";
+  // ctx.font = "16px sans-serif";
+  // ctx.fillText("TEST", 10, h - 10);
 
   function plot(values, color) {
     ctx.strokeStyle = color;
@@ -436,7 +605,8 @@ function drawChart({ labels, today, yesterday, compare }) {
     ctx.beginPath();
     values.forEach((v, i) => {
       const x = padL + i * stepX;
-      const y = padT + ch - ((v - minY) / (maxY - minY)) * ch;
+      const y = padT + ch - ((v - minY) / (maxY - minY)) * (ch * 0.9);
+
       if (i === 0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
     });
@@ -446,6 +616,20 @@ function drawChart({ labels, today, yesterday, compare }) {
   plot(today, "#e88e40");
   if (compare) plot(yesterday, "#2b66d9");
 }
+
+// =============================
+// SAFE CHART REDRAW (MUST BE ABOVE USAGE)
+// =============================
+let lastChartArgs = null;
+
+function drawChartSafe(args) {
+  lastChartArgs = args;
+  requestAnimationFrame(() => drawChart(args));
+}
+
+window.addEventListener("resize", () => {
+  if (lastChartArgs) drawChartSafe(lastChartArgs);
+});
 
 // ========================
 // Load inspection function
@@ -485,7 +669,14 @@ async function loadNextInspection(stallId) {
   const qDone = query(
     collection(db, "inspections"),
     where("stallId", "==", stallId),
-    where("status", "in", ["paid", "preparing", "ready", "completed"]),
+    where("status", "in", [
+      "pending_payment",
+      "paid",
+      "preparing",
+      "ready",
+      "completed",
+    ]),
+
     orderBy("dateTs", "desc"),
     limit(1),
   );
@@ -621,6 +812,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // compare toggle
       const compareEl = $("compareToggle");
+      const presetEl = $("datePreset"); // ← MOVE UP HERE
+      let chartMode = "auto"; // ← MOVE UP HERE
+      const chartBtn = $("chartModeBtn"); // ← MOVE UP HERE
+
       let compare = compareEl ? compareEl.checked : true;
 
       function applyLegend(compareOn) {
@@ -634,6 +829,7 @@ document.addEventListener("DOMContentLoaded", () => {
       compareEl?.addEventListener("change", () => {
         compare = compareEl.checked;
         applyLegend(compare);
+        resubscribeOrders(); // re-fetch previous period + redraw
       });
 
       // buttons
@@ -653,22 +849,34 @@ document.addEventListener("DOMContentLoaded", () => {
       // ----------------------------
       // FILTERED ORDERS LISTENER
       // ----------------------------
-      let rangeStart = todayStart;
-      let rangeEnd = todayEnd;
+      let rangeStart = monthStart;
+      let rangeEnd = monthEnd;
 
       function getRangeFromPreset(preset) {
         const base = new Date(); // local time
-        if (preset === "yesterday") {
+        const p = String(preset || "today").toLowerCase();
+
+        if (p === "yesterday") {
           const d = new Date(base);
           d.setDate(d.getDate() - 1);
           return { start: startOfDay(d), end: endOfDay(d), label: "Yesterday" };
         }
-        if (preset === "last7") {
+
+        if (p === "last7") {
           const end = endOfDay(base);
           const start = startOfDay(new Date(base));
-          start.setDate(start.getDate() - 6); // last 7 days incl today
+          start.setDate(start.getDate() - 6);
           return { start, end, label: "Last 7 days" };
         }
+
+        if (p === "month") {
+          return {
+            start: startOfMonth(base),
+            end: endOfDay(base),
+            label: "This Month",
+          };
+        }
+
         // default: today
         return { start: startOfDay(base), end: endOfDay(base), label: "Today" };
       }
@@ -698,6 +906,9 @@ document.addEventListener("DOMContentLoaded", () => {
               setText("hygHint", nextInspectionMsg);
             }
 
+            let prevStart = null;
+            let prevEnd = null;
+
             // comparison line = previous period (only if compare is on)
             let ySeries = [];
             if (compare) {
@@ -708,9 +919,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     (1000 * 60 * 60 * 24),
                 ) + 1,
               );
-              const prevEnd = new Date(rangeStart);
+              prevEnd = new Date(rangeStart);
               prevEnd.setMilliseconds(prevEnd.getMilliseconds() - 1);
-              const prevStart = new Date(prevEnd);
+              prevStart = new Date(prevEnd);
               prevStart.setDate(prevStart.getDate() - (days - 1));
 
               const prevSnap = await getDocs(
@@ -718,11 +929,13 @@ document.addEventListener("DOMContentLoaded", () => {
                   collection(db, COL_ORDERS),
                   where("stallId", "==", stallId),
                   where("status", "in", [
+                    "pending_payment",
                     "paid",
                     "preparing",
                     "ready",
                     "completed",
                   ]),
+
                   where("createdAt", ">=", toTs(startOfDay(prevStart))),
                   where("createdAt", "<=", toTs(endOfDay(prevEnd))),
                   orderBy("createdAt", "asc"),
@@ -730,28 +943,170 @@ document.addEventListener("DOMContentLoaded", () => {
               );
               ySeries = prevSnap.docs.map((d) => d.data());
             }
+            const preset = presetEl?.value || "today";
 
-            const hNow = calcHourlySales(ordersInRange, rangeStart, stall, 60);
-            const hPrev = compare
-              ? calcHourlySales(ySeries, new Date(rangeStart), stall, 60)
-              : { data: [] };
+            // choose mode
+            const daysInRange =
+              Math.round(
+                (endOfDay(rangeEnd) - startOfDay(rangeStart)) /
+                  (1000 * 60 * 60 * 24),
+              ) + 1;
 
-            drawChart({
-              labels: hNow.labels,
-              today: hNow.data,
-              yesterday: hPrev.data,
+            const effectiveMode =
+              daysInRange <= 1
+                ? "hourly" // ✅ always time for 1-day ranges
+                : chartMode !== "auto"
+                  ? chartMode
+                  : preset === "today" || preset === "yesterday"
+                    ? "hourly"
+                    : "daily";
+
+            let nowSeries, prevSeries;
+
+            function cumulative(arr) {
+              let s = 0;
+              return arr.map((v) => (s += Number(v || 0)));
+            }
+
+            if (effectiveMode === "hourly") {
+              // ✅ bucket by the actual selected day
+              const whichDay = startOfDay(rangeStart);
+              nowSeries = calcHourlySales(ordersInRange, whichDay, stall, 60);
+
+              // ✅ previous day for hourly comparison
+              const prevDay = new Date(whichDay);
+              prevDay.setDate(prevDay.getDate() - 1);
+
+              prevSeries = compare
+                ? calcHourlySales(ySeries, prevDay, stall, 60)
+                : { labels: nowSeries.labels, data: [] };
+            } else {
+              // daily buckets across whole range
+              nowSeries = calcDailySalesRange(
+                ordersInRange,
+                rangeStart,
+                rangeEnd,
+              );
+              prevSeries = compare
+                ? calcDailySalesRange(
+                    ySeries,
+                    startOfDay(new Date(prevStart)),
+                    endOfDay(new Date(prevEnd)),
+                  )
+                : { labels: nowSeries.labels, data: [] };
+            }
+
+            if (effectiveMode === "daily") {
+              nowSeries = { ...nowSeries, data: cumulative(nowSeries.data) };
+              prevSeries = { ...prevSeries, data: cumulative(prevSeries.data) };
+            }
+
+            drawChartSafe({
+              labels: nowSeries.labels,
+              today: nowSeries.data,
+              yesterday: prevSeries.data,
               compare,
             });
-
             renderTopDishesRows(calcTopDishes(ordersInRange));
           },
         );
       }
 
+      const saveBtn = $("saveBtn");
+
+      function savePrefs() {
+        const prefs = {
+          preset: presetEl?.value || "today",
+          compare: !!$("compareToggle")?.checked,
+          chartMode,
+        };
+        localStorage.setItem("stallAnalyticsPrefs", JSON.stringify(prefs));
+        // quick feedback
+        if (saveBtn) {
+          const old = saveBtn.textContent;
+          saveBtn.textContent = "Saved ✓";
+          setTimeout(() => (saveBtn.textContent = old), 900);
+        }
+      }
+
+      function loadPrefs() {
+        try {
+          const raw = localStorage.getItem("stallAnalyticsPrefs");
+          if (!raw) return;
+          const prefs = JSON.parse(raw);
+
+          if (prefs.preset && presetEl) presetEl.value = prefs.preset;
+          if (typeof prefs.compare === "boolean" && $("compareToggle"))
+            $("compareToggle").checked = prefs.compare;
+          if (prefs.chartMode) chartMode = prefs.chartMode;
+        } catch {}
+      }
+
+      saveBtn?.addEventListener("click", savePrefs);
+      loadPrefs(); // restore
+
+      function syncChartBtnUI() {
+        if (!chartBtn) return;
+
+        let iconSrc = "";
+        let title = "";
+
+        if (chartMode === "auto") {
+          iconSrc = "images/bar-graph.png";
+          title = "Chart: Auto";
+        } else if (chartMode === "hourly") {
+          iconSrc = "images/bar-graph.png";
+          title = "Chart: Hourly";
+        } else {
+          iconSrc = "images/pie-chart.png";
+          title = "Chart: Daily";
+        }
+
+        chartBtn.innerHTML = `
+    <img src="${iconSrc}" alt="${title}" />
+  `;
+        chartBtn.title = title;
+      }
+
+      syncChartBtnUI(); // ✅ call once on load (after loadPrefs)
+
+      compare = compareEl ? compareEl.checked : true;
+      applyLegend(compare);
+
       // =============================
       // DATE PRESET HANDLER
       // =============================
-      const presetEl = $("datePreset");
+      function nextChartMode() {
+        if (chartMode === "auto") chartMode = "hourly";
+        else if (chartMode === "hourly") chartMode = "daily";
+        else chartMode = "auto";
+
+        // small visible feedback
+        if (chartBtn) {
+          let iconSrc = "";
+          let title = "";
+
+          if (chartMode === "auto") {
+            iconSrc = "images/bar-graph.png";
+            title = "Chart: Auto";
+          } else if (chartMode === "hourly") {
+            iconSrc = "images/bar-graph.png";
+            title = "Chart: Hourly";
+          } else {
+            iconSrc = "images/pie-chart.png";
+            title = "Chart: Daily";
+          }
+
+          chartBtn.innerHTML = `
+    <img src="${iconSrc}" alt="${title}" />
+  `;
+          chartBtn.title = title;
+        }
+
+        resubscribeOrders();
+      }
+
+      chartBtn?.addEventListener("click", nextChartMode);
 
       function applyPreset() {
         if (!presetEl) return;

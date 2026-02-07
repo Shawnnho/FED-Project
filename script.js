@@ -156,7 +156,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      // 🔎 Check user record
+      //  Check user record
       const snap = await getDoc(doc(db, "users", user.uid));
 
       if (!snap.exists()) {
@@ -275,6 +275,10 @@ document.addEventListener("DOMContentLoaded", () => {
       window.location.href = "nea.html";
       return;
     }
+    if (role === "operator") {
+      window.location.href = "operator.html";
+      return;
+    }
 
     if (role === "customer") {
       window.location.href = "home.html";
@@ -292,8 +296,9 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
 
     const role = sessionStorage.getItem("signin_role") || selectedRole;
-
     if (role === "guest") {
+      // ✅ make guest a true "logged out" state
+      await signOut(auth).catch(() => {});
       window.location.href = "index.html?mode=guest";
       return;
     }

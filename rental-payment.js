@@ -38,6 +38,20 @@ const db = getFirestore(app);
 
 const $ = (id) => document.getElementById(id);
 
+// Pull monthlyRent from rentalAgreements by stallId
+async function getAgreementByStallId(stallId) {
+  if (!stallId) return null;
+
+  const colRef = collection(db, "rentalAgreements");
+  const q = query(colRef, where("stallId", "==", stallId), limit(1));
+  const snap = await getDocs(q);
+
+  if (snap.empty) return null;
+
+  const d = snap.docs[0];
+  return { id: d.id, ...d.data() };
+}
+
 function setText(id, v) {
   const el = $(id);
   if (el) el.textContent = v ?? "—";
@@ -134,19 +148,22 @@ async function getStallDoc(uid) {
  * Operator bill doc:
  * stalls/{uid}/operatorBills/{yyyy-mm}
  */
-async function getOperatorBill(uid, month) {
-  const ref = doc(db, "stalls", uid, "operatorBills", month);
+async function getOperatorBill(stallId, month) {
+  const ref = doc(db, "stalls", stallId, "operatorBills", month);
   const snap = await getDoc(ref);
 
   if (!snap.exists()) {
+    const ag = await getAgreementByStallId(stallId);
+    const rent = safeNum(ag?.monthlyRent);
+
     return {
       exists: false,
-      rent: 0,
+      rent,
       utilities: 0,
       cleaningFee: 0,
       penalty: 0,
       other: 0,
-      total: 0,
+      total: rent,
       dueDate: null,
       status: "unpaid",
       paidAt: null,
@@ -183,8 +200,8 @@ async function getOperatorBill(uid, month) {
  * - staffName, hours, hourlyRate, workDate (Timestamp)
  * - paid (boolean) optional
  */
-async function getStaffTimesheets(uid, start, end) {
-  const colRef = collection(db, "stalls", uid, "staffTimesheets");
+async function getStaffTimesheets(stallId, start, end) {
+  const colRef = collection(db, "stalls", stallId, "staffTimesheets");
   const q = query(
     colRef,
     where("workDate", ">=", Timestamp.fromDate(start)),
@@ -270,8 +287,8 @@ function aggregateStaff(timesheets) {
  * stalls/{uid}/payments/{autoId}
  * fields: month, payTo, amount, method, note, createdAt
  */
-async function getPaymentsForMonth(uid, month) {
-  const colRef = collection(db, "stalls", uid, "payments");
+async function getPaymentsForMonth(stallId, month) {
+  const colRef = collection(db, "stalls", stallId, "payments");
   const q = query(
     colRef,
     where("month", "==", month),
@@ -373,24 +390,25 @@ function computeOverdue(dueDate, status) {
   return now.getTime() > due.getTime();
 }
 
-async function ensureBillDocExists(uid, month) {
-  // If user havnt created bill yet, create a blank template (real-life: invoice generated)
-  const ref = doc(db, "stalls", uid, "operatorBills", month);
+async function ensureBillDocExists(stallId, month) {
+  const ref = doc(db, "stalls", stallId, "operatorBills", month);
   const snap = await getDoc(ref);
   if (snap.exists()) return;
 
+  const ag = await getAgreementByStallId(stallId);
+  const rent = safeNum(ag?.monthlyRent);
   const [y, m] = month.split("-");
   const due = new Date(Number(y), Number(m) - 1, 15, 0, 0, 0, 0); // default due date: 15th
   await setDoc(
     ref,
     {
       month,
-      rent: 0,
       utilities: 0,
       cleaningFee: 0,
       penalty: 0,
       other: 0,
-      total: 0,
+      rent,
+      total: rent,
       dueDate: Timestamp.fromDate(due),
       status: "unpaid",
       createdAt: serverTimestamp(),
@@ -399,21 +417,19 @@ async function ensureBillDocExists(uid, month) {
     { merge: true },
   );
 }
-
-async function loadPaymentSummary(uid, stallData) {
+async function loadPaymentSummary(stallId, stallData) {
   const month = $("monthSelect")?.value || monthKey(new Date());
   const { start, end } = startEndOfMonthFromKey(month);
 
   setStatus("Loading payment summary…");
 
-  // Ensure a bill doc exists 
-  await ensureBillDocExists(uid, month);
+  // Ensure a bill doc exists
+  await ensureBillDocExists(stallId, month);
 
-  // Read operator + staff + payments
-  const bill = await getOperatorBill(uid, month);
-  const timesheets = await getStaffTimesheets(uid, start, end);
+  const bill = await getOperatorBill(stallId, month);
+  const timesheets = await getStaffTimesheets(stallId, start, end);
   const staffAgg = aggregateStaff(timesheets);
-  const payHist = await getPaymentsForMonth(uid, month);
+  const payHist = await getPaymentsForMonth(stallId, month);
 
   const operatorDue = bill.total;
   const staffDue = staffAgg.totalPay;
@@ -487,9 +503,9 @@ async function loadPaymentSummary(uid, stallData) {
 
   // Month-to-month comparison
   const prev = prevMonthKey(month);
-  const prevBill = await getOperatorBill(uid, prev);
+  const prevBill = await getOperatorBill(stallId, prev);
   const prevTimesheets = await getStaffTimesheets(
-    uid,
+    stallId,
     ...Object.values(startEndOfMonthFromKey(prev)),
   );
   const prevStaffAgg = aggregateStaff(prevTimesheets);
@@ -523,8 +539,8 @@ async function loadPaymentSummary(uid, stallData) {
 }
 
 /** Write a payment record */
-async function addPayment(uid, payload) {
-  const colRef = collection(db, "stalls", uid, "payments");
+async function addPayment(stallId, payload) {
+  const colRef = collection(db, "stalls", stallId, "payments");
   await addDoc(colRef, {
     ...payload,
     createdAt: serverTimestamp(),
@@ -533,14 +549,14 @@ async function addPayment(uid, payload) {
 }
 
 /** Mark operator paid: update operatorBills/{month}.status and log payment */
-async function markOperatorPaid(uid) {
+async function markOperatorPaid(stallId) {
   const st = window.__payState;
   if (!st) return;
 
   const method = $("payMethod")?.value || "paynow";
   const note = ($("payNote")?.value || "").trim();
 
-  const ref = doc(db, "stalls", uid, "operatorBills", st.month);
+  const ref = doc(db, "stalls", stallId, "operatorBills", st.month);
 
   await updateDoc(ref, {
     status: "paid",
@@ -548,7 +564,7 @@ async function markOperatorPaid(uid) {
     updatedAt: serverTimestamp(),
   });
 
-  await addPayment(uid, {
+  await addPayment(stallId, {
     month: st.month,
     payTo: "operator",
     amount: st.totals.operatorDue,
@@ -558,7 +574,8 @@ async function markOperatorPaid(uid) {
 }
 
 /** Mark staff paid: batch update all unpaid timesheets in month + log payment */
-async function markStaffPaid(uid) {
+/** Mark staff paid: batch update all unpaid timesheets in month + log payment */
+async function markStaffPaid(stallId) {
   const month = window.__payState?.month;
   if (!month) return;
 
@@ -568,7 +585,7 @@ async function markStaffPaid(uid) {
   const note = ($("payNote")?.value || "").trim();
 
   // Get all timesheets for month
-  const sheets = await getStaffTimesheets(uid, start, end);
+  const sheets = await getStaffTimesheets(stallId, start, end);
 
   // Batch update only unpaid
   const batch = writeBatch(db);
@@ -582,7 +599,7 @@ async function markStaffPaid(uid) {
     total += hours * rate;
     count++;
 
-    const ref = doc(db, "stalls", uid, "staffTimesheets", t.id);
+    const ref = doc(db, "stalls", stallId, "staffTimesheets", t.id);
     batch.update(ref, { paid: true, paidAt: serverTimestamp() });
   }
 
@@ -590,7 +607,7 @@ async function markStaffPaid(uid) {
 
   await batch.commit();
 
-  await addPayment(uid, {
+  await addPayment(stallId, {
     month,
     payTo: "staff",
     amount: total,
@@ -680,15 +697,15 @@ $("logoutBtn")?.addEventListener("click", async () => {
 });
 
 $("refreshBtn")?.addEventListener("click", () => {
-  if (window.__payUid)
-    loadPaymentSummary(window.__payUid, window.__stallData).catch(
+  if (window.__payStallId)
+    loadPaymentSummary(window.__payStallId, window.__stallData).catch(
       console.error,
     );
 });
 
 $("monthSelect")?.addEventListener("change", () => {
-  if (window.__payUid)
-    loadPaymentSummary(window.__payUid, window.__stallData).catch(
+  if (window.__payStallId)
+    loadPaymentSummary(window.__payStallId, window.__stallData).catch(
       console.error,
     );
 });
@@ -698,10 +715,10 @@ $("printBtn")?.addEventListener("click", printPage);
 
 $("markOperatorPaidBtn")?.addEventListener("click", async () => {
   try {
-    if (!window.__payUid) return;
+    if (!window.__payStallId) return;
     setStatus("Marking operator as paid…");
-    await markOperatorPaid(window.__payUid);
-    await loadPaymentSummary(window.__payUid, window.__stallData || {});
+    await markOperatorPaid(window.__payStallId);
+    await loadPaymentSummary(window.__payStallId, window.__stallData || {});
   } catch (err) {
     console.error(err);
     setStatus(`❌ Failed: ${err.code || err.message}`, true);
@@ -710,10 +727,10 @@ $("markOperatorPaidBtn")?.addEventListener("click", async () => {
 
 $("markStaffPaidBtn")?.addEventListener("click", async () => {
   try {
-    if (!window.__payUid) return;
+    if (!window.__payStallId) return;
     setStatus("Marking staff as paid…");
-    await markStaffPaid(window.__payUid);
-    await loadPaymentSummary(window.__payUid, window.__stallData || {});
+    await markStaffPaid(window.__payStallId);
+    await loadPaymentSummary(window.__payStallId, window.__stallData || {});
   } catch (err) {
     console.error(err);
     setStatus(`❌ Failed: ${err.code || err.message}`, true);
@@ -765,11 +782,23 @@ onAuthStateChanged(auth, async (user) => {
     setText("stallName", stallData.stallName || "—");
 
     // 4) Store globals used by refresh/month change buttons
-    window.__payUid = user.uid;
+    // 4) Decide stallId (since rentalAgreements is tagged via stallId)
+    const stallId =
+      u.stallId ||
+      stallData.stallId ||
+      (u.stallPath ? u.stallPath.split("/").pop() : null);
+
+    if (!stallId) {
+      setStatus("❌ No stallId found for this account.", true);
+      return;
+    }
+
+    // 5) Store globals used by refresh/month change buttons
+    window.__payStallId = stallId;
     window.__stallData = stallData;
 
-    // 5) Load page
-    await loadPaymentSummary(user.uid, stallData);
+    // 6) Load page using stallId
+    await loadPaymentSummary(stallId, stallData);
   } catch (err) {
     console.error(err);
     setStatus(`❌ Failed to load payments: ${err.code || err.message}`, true);

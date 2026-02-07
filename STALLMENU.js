@@ -1,5 +1,5 @@
 /*************************************************
- * 
+ *
  *   1) menu.html?centreId=...&stallId=...
  *   2) legacy menu.html?id=publicStallId (e.g. kopi-fellas)
  *      -> resolves using collectionGroup('stalls') where publicStallId == id
@@ -8,6 +8,7 @@
  *************************************************/
 
 import { getCartForUI } from "./cart.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
@@ -21,6 +22,10 @@ import {
   orderBy,
   limit,
   collectionGroup,
+  setDoc,
+  arrayUnion,
+  arrayRemove,
+  serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* =========================
@@ -219,7 +224,13 @@ function renderMenu(filter) {
       heartBtn.type = "button";
       heartBtn.classList.add("likeBtn");
       heartBtn.setAttribute("aria-label", liked ? "Unlike" : "Like");
-      heartBtn.textContent = "♥";
+
+      const heartImg = document.createElement("img");
+      heartImg.className = "likeIcon";
+      heartImg.src = liked ? "images/heart.png" : "images/like.png";
+      heartImg.alt = liked ? "Unlike" : "Like";
+
+      heartBtn.appendChild(heartImg);
 
       const likeCount = document.createElement("span");
       likeCount.classList.add("likeCount");
@@ -227,17 +238,48 @@ function renderMenu(filter) {
 
       if (liked) heartBtn.classList.add("active");
 
-      heartBtn.addEventListener("click", () => {
+      heartBtn.addEventListener("click", async () => {
+        // state BEFORE toggle
+        const wasLiked = heartBtn.classList.contains("active");
+
+        // ---------- Firestore save (menu items) ----------
+        try {
+          const auth = getAuth();
+          const user = auth.currentUser;
+          if (user) {
+            const itemKey = `${stallId}::${item.id}`; // ✅ use item.id (exists)
+
+            await setDoc(
+              doc(db, "users", user.uid),
+              {
+                favouriteItems: wasLiked
+                  ? arrayRemove(itemKey)
+                  : arrayUnion(itemKey),
+                updatedAt: serverTimestamp(),
+              },
+              { merge: true },
+            );
+          }
+        } catch (err) {
+          console.error("Save favourite item failed:", err);
+        }
+
+        // ---------- Existing UI + localStorage ----------
         liked = !liked;
+
         if (liked) {
           localStorage.setItem(likeKey, "1");
           heartBtn.classList.add("active");
           heartBtn.setAttribute("aria-label", "Unlike");
+          heartImg.src = "images/heart.png";
+          heartImg.alt = "Unlike";
           likeCount.textContent = String(Number(likeCount.textContent) + 1);
         } else {
           localStorage.removeItem(likeKey);
           heartBtn.classList.remove("active");
           heartBtn.setAttribute("aria-label", "Like");
+          heartImg.src = "images/like.png";
+          heartImg.alt = "Like";
           likeCount.textContent = String(
             Math.max(0, Number(likeCount.textContent) - 1),
           );
@@ -309,48 +351,48 @@ async function loadStallAndMenu() {
   );
   const snap = await getDocs(menuRef);
   ALL_ITEMS = snap.docs
-  .map((d) => {
-    const it = d.data() || {};
+    .map((d) => {
+      const it = d.data() || {};
 
-    // --- PRICE NORMALIZATION ---
-    // Case 1: normal stalls: price / priceFrom
-    const directPrice = it.price ?? null;
-    const directPriceFrom = it.priceFrom ?? null;
+      // --- PRICE NORMALIZATION ---
+      // Case 1: normal stalls: price / priceFrom
+      const directPrice = it.price ?? null;
+      const directPriceFrom = it.priceFrom ?? null;
 
-    // Case 2: beverage stalls: prices map (cold_s, cold_m, hot_s, etc.)
-    const pricesMap = it.prices && typeof it.prices === "object" ? it.prices : null;
+      // Case 2: beverage stalls: prices map (cold_s, cold_m, hot_s, etc.)
+      const pricesMap =
+        it.prices && typeof it.prices === "object" ? it.prices : null;
 
-    // compute min price from prices map (for menu list "from $X.XX")
-    let minVariantPrice = null;
-    if (pricesMap) {
-      const vals = Object.values(pricesMap)
-        .map(Number)
-        .filter((n) => Number.isFinite(n));
-      if (vals.length) minVariantPrice = Math.min(...vals);
-    }
+      // compute min price from prices map (for menu list "from $X.XX")
+      let minVariantPrice = null;
+      if (pricesMap) {
+        const vals = Object.values(pricesMap)
+          .map(Number)
+          .filter((n) => Number.isFinite(n));
+        if (vals.length) minVariantPrice = Math.min(...vals);
+      }
 
-    return {
-      id: d.id,
-      name: it.name || d.id,
-      category: it.category || "Uncategorised",
+      return {
+        id: d.id,
+        name: it.name || d.id,
+        category: it.category || "Uncategorised",
 
-      // if priceFrom/price exist use them, else use min from variants
-      price: directPrice,
-      priceFrom: directPriceFrom ?? minVariantPrice,
+        // if priceFrom/price exist use them, else use min from variants
+        price: directPrice,
+        priceFrom: directPriceFrom ?? minVariantPrice,
 
-      // for item.html later (keep the variants available)
-      prices: pricesMap,
+        // for item.html later (keep the variants available)
+        prices: pricesMap,
 
-      // --- IMAGE NORMALIZATION ---
-      // prefer full Firebase Storage URL if present
-      img: it.imageUrl || it.img || "images/menu/placeholder.png",
+        // --- IMAGE NORMALIZATION ---
+        // prefer full Firebase Storage URL if present
+        img: it.imageUrl || it.img || "images/menu/placeholder.png",
 
-      likes: Number(it.likes ?? 0),
-      active: it.active ?? true,
-    };
-  })
-  .filter((it) => it.active !== false);
+        likes: Number(it.likes ?? 0),
+        active: it.active ?? true,
+      };
+    })
+    .filter((it) => it.active !== false);
 
-renderMenu("");
-
+  renderMenu("");
 }

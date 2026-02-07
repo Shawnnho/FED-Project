@@ -168,6 +168,113 @@ let activeStatus = ""; // default tab
 let allOrders = []; // latest snapshot
 let unsubOrders = null; // to clean up listener
 
+// ✅ Filters state (Apply Filter button)
+let activeDate = ""; // today | yesterday | last7 | thisMonth | lastMonth | all
+let activeYear = ""; // "2026", "2025", ...
+
+function toDateKey(ts) {
+  if (!ts) return "";
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  // YYYY-MM-DD (local)
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function startOfToday() {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function inDateRange(createdAt, mode) {
+  if (!mode || mode === "all") return true;
+  if (!createdAt) return false;
+
+  const d = createdAt.toDate ? createdAt.toDate() : new Date(createdAt);
+  const now = new Date();
+
+  const today0 = startOfToday();
+  const msDay = 24 * 60 * 60 * 1000;
+
+  if (mode === "today") return d >= today0;
+
+  if (mode === "yesterday") {
+    const y0 = new Date(today0.getTime() - msDay);
+    return d >= y0 && d < today0;
+  }
+
+  if (mode === "last7") {
+    const from = new Date(now.getTime() - 7 * msDay);
+    return d >= from;
+  }
+
+  if (mode === "thisMonth") {
+    const from = new Date(now.getFullYear(), now.getMonth(), 1);
+    return d >= from;
+  }
+
+  if (mode === "lastMonth") {
+    const from = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const to = new Date(now.getFullYear(), now.getMonth(), 1);
+    return d >= from && d < to;
+  }
+
+  return true;
+}
+
+function rebuildFilterOptions() {
+  // Year options from loaded orders
+  const years = new Set();
+  const cuisines = new Set();
+
+  for (const o of allOrders) {
+    const d = o.createdAt?.toDate
+      ? o.createdAt.toDate()
+      : o.createdAt
+        ? new Date(o.createdAt)
+        : null;
+    if (d && Number.isFinite(d.getTime())) years.add(String(d.getFullYear()));
+    if (o.cuisine) cuisines.add(o.cuisine);
+  }
+
+  // ✅ Date dropdown static options
+  const dateSel = $("dateFilter");
+  if (dateSel) {
+    dateSel.innerHTML = `
+      <option value="">Date</option>
+      <option value="today">Today</option>
+      <option value="yesterday">Yesterday</option>
+      <option value="last7">Last 7 days</option>
+      <option value="thisMonth">This month</option>
+      <option value="lastMonth">Last month</option>
+      <option value="all">All time</option>
+    `;
+    if (activeDate) dateSel.value = activeDate;
+  }
+
+  // ✅ Year dropdown from orders
+  const yearSel = $("yearFilter");
+  if (yearSel) {
+    const sorted = Array.from(years).sort((a, b) => Number(b) - Number(a));
+    yearSel.innerHTML =
+      `<option value="">Year</option>` +
+      sorted.map((y) => `<option value="${y}">${y}</option>`).join("");
+    if (activeYear) yearSel.value = activeYear;
+  }
+
+  // ✅ Cuisine dropdown from orders (if none, keep just placeholder)
+  const cuisineSel = $("cuisineFilter");
+  if (cuisineSel) {
+    const sorted = Array.from(cuisines).sort((a, b) => a.localeCompare(b));
+    cuisineSel.innerHTML =
+      `<option value="">Cuisine</option>` +
+      sorted.map((c) => `<option value="${c}">${c}</option>`).join("");
+    if (activeCuisine) cuisineSel.value = activeCuisine;
+  }
+}
+
 /* =========================
    RENDER
 ========================= */
@@ -176,6 +283,22 @@ function renderOrdersTable() {
 
   const filtered = allOrders
     .filter((o) => !activeStatus || o.status === activeStatus)
+
+    // ✅ Year filter
+    .filter((o) => {
+      if (!activeYear) return true;
+      const d = o.createdAt?.toDate
+        ? o.createdAt.toDate()
+        : o.createdAt
+          ? new Date(o.createdAt)
+          : null;
+      return d && String(d.getFullYear()) === String(activeYear);
+    })
+
+    // ✅ Date filter
+    .filter((o) => inDateRange(o.createdAt, activeDate))
+
+    // ✅ Search filter
     .filter((o) => {
       if (!qtxt) return true;
       return (
@@ -319,6 +442,8 @@ function mapOrderDoc(d) {
     item: itemSummary,
     amount,
     createdAt: data.createdAt || null,
+
+    cuisine: data.cuisine || data.stallCuisine || data.cuisineType || "",
   };
 }
 
@@ -348,7 +473,7 @@ function listenOrdersTopLevel(stallId) {
           `🆕 ${newOnes.length} new order${newOnes.length > 1 ? "s" : ""}`,
         );
       }
-
+      rebuildFilterOptions();
       renderOrdersTable();
     },
     (err) => {
@@ -410,6 +535,14 @@ document.querySelectorAll(".tabBtn").forEach((btn) => {
     activeStatus = btn.dataset.status || "";
     renderOrdersTable();
   });
+});
+
+// Apply Filter
+$("applyFilterBtn")?.addEventListener("click", () => {
+  activeCuisine = $("cuisineFilter")?.value || "";
+  activeDate = $("dateFilter")?.value || "";
+  activeYear = $("yearFilter")?.value || "";
+  renderOrdersTable();
 });
 
 // Search

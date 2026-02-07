@@ -23,6 +23,7 @@ import {
   orderBy,
   limit,
   onSnapshot,
+  updateDoc,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 import {
@@ -63,12 +64,27 @@ function canPublishStall(data) {
     return "Prep time (min & max) is required";
   if (!data.imageUrl && !data.img) return "Stall image is required";
 
-  return null; 
+  return null;
 }
 
 /* =========================
    Helpers
 ========================= */
+
+function to12h(hhmm) {
+  if (!hhmm || !hhmm.includes(":")) return "";
+
+  const [h, m] = hhmm.split(":").map(Number);
+  const isPM = h >= 12;
+  const hour12 = ((h + 11) % 12) + 1;
+
+  return `${hour12}:${String(m).padStart(2, "0")}${isPM ? " PM" : " AM"}`;
+}
+
+function buildHours12(open, close) {
+  if (!open || !close) return "—";
+  return `${to12h(open)} – ${to12h(close)}`;
+}
 
 function formatUnitForDisplay(unit) {
   // "01-001" -> "01-01", "01-004" -> "01-04"
@@ -106,6 +122,15 @@ function formatUnitForSave(unit) {
   return `${block}-${String(n).padStart(3, "0")}`;
 }
 
+function buildHoursText(openTime, closeTime) {
+  const overnight = closeTime <= openTime; // if close earlier, it’s next day
+  const openTxt = format12h(openTime);
+  const closeTxt = format12hClose(closeTime);
+  return overnight
+    ? `${openTxt} - ${closeTxt} (Next day)`
+    : `${openTxt} - ${closeTxt}`;
+}
+
 function format12h(time24) {
   // "07:00" -> "07:00AM", "21:00" -> "9:00PM"
   const [hhStr, mm] = time24.split(":");
@@ -131,7 +156,9 @@ function format12hClose(time24) {
 
 function parseHoursToTimes(hoursText) {
   // supports: "7:00AM - 9:00PM" or "07:00AM - 9:00PM"
-  const t = String(hoursText || "").replace(/\s+/g, "");
+  const t = String(hoursText || "")
+    .replace(/\(Nextday\)/gi, "") // ignore suffix
+    .replace(/\s+/g, "");
   const m = t.match(/^(\d{1,2}):(\d{2})(AM|PM)-(\d{1,2}):(\d{2})(AM|PM)$/i);
   if (!m) return null;
 
@@ -258,11 +285,27 @@ function wireEditStallDetails(user) {
       s.cuisine ||
       ""
     ).trim();
-    const currentHours = (
-      $("operatingHours")?.textContent ||
-      s.operatingHours ||
-      ""
-    ).trim();
+    // ✅ support new operatingHours object OR old string
+    const currentHours = (() => {
+      const ui = ($("operatingHours")?.textContent || "").trim();
+      if (ui && ui !== "—") return ui;
+
+      const oh = s.operatingHours;
+      if (!oh) return "";
+
+      // old format: string like "07:00AM - 9:00PM"
+      if (typeof oh === "string") return oh;
+
+      // new format: object per day -> show today's preview
+      const todayKey = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"][
+        new Date().getDay()
+      ];
+      const day = oh?.[todayKey];
+      if (day?.open && day?.close) return buildHoursText(day.open, day.close);
+
+      return "";
+    })();
+
     const currentGrade = (
       $("hygieneGrade")?.textContent ||
       s.hygieneGrade ||
@@ -294,28 +337,36 @@ function wireEditStallDetails(user) {
         </div>
 
         <div class="hpModalRow">
-          <label class="hpModalLabel">Operating Hours</label>
+  <label class="hpModalLabel">Operating Hours (by day)</label>
 
-          <div class="hpTimeRow">
-            <div class="hpTimeCol">
-              <div class="hpTimeLabel">Open</div>
-              <input id="mOpenTime" class="hpModalInput" type="time" />
-            </div>
+  <div id="mHoursGrid" class="hpHoursGrid">
+    ${["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+      .map(
+        (d) => `
+      <div class="hpDayRow" data-day="${d}">
+        <div class="hpDayName">${d.toUpperCase()}</div>
 
-            <div class="hpTimeCol">
-              <div class="hpTimeLabel">Close</div>
-              <input id="mCloseTime" class="hpModalInput" type="time" />
-            </div>
-          </div>
+        <input class="hpModalInput hpTime" type="time" data-open />
+        <input class="hpModalInput hpTime" type="time" data-close />
 
-          <div class="hpTimePreview">
-            Preview: <span id="mHoursPreview">—</span>
-          </div>
+        <label class="shCheck hpClosed">
+          <input type="checkbox" data-closed />
+          <span>Closed</span>
+        </label>
 
-          <div class="hpModalHint">
-            Leave both empty to use default: <b>07:00AM - 9:00PM</b>
-          </div>
-        </div>
+        <div class="hpDayPreview" data-preview>—</div>
+      </div>
+    `,
+      )
+      .join("")}
+  </div>
+
+  <div class="hpModalHint">
+    If “Closed” is checked, we save open/close as empty for that day.
+    Overnight is allowed (e.g. 07:00 → 03:00).
+  </div>
+</div>
+
 
         <div class="hpModalRow">
           <label class="hpModalLabel">Hygiene Grade</label>
@@ -371,23 +422,36 @@ function wireEditStallDetails(user) {
         const newCuisine =
           overlay.querySelector("#mCuisine")?.value?.trim() || "";
 
-        const openTime = overlay.querySelector("#mOpenTime")?.value || "";
-        const closeTime = overlay.querySelector("#mCloseTime")?.value || "";
+        // ===== Build operatingHours (7 days) from UI =====
+        const newOperatingHours = {};
+        let invalidDay = false;
 
-        // default if both empty
-        let newHours = "07:00AM - 9:00PM";
+        overlay.querySelectorAll("#mHoursGrid .hpDayRow").forEach((row) => {
+          const dayKey = row.getAttribute("data-day");
+          const openTime = row.querySelector("[data-open]")?.value || "";
+          const closeTime = row.querySelector("[data-close]")?.value || "";
+          const isClosed = row.querySelector("[data-closed]")?.checked;
 
-        if (openTime || closeTime) {
-          if (!openTime || !closeTime) {
-            err.textContent =
-              "Please select BOTH open and close time (or leave both empty for default).";
+          if (isClosed) {
+            newOperatingHours[dayKey] = { open: "", close: "" };
             return;
           }
-          if (closeTime <= openTime) {
-            err.textContent = "Close time must be after open time.";
+
+          if ((openTime && !closeTime) || (!openTime && closeTime)) {
+            invalidDay = true;
             return;
           }
-          newHours = `${format12h(openTime)} - ${format12hClose(closeTime)}`;
+
+          newOperatingHours[dayKey] =
+            openTime && closeTime
+              ? { open: openTime, close: closeTime }
+              : { open: "", close: "" };
+        });
+
+        if (invalidDay) {
+          err.textContent =
+            "For any day, please select BOTH open and close time (or tick Closed).";
+          return;
         }
 
         if (!newStallName) {
@@ -432,7 +496,7 @@ function wireEditStallDetails(user) {
           stallName: newStallName,
           unitNo: unitNo,
           cuisine: newCuisine,
-          operatingHours: newHours,
+          operatingHours: newOperatingHours,
           desc,
           prepMin: Number.isFinite(prepMin) ? prepMin : null,
           prepMax: Number.isFinite(prepMax) ? prepMax : null,
@@ -464,7 +528,7 @@ function wireEditStallDetails(user) {
             ...updates,
             ownerUid: user.uid,
             centreId: ctxCache.centreId,
-            active: true,
+            active: stallCache?.active ?? true,
             hasSetup: true,
             updatedAt: serverTimestamp(),
           },
@@ -476,7 +540,15 @@ function wireEditStallDetails(user) {
         setText("stallName2", updates.stallName);
         setText("unitNo", formatUnitForDisplay(updates.unitNo) || "—");
         setText("cuisine", updates.cuisine || "—");
-        setText("operatingHours", updates.operatingHours || "—");
+        const todayKey = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"][
+          new Date().getDay()
+        ];
+        const day = updates.operatingHours?.[todayKey];
+        setText(
+          "operatingHours",
+          day?.open && day?.close ? buildHoursText(day.open, day.close) : "—",
+        );
+
         setText("stallDesc", updates.desc || "—");
 
         // update cache
@@ -493,6 +565,63 @@ function wireEditStallDetails(user) {
     overlay.querySelector("#mPrepMin").value = stallCache?.prepMin ?? "";
     overlay.querySelector("#mPrepMax").value = stallCache?.prepMax ?? "";
 
+    // ===== Prefill 7-day hours =====
+    const defaultDay = { open: "07:00", close: "21:00" };
+    const savedOH =
+      stallCache?.operatingHours &&
+      typeof stallCache.operatingHours === "object"
+        ? stallCache.operatingHours
+        : null;
+
+    overlay.querySelectorAll("#mHoursGrid .hpDayRow").forEach((row) => {
+      const dayKey = row.getAttribute("data-day");
+      const openEl = row.querySelector("[data-open]");
+      const closeEl = row.querySelector("[data-close]");
+      const closedEl = row.querySelector("[data-closed]");
+      const prevEl = row.querySelector("[data-preview]");
+
+      const d = savedOH?.[dayKey] || defaultDay;
+      const isClosed = !d?.open || !d?.close;
+
+      openEl.value = isClosed ? "" : d.open;
+      closeEl.value = isClosed ? "" : d.close;
+      closedEl.checked = isClosed;
+
+      const refresh = () => {
+        const o = openEl.value;
+        const c = closeEl.value;
+
+        if (closedEl.checked || (!o && !c)) {
+          prevEl.textContent = "Closed";
+          return;
+        }
+        if (o && c) {
+          prevEl.textContent = buildHoursText(o, c); // you already have this helper
+          return;
+        }
+        prevEl.textContent = "—";
+      };
+
+      closedEl.addEventListener("change", () => {
+        if (closedEl.checked) {
+          openEl.value = "";
+          closeEl.value = "";
+        }
+        refresh();
+      });
+
+      openEl.addEventListener("input", () => {
+        if (openEl.value || closeEl.value) closedEl.checked = false;
+        refresh();
+      });
+      closeEl.addEventListener("input", () => {
+        if (openEl.value || closeEl.value) closedEl.checked = false;
+        refresh();
+      });
+
+      refresh();
+    });
+
     // Preview existing image (if any)
     const prev = overlay.querySelector("#mImagePreview");
     const currentImg = stallCache?.imageUrl || stallCache?.img || "";
@@ -507,38 +636,6 @@ function wireEditStallDetails(user) {
       prev.src = URL.createObjectURL(f);
       prev.style.display = "block";
     });
-    const openEl = overlay.querySelector("#mOpenTime");
-    const closeEl = overlay.querySelector("#mCloseTime");
-    const previewEl = overlay.querySelector("#mHoursPreview");
-
-    const parsed = parseHoursToTimes(currentHours);
-    if (parsed) {
-      openEl.value = parsed.open;
-      closeEl.value = parsed.close;
-    } else {
-      // default picker values
-      openEl.value = "07:00";
-      closeEl.value = "21:00";
-    }
-
-    const refreshPreview = () => {
-      const o = openEl.value;
-      const c = closeEl.value;
-
-      if (!o && !c) {
-        previewEl.textContent = "07:00AM - 9:00PM";
-        return;
-      }
-      if (o && c) {
-        previewEl.textContent = `${format12h(o)} - ${format12hClose(c)}`;
-        return;
-      }
-      previewEl.textContent = "—";
-    };
-
-    openEl.addEventListener("input", refreshPreview);
-    closeEl.addEventListener("input", refreshPreview);
-    refreshPreview();
   });
 }
 
@@ -580,6 +677,24 @@ function wireReviewBadgeDashboardWay(stallUid) {
   });
 }
 
+function renderActiveUI(isActive) {
+  const toggle = document.getElementById("stallActiveToggle");
+  const pill = document.getElementById("stallStatusPill");
+
+  if (toggle) toggle.checked = !!isActive;
+
+  if (pill) {
+    pill.classList.remove("isActive", "isInactive");
+    if (isActive) {
+      pill.classList.add("isActive");
+      pill.textContent = "Active (Customers can order)";
+    } else {
+      pill.classList.add("isInactive");
+      pill.textContent = "Inactive (Temporarily closed)";
+    }
+  }
+}
+
 /* =========================
    Main
 ========================= */
@@ -591,7 +706,7 @@ onAuthStateChanged(auth, async (user) => {
 
   try {
     // users/{uid}
-    wireReviewBadgeDashboardWay(user.uid); 
+    wireReviewBadgeDashboardWay(user.uid);
     const userRef = doc(db, "users", user.uid);
     const userSnap = await getDoc(userRef);
     if (!userSnap.exists()) return;
@@ -727,6 +842,76 @@ onAuthStateChanged(auth, async (user) => {
 
     stallRef = doc(db, ctx.stallPath);
 
+    // ===== Stall Active Toggle (public stalls/{stallId}) =====
+    const publicRef = doc(db, "stalls", ctx.stallId);
+    let currentActive = true;
+
+    try {
+      const pubSnap = await getDoc(publicRef);
+      if (pubSnap.exists()) {
+        const pub = pubSnap.data() || {};
+        currentActive = pub.active !== false; // default true if missing
+      } else {
+        // If public doc doesn't exist yet, keep UI disabled until they publish
+        currentActive = false;
+      }
+    } catch (e) {
+      console.warn("Could not read public active status:", e);
+    }
+
+    renderActiveUI(currentActive);
+
+    const toggle = document.getElementById("stallActiveToggle");
+    if (toggle) {
+      // If public doc doesn't exist (never published), disable toggle
+      const pubSnap = await getDoc(publicRef);
+      if (!pubSnap.exists()) {
+        toggle.disabled = true;
+        document.getElementById("stallActiveText").textContent =
+          "Publish your stall first (complete setup) to enable this.";
+      } else {
+        toggle.disabled = false;
+
+        toggle.addEventListener("change", async () => {
+          const next = toggle.checked;
+
+          // Confirm when turning OFF
+          if (!next) {
+            const ok = confirm(
+              "Set stall to INACTIVE?\nCustomers won't be able to order until you turn it back on.",
+            );
+            if (!ok) {
+              toggle.checked = true;
+              return;
+            }
+          }
+
+          try {
+            await updateDoc(publicRef, {
+              active: next,
+              updatedAt: serverTimestamp(),
+            });
+
+            // OPTIONAL: mirror into centre stall doc too
+            if (stallRef) {
+              await setDoc(stallRef, { active: next }, { merge: true });
+            }
+
+            renderActiveUI(next);
+            alert(
+              next ? "✅ Stall is now ACTIVE." : "✅ Stall is now INACTIVE.",
+            );
+          } catch (err) {
+            console.error(err);
+            alert(`❌ Failed to update status: ${err.code || err.message}`);
+            // revert UI
+            toggle.checked = !next;
+            renderActiveUI(!next);
+          }
+        });
+      }
+    }
+
     // 1) if stall doc doesn't exist → create a blank one
     let stallSnap = await getDoc(stallRef);
 
@@ -767,7 +952,24 @@ onAuthStateChanged(auth, async (user) => {
     setText("stallName2", s.stallName);
     setText("unitNo", formatUnitForDisplay(s.unitNo) || "—");
     setText("cuisine", s.cuisine || "—");
-    setText("operatingHours", s.operatingHours || "—");
+    // ✅ Operating hours: supports old string OR new object (mon/tue/...)
+    // old: "07:00AM - 9:00PM"
+    // new: { mon:{open:"07:00",close:"21:00"}, ... }
+    let hoursText = "—";
+
+    if (typeof s.operatingHours === "string" && s.operatingHours.trim()) {
+      hoursText = s.operatingHours.trim();
+    } else if (s.operatingHours && typeof s.operatingHours === "object") {
+      const todayKey = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"][
+        new Date().getDay()
+      ];
+      const day = s.operatingHours?.[todayKey];
+      hoursText =
+        day?.open && day?.close ? buildHoursText(day.open, day.close) : "—";
+    }
+
+    setText("operatingHours", hoursText);
+
     setText("stallDesc", s.desc || "—");
 
     // hygiene grade is stored in top-level stalls/{stallId} (NEA updates there)

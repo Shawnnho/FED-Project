@@ -2,6 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import {
   getAuth,
   onAuthStateChanged,
+  signOut,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   getFirestore,
@@ -119,8 +120,7 @@ function catTokens(s) {
 }
 
 function menuUrl(s) {
-  // IMPORTANT: this matches your new menu.html params
-  return `menu.html?centreId=${encodeURIComponent(s.centreId)}&stallId=${encodeURIComponent(s.stallDocId)}`;
+  return `stall.html?centreId=${encodeURIComponent(s.centreId)}&stallId=${encodeURIComponent(s.stallDocId)}`;
 }
 
 // =========================
@@ -131,31 +131,22 @@ function buildChipsFromData(data) {
     ...new Set(data.map((s) => (s.cuisine || "").trim()).filter(Boolean)),
   ];
 
-  const cuisineEmojis = {
-    chinese: "🥢",
-    malay: "🍃",
-    indian: "🍛",
-    western: "🍳",
-    beverages: "☕",
-  };
-
   const cuisineBtns = cuisines
     .sort()
     .map((c) => {
       const key = c.toLowerCase();
-      const emoji = cuisineEmojis[key] || "🍽️";
       return `
-        <button class="chipBtn" data-cat="${esc(key)}" type="button">
-          ${emoji} ${esc(c)}
-        </button>`;
+      <button class="chipBtn" data-cat="${esc(key)}" type="button">
+        ${esc(c)}
+      </button>`;
     })
     .join("");
 
   const specialBtns = `
-    <button class="chipBtn" data-cat="popular" type="button">🔥 Popular</button>
-    <button class="chipBtn" data-cat="top" type="button">⭐ Top Rated</button>
-    <button class="chipBtn" data-cat="fast" type="button">⏱️ Fast</button>
-  `;
+  <button class="chipBtn" data-cat="popular" type="button">Popular</button>
+  <button class="chipBtn" data-cat="top" type="button">Top Rated</button>
+  <button class="chipBtn" data-cat="fast" type="button">Fast</button>
+`;
 
   chipRow.innerHTML = `
     <button class="chipBtn active" data-cat="all" type="button">All</button>
@@ -179,7 +170,7 @@ function renderFeatured(data) {
           <div class="featuredBadge">${s.grade === "A" ? "Top Pick" : "Popular"}</div>
           <div class="featuredName">${esc(s.name)}</div>
           <div class="featuredMeta">
-            ${esc(s.cuisine)} · Grade ${esc(s.grade)} · ⏱️ ${timeLabel(s)}
+    ${esc(s.cuisine)} · Grade ${esc(s.grade)} · Prep ${timeLabel(s)}
           </div>
         </div>
       </a>`;
@@ -213,14 +204,22 @@ function renderList(data) {
           <p class="desc">${esc(s.desc)}</p>
 
           <div class="cardBottom">
-            <span class="prep dPrep ${prepClass(s)}">⏱️ ${timeLabel(s)}</span>
+           <span class="prep dPrep ${prepClass(s)}">Prep ${timeLabel(s)}</span>
 
-            <div class="dActions">
-              <button class="dFav ${favOn ? "on" : ""}" type="button" data-stall="${esc(
-                s.id,
-              )}" aria-label="Favourite">
-                <span class="heart">${favOn ? "♥" : "♡"}</span>
-              </button>
+
+           <button
+  class="dFav ${favOn ? "on" : ""}"
+  type="button"
+  data-stall="${esc(s.id)}"
+  aria-label="Favourite"
+>
+  <img
+    class="heartIcon"
+    src="${favOn ? "images/heart.png" : "images/like.png"}"
+    alt="Favourite"
+  />
+</button>
+
 
               <a class="viewBtn" href="${menuUrl(s)}">
                 View <span class="arrow">→</span>
@@ -334,7 +333,7 @@ document.addEventListener("click", async (e) => {
 
   if (!currentUid) {
     showDToast("Please sign in to claim this promotion.");
-    setTimeout(() => (window.location.href = "signin.html"), 650);
+    setTimeout(() => (window.location.href = "signin.html?from=guest"), 650);
     return;
   }
 
@@ -445,7 +444,6 @@ async function loadStalls() {
   applyFilters();
 }
 
-
 let stopFavWatch = null;
 
 onAuthStateChanged(auth, (user) => {
@@ -464,3 +462,11 @@ onAuthStateChanged(auth, (user) => {
     applyFilters();
   }
 });
+
+const params = new URLSearchParams(window.location.search);
+const isGuest = params.get("mode") === "guest";
+
+// ✅ if user enters guest discover page, guarantee they are logged out
+if (isGuest) {
+  signOut(auth).catch(() => {});
+}

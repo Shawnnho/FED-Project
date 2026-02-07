@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Hawker Point — Hygiene Trend</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="hygiene.css" />
+  </head>
+
+  <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="home.html" aria-label="Hawker Point Home">
+          <img src="images/logo.png" alt="Hawker Point" class="brand-logo" />
+        </a>
+
+        <nav class="nav" aria-label="Primary navigation">
+          <a class="pill" href="home.html">Home</a>
+          <a class="pill" href="promotions.html">Promotions</a>
+          <a class="pill" href="orders.html">Orders</a>
+          <a class="pill" href="feedback.html">Feedback</a>
+          <a class="pill active" href="hygiene.html">Hygiene</a>
+          <a class="pill cartPill" href="cart.html">
+            Cart <span id="cartCount" class="cartBadge isZero">0</span>
+          </a>
+
+          <a class="pill account" href="account.html">Account</a>
+        </nav>
+
+        <button
+          id="menuBtn"
+          class="menuBtn"
+          type="button"
+          aria-label="Open menu"
+          aria-expanded="false"
+        >
+          ☰
+        </button>
+      </div>
+
+      <div id="navBackdrop" class="navBackdrop"></div>
+      <nav id="navMobile" class="navMobile" aria-label="Mobile navigation">
+        <a class="mLink" href="home.html">Home</a>
+        <a class="mLink" href="promotions.html">Promotions</a>
+        <a class="mLink" href="orders.html">Orders</a>
+        <a class="mLink" href="feedback.html">Feedback</a>
+        <a class="mLink active" href="hygiene.html">Hygiene</a>
+        <a class="mLink" href="cart.html">
+          Cart <span id="cartCountMobile" class="cartBadge isZero">0</span>
+        </a>
+
+        <a class="mLink" href="account.html">Account</a>
+      </nav>
+    </header>
+
+    <!-- Mobile specific Header -->
+    <div class="mobileHeader">
+      <button id="mobileBackBtn" class="mobileBackBtn">‹</button>
+      <h1>Detailed Analytic</h1>
+    </div>
+
+    <main class="page trendPage">
+      <div class="htGrid">
+        <!-- SIDEBAR (Matches History Page Style) -->
+        <aside class="hhSidebar desktopOnly">
+          <a href="#" class="hhBackLink" id="deskBackBtn">‹ Back</a>
+
+          <div class="hhStallInfo">
+            <img id="stallImg" src="" alt="Stall Image" class="hhStallImg" />
+            <h2 id="stallName" class="hhStallName">Loading...</h2>
+          </div>
+
+          <div class="currentGradeCard">
+            <div class="cgLabel">Current Grade</div>
+            <div id="cgValue" class="cgValue">—</div>
+          </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <div class="htContent">
+          <!-- 1. Score Trend Chart -->
+          <section class="hygieneCard trendChartCard">
+            <h3>Hygiene Score Trend</h3>
+
+            <div class="chartWrap bigChart" id="chartWrap">
+              <div class="chartGrid">
+                <div class="chartLine"></div>
+                <div class="chartLine"></div>
+                <div class="chartLine"></div>
+                <div class="chartLine"></div>
+              </div>
+              <!-- Bars injected by JS -->
+            </div>
+
+            <div class="chartFooter">
+              <span style="color: #16a34a; font-weight: 900"
+                >▲ Score improved by 5%</span
+              >
+              compared to last inspection.
+            </div>
+          </section>
+
+          <div class="htBottomRow">
+            <!-- 2. Detailed Score Breakdown -->
+            <section class="hygieneCard">
+              <h3>Detailed Score Breakdown</h3>
+              <div id="breakdownList" class="breakdownList">
+                <!-- JS Populated -->
+              </div>
+            </section>
+
+            <!-- 3. Market Comparison -->
+            <section class="hygieneCard">
+              <h3>Market comparison</h3>
+              <p class="subLabel">
+                Compared to the other stalls using this app
+              </p>
+
+              <div class="marketStats">
+                <div class="mStat">
+                  <div class="mVal bigGreen">#3</div>
+                  <div class="mLabel">Ranked</div>
+                </div>
+                <div class="mDivider"></div>
+                <div class="mStat">
+                  <div class="mVal bigGreen">Top 5%</div>
+                  <div class="mLabel">Percentile</div>
+                </div>
+              </div>
+
+              <!-- Comparison Bar Widget -->
+              <div class="compWidget">
+                <div class="compLabels">
+                  <span id="avgCentreScoreLabel">Average Centre Score: —%</span>
+                  <span class="compStoreLabel">This store</span>
+                </div>
+
+                <div class="compTrack">
+                  <div class="compBar" style="width: 85%"></div>
+                  <!-- Average -->
+                  <div class="compMarker" style="left: 94%">
+                    <!-- Store -->
+                    <div class="compLine"></div>
+                    <div class="compVal">94%</div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script type="module" src="cart-badge.js"></script>
+    <script type="module" src="menu.js"></script>
+    <script type="module" src="hygiene-trend.js"></script>
+  </body>
+</html>
