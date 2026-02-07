@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Hawker Point — Payment Received</title>
+
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body>
+    <!-- ✅ Same header/navbar as your other pages -->
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="home.html" aria-label="Hawker Point Home">
+          <img src="images/logo.png" alt="Hawker Point" class="brand-logo" />
+        </a>
+
+        <nav class="nav" aria-label="Primary navigation">
+          <a class="pill" href="home.html">Home</a>
+          <a class="pill" href="promotions.html">Promotions</a>
+          <a class="pill" href="orders.html">Orders</a>
+          <a class="pill" href="feedback.html">Feedback</a>
+          <a class="pill" href="hygiene.html">Hygiene</a>
+
+          <a class="pill cartPill" href="cart.html">
+            Cart <span id="cartCount" class="cartBadge isZero">0</span>
+          </a>
+
+          <a class="pill account" href="account.html">
+            Account <span class="notif" id="notifCount" hidden></span>
+          </a>
+        </nav>
+
+        <button
+          id="menuBtn"
+          class="menuBtn"
+          type="button"
+          aria-label="Open menu"
+          aria-expanded="false"
+        >
+          ☰
+        </button>
+      </div>
+
+      <div id="navBackdrop" class="navBackdrop"></div>
+
+      <nav id="navMobile" class="navMobile" aria-label="Mobile navigation">
+        <a class="mLink" href="home.html">Home</a>
+        <a class="mLink" href="promotions.html">Promotions</a>
+        <a class="mLink" href="orders.html">Orders</a>
+        <a class="mLink" href="feedback.html">Feedback</a>
+        <a class="mLink" href="hygiene.html">Hygiene</a>
+
+        <a class="mLink" href="cart.html">
+          Cart <span id="cartCountMobile" class="cartBadge isZero">0</span>
+        </a>
+
+        <a class="mLink" href="account.html">
+          Account <span class="mNotif" id="mNotifCount" hidden></span>
+        </a>
+      </nav>
+    </header>
+
+    <!-- ✅ Page content -->
+    <main class="pr-wrap">
+      <!-- Loading / error -->
+      <section id="prLoading" class="pr-loading">Loading payment details...</section>
+      <section id="prError" class="pr-error" hidden>
+        <h2>Couldn’t load payment</h2>
+        <p id="prErrorMsg">Please try again.</p>
+        <a class="pr-btn pr-btn-primary" href="orders.html">Go to Orders</a>
+      </section>
+
+      <!-- Success -->
+      <section id="prCard" class="pr-card" hidden>
+        <div class="pr-check">
+          <img
+            src="images/tick.png"
+            alt="Payment successful"
+            class="pr-check-img"
+          />
+        </div>
+
+        <h1 class="pr-title">Payment Received</h1>
+        <p class="pr-sub">Thank you! Your order has been placed successfully</p>
+
+        <div class="pr-infoBox">
+          <div class="pr-row">
+            <div class="pr-label">Order ID</div>
+            <div class="pr-value" id="prOrderId">—</div>
+          </div>
+
+          <div class="pr-row">
+            <div class="pr-label">Paid At</div>
+            <div class="pr-value" id="prPaidAt">—</div>
+          </div>
+
+          <div class="pr-row">
+            <div class="pr-label">Stall</div>
+            <div class="pr-value" id="prStalls">—</div>
+          </div>
+
+          <div class="pr-row">
+            <div class="pr-label">Payment</div>
+            <div class="pr-value" id="prPayMethod">—</div>
+          </div>
+
+          <div class="pr-row">
+            <div class="pr-label">Total Paid</div>
+            <div class="pr-value" id="prTotalPaid">—</div>
+          </div>
+
+          <hr class="pr-divider" />
+
+          <div class="pr-est">
+            <img
+              src="images/hourglass.png"
+              alt="Estimated time"
+              class="pr-est-icon"
+            />
+             Estimated pickup time: <strong id="prPickupTime">—</strong>
+          </div>
+        </div>
+
+        <!-- ✅ Delivery Details (only shown for delivery orders) -->
+        <div id="prDeliveryBox" class="pr-infoBox" hidden>
+          <h3 class="pr-sectionTitle">Delivery Details</h3>
+
+          <div class="pr-row">
+            <div class="pr-label">Address</div>
+            <div class="pr-value" id="prDeliveryAddress">—</div>
+          </div>
+
+          <div class="pr-row">
+            <div class="pr-label">Postal Code</div>
+            <div class="pr-value" id="prDeliveryPostal">—</div>
+          </div>
+
+          <div class="pr-row">
+            <div class="pr-label">Unit Number</div>
+            <div class="pr-value" id="prDeliveryUnit">—</div>
+          </div>
+        </div>
+
+        <h2 class="pr-h2">Order Summary</h2>
+
+        <div id="prItems" class="pr-items"></div>
+
+        <div class="pr-actions">
+          <a id="btnStatus" class="pr-btn pr-btn-primary" href="orders.html">
+            View Order Status
+          </a>
+          <a class="pr-btn pr-btn-secondary" href="home.html">
+            Proceed To Stalls
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="menu.js"></script>
+    <script type="module" src="payment_recieved.js"></script>
+  </body>
+</html>
