@@ -165,6 +165,7 @@ const starFill = document.getElementById("starFill");
 const seeReviewLink = document.getElementById("seeReviewLink");
 
 const favIcon = document.getElementById("favIcon");
+const hygBtn = document.getElementById("hygBtn");
 
 const HEART_OUTLINE = "images/like.png";
 const HEART_FILLED = "images/heart.png";
@@ -206,6 +207,9 @@ function fillUI() {
   }
   if (seeReviewLink) {
     seeReviewLink.href = `feedback.html?id=${encodeURIComponent(stall.reviewStallId)}`;
+  }
+  if (hygBtn) {
+    hygBtn.href = `hygiene.html?id=${encodeURIComponent(stallId)}&centreId=${encodeURIComponent(centreId)}`;
   }
 }
 

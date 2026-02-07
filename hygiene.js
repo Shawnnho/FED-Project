@@ -185,7 +185,7 @@ async function loadStalls() {
 
   // Get ID from URL if present
   const params = new URLSearchParams(window.location.search);
-  let preselectId = params.get("id");
+  let preselectId = params.get("id") || params.get("stallId");
 
   // Storeholder always sees their own stall
   if (userRole === "storeholder" && userStallId) {
