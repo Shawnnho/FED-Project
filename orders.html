@@ -64,34 +64,93 @@
       </nav>
     </header>
 
-    <main>
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <center><h1>THIS IS A WORK IN PROGRESS!</h1></center>
-      <center><h2>Page is COMING SOON!!!!!!</h2></center>
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
+    <main
+      class="ordersPage"
+      style="padding: 28px 16px; max-width: 980px; margin: 0 auto"
+    >
+      <h1 style="margin: 0 0 10px; font-size: 28px">My Orders</h1>
+      <p class="legal-muted" style="margin: 0 0 18px">
+        View your recent orders and open the receipt.
+      </p>
+
+      <!-- Filters -->
+      <div class="ordersFilters">
+        <input
+          id="ordersSearch"
+          class="ordersSearch"
+          type="search"
+          placeholder="Search stall or order id..."
+        />
+
+        <select id="ordersStatusFilter" class="ordersSelect">
+          <option value="all">All</option>
+          <option value="pending">Pending (not collected yet)</option>
+          <option value="completed">Completed</option>
+        </select>
+
+        <select id="ordersPayFilter" class="ordersSelect">
+          <option value="all">All payments</option>
+          <option value="cash">Cash</option>
+          <option value="qr">PayNow / NETS QR</option>
+          <option value="card">Card</option>
+        </select>
+      </div>
+
+      <!-- Pending section -->
+      <h2 class="ordersSectionTitle">Pending</h2>
+      <p class="ordersSectionHint">
+        Orders that are not collected / not completed yet.
+      </p>
+      <section id="ordersPendingList" class="ordersGrid"></section>
+      <div id="ordersPendingEmpty" class="ordersEmptyBox" hidden>
+        No pending orders.
+      </div>
+
+      <!-- Completed section -->
+      <h2 class="ordersSectionTitle" style="margin-top: 18px">Completed</h2>
+      <p class="ordersSectionHint">Orders that are already done.</p>
+      <section id="ordersCompletedList" class="ordersGrid"></section>
+      <div id="ordersCompletedEmpty" class="ordersEmptyBox" hidden>
+        No completed orders.
+      </div>
+
+      <!-- Optional banner when ?checkoutId=... is used -->
+      <div
+        id="ordersBanner"
+        class="legal-card"
+        hidden
+        style="
+          padding: 12px 14px;
+          border-radius: 14px;
+          background: #fff;
+          box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+          margin-bottom: 14px;
+          font-weight: 700;
+        "
+      ></div>
+
+      <!-- Empty state -->
+      <div
+        id="ordersEmpty"
+        hidden
+        class="legal-card"
+        style="
+          padding: 18px;
+          border-radius: 14px;
+          background: #fff;
+          box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+        "
+      >
+        <div style="font-weight: 900; font-size: 16px; margin-bottom: 6px">
+          No orders yet
+        </div>
+        <div class="legal-muted" style="margin-bottom: 14px">
+          Once you checkout, your orders will appear here.
+        </div>
+        <a class="pill" href="home.html" style="display: inline-block"
+          >Browse stalls</a
+        >
+      </div>
     </main>
 
     <br />
@@ -139,6 +198,6 @@
 
     <script type="module" src="cart-badge.js"></script>
     <script type="module" src="menu.js"></script>
-    <script src="home.js"></script>
+    <script type="module" src="orders.js"></script>
   </body>
 </html>

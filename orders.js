@@ -7,7 +7,10 @@
  *************************************************/
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   getFirestore,
   collection,
@@ -49,7 +52,9 @@ function getQueryParam(name) {
 }
 
 function makeDisplayId(prefix, id) {
-  const short = String(id || "").slice(-6).toUpperCase();
+  const short = String(id || "")
+    .slice(-6)
+    .toUpperCase();
   return `#${prefix}${short}`;
 }
 
@@ -67,7 +72,7 @@ async function loadOrdersForOwner(userUid, checkoutIdFilter) {
       q = query(
         ordersRef,
         where(fieldName, "==", userUid),
-        where("checkoutId", "==", checkoutIdFilter)
+        where("checkoutId", "==", checkoutIdFilter),
       );
     } else {
       q = query(ordersRef, where(fieldName, "==", userUid));
@@ -85,12 +90,37 @@ async function loadOrdersForOwner(userUid, checkoutIdFilter) {
   return orders;
 }
 
+function normPayKey(m) {
+  const x = String(m || "").toLowerCase();
+  if (x.includes("cash")) return "cash";
+  if (x.includes("paynow") || x.includes("nets") || x === "qr") return "qr";
+  if (x.includes("card")) return "card";
+  return "other";
+}
+
+function isCompletedStatus(status) {
+  const s = String(status || "").toLowerCase();
+  return s === "completed" || s === "collected" || s === "done";
+}
+
+// Pending = anything NOT completed
+function isPendingStatus(status) {
+  return !isCompletedStatus(status);
+}
+
 function renderOrders(orders, checkoutIdFilter) {
-  const listEl = document.getElementById("ordersList");
-  const emptyEl = document.getElementById("ordersEmpty");
   const bannerEl = document.getElementById("ordersBanner");
 
-  if (!listEl) return;
+  const pendingList = document.getElementById("ordersPendingList");
+  const completedList = document.getElementById("ordersCompletedList");
+  const pendingEmpty = document.getElementById("ordersPendingEmpty");
+  const completedEmpty = document.getElementById("ordersCompletedEmpty");
+
+  const searchEl = document.getElementById("ordersSearch");
+  const statusEl = document.getElementById("ordersStatusFilter");
+  const payEl = document.getElementById("ordersPayFilter");
+
+  if (!pendingList || !completedList) return;
 
   // Banner when filtering by checkout
   if (bannerEl) {
@@ -102,59 +132,121 @@ function renderOrders(orders, checkoutIdFilter) {
     }
   }
 
-  listEl.innerHTML = "";
+  // ----------------------------
+  // Apply filters
+  // ----------------------------
+  const q = (searchEl?.value || "").trim().toLowerCase();
+  const statusFilter = statusEl?.value || "all";
+  const payFilter = payEl?.value || "all";
 
-  if (!orders.length) {
-    if (emptyEl) emptyEl.hidden = false;
-    return;
+  let filtered = orders.slice();
+
+  if (q) {
+    filtered = filtered.filter((o) => {
+      const id = String(o.displayId || o.id || "").toLowerCase();
+      const stallName = String(
+        o.stallName ||
+          o.stall?.stallName ||
+          o.stall?.name ||
+          o.stall?.title ||
+          "Unknown Stall",
+      ).toLowerCase();
+      return id.includes(q) || stallName.includes(q);
+    });
   }
-  if (emptyEl) emptyEl.hidden = true;
 
-  // (Optional) Sort: newest first if you have timestamps
-  // orders.sort((a,b)=> (b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+  if (payFilter !== "all") {
+    filtered = filtered.filter(
+      (o) => normPayKey(o.payment?.method) === payFilter,
+    );
+  }
 
-  for (const o of orders) {
-    const stallName = o.stallName || o.stall?.stallName || o.stall?.name || o.stall?.title || "Unknown Stall";
-    
+  // Split into pending/completed
+  let pending = filtered.filter((o) => isPendingStatus(o.status));
+  let completed = filtered.filter((o) => isCompletedStatus(o.status));
+
+  // If user chooses "pending/completed only" dropdown
+  if (statusFilter === "pending") completed = [];
+  if (statusFilter === "completed") pending = [];
+
+  // Optional sort newest first if timestamps exist
+  const ts = (x) => x?.createdAt?.seconds || 0;
+  pending.sort((a, b) => ts(b) - ts(a));
+  completed.sort((a, b) => ts(b) - ts(a));
+
+  // ----------------------------
+  // Render helper
+  // ----------------------------
+  function cardHtml(o) {
+    const stallName =
+      o.stallName ||
+      o.stall?.stallName ||
+      o.stall?.name ||
+      o.stall?.title ||
+      "Unknown Stall";
+
     const paymentType = prettyPayMethod(o.payment?.method);
-    const total =
-      o.pricing?.total ??
-      o.total ??
-      o.amount ??
-      0;
+    const total = o.pricing?.total ?? o.total ?? o.amount ?? 0;
 
-    // Pickup label (fallback)
-    const fulfill =
-        o.fulfillment?.type
-            ? (o.fulfillment.type === "delivery" ? "Delivery" : "Pickup")
-            : "Pickup";
+    const fulfill = o.fulfillment?.type
+      ? o.fulfillment.type === "delivery"
+        ? "Delivery"
+        : "Pickup"
+      : "Pickup";
 
-    // Display Order ID if you don't have a running counter
     const displayId = o.displayId || makeDisplayId("OD", o.id);
 
-    // View order:
-    // - If this order is linked to a checkout, show the receipt by checkoutId (multi-stall)
-    // - else show receipt by orderId (single)
     const href = o.checkoutId
       ? `payment_recieved.html?checkoutId=${encodeURIComponent(o.checkoutId)}`
       : `payment_recieved.html?orderId=${encodeURIComponent(o.id)}`;
 
-    const card = document.createElement("div");
-    card.className = "orderCard";
-    card.innerHTML = `
-      <div>
-        <div class="orderIdRow">Order ID: ${displayId}</div>
-        <div class="orderMainTitle">${stallName}</div>
-        <div class="orderMetaLine">${fulfill}</div>
-        <div class="orderMetaLine">Payment Type: ${paymentType}</div>
-        <div class="orderMetaLine">Amount Payable: $ ${money(total)}</div>
+    const statusText = String(o.status || "").replaceAll("_", " ");
+
+    // little status pill
+    return `
+      <div class="orderCard">
+        <div class="orderLeft">
+          <div class="orderTopRow">
+            <div class="orderIdRow">Order: ${displayId}</div>
+            <span class="orderStatusPill">${statusText || "pending"}</span>
+          </div>
+
+          <div class="orderMainTitle">${stallName}</div>
+
+          <div class="orderMetaRow">
+            <span class="chip">${fulfill}</span>
+            <span class="chip">${paymentType}</span>
+            <span class="chip strong">$${money(total)}</span>
+          </div>
+        </div>
+
+        <a class="orderBtn" href="${href}">View</a>
       </div>
-
-      <a class="orderBtn" href="${href}">View Order</a>
     `;
-
-    listEl.appendChild(card);
   }
+
+  // ----------------------------
+  // Draw
+  // ----------------------------
+  pendingList.innerHTML = pending.map(cardHtml).join("");
+  completedList.innerHTML = completed.map(cardHtml).join("");
+
+  pendingEmpty.hidden = pending.length !== 0;
+  completedEmpty.hidden = completed.length !== 0;
+}
+
+function wireFilters(latestOrdersRef) {
+  const ids = ["ordersSearch", "ordersStatusFilter", "ordersPayFilter"];
+  ids.forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener("input", () =>
+      renderOrders(latestOrdersRef.orders, latestOrdersRef.checkoutId),
+    );
+    el.addEventListener("change", () =>
+      renderOrders(latestOrdersRef.orders, latestOrdersRef.checkoutId),
+    );
+  });
 }
 
 onAuthStateChanged(auth, async (user) => {
@@ -166,10 +258,14 @@ onAuthStateChanged(auth, async (user) => {
   try {
     const checkoutIdFilter = getQueryParam("checkoutId");
     const orders = await loadOrdersForOwner(user.uid, checkoutIdFilter);
-    renderOrders(orders, checkoutIdFilter);
+    const state = { orders, checkoutId: checkoutIdFilter };
+    wireFilters(state);
+    renderOrders(state.orders, state.checkoutId);
   } catch (err) {
     console.error(err);
     // If something fails, show empty state rather than breaking the page
-    renderOrders([], getQueryParam("checkoutId"));
+    const state = { orders: [], checkoutId: getQueryParam("checkoutId") };
+    wireFilters(state);
+    renderOrders(state.orders, state.checkoutId);
   }
 });

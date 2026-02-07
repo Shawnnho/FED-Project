@@ -219,7 +219,7 @@ async function loadPaid(stallId) {
   const q = query(
     collection(db, "orders"),
     where("stallId", "==", stallId),
-    where("status", "in", ["paid", "preparing", "ready"]),
+    where("status", "in", ["paid", "processing", "preparing", "ready"]),
     orderBy("createdAt", "desc"),
     limit(50),
   );
