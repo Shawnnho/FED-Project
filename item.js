@@ -485,16 +485,14 @@ addToCartBtn.addEventListener("click", () => {
   });
 
   writeCart(cart);
-  const publicId = STALL?.publicStallId || stallId;
-  window.location.href = `menu.html?centreId=${centreId}&stallId=${publicId}&stallUid=${stallUid}`;
+  window.location.href = `menu.html?centreId=${centreId}&stallId=${stallUid}&stallUid=${stallUid}`;
 });
 
 /* =========================
    NAV
 ========================= */
 closeBtn.addEventListener("click", () => {
-  const publicId = STALL?.publicStallId || stallId;
-  window.location.href = `menu.html?centreId=${centreId}&stallId=${publicId}&stallUid=${stallUid}`;
+  window.location.href = `menu.html?centreId=${centreId}&stallId=${stallUid}&stallUid=${stallUid}`;
 });
 
 /* =========================
