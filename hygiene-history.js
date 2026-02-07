@@ -51,6 +51,7 @@ const pills = document.querySelectorAll(".hhPill");
 
 const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
+const centreId = params.get("centreId");
 
 async function init() {
   if (!id) {
@@ -58,9 +59,17 @@ async function init() {
     return;
   }
 
-  // Load Stall Info
+  // Load Stall Info from centres/*/stalls/* if centreId provided, otherwise try flat stalls/* as fallback
   try {
-    const snap = await getDoc(doc(db, "stalls", id));
+    let snap;
+    if (centreId) {
+      // Load from nested structure (NEA format)
+      snap = await getDoc(doc(db, "centres", centreId, "stalls", id));
+    } else {
+      // Fallback to flat structure for backward compatibility
+      snap = await getDoc(doc(db, "stalls", id));
+    }
+
     if (snap.exists()) {
       const s = snap.data();
       stallName.textContent = s.stallName || s.name;
