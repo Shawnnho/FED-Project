@@ -41,6 +41,9 @@ Password : Test1234
 Operator2 : bossmantrump@gmail.com
 Password : Test1234
 
+Nea Officer : officer@nea.gov.sg
+Password : Test1234
+
 
 ## Features
 
