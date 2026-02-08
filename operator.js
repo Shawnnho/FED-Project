@@ -129,22 +129,10 @@ function looksLikeUid(id) {
   return typeof id === "string" && id.length >= 20 && !id.includes("-");
 }
 
-// Always resolve to UID for INTERNAL billing (operatorBills / rental)
-// - If already UID => use it
-// - If slug doc exists => use its ownerUid
 function resolveStallUid(stallDocId, stallData) {
-  if (!stallDocId) return null;
-  if (looksLikeUid(stallDocId)) return stallDocId;
-
-  // slug doc: stalls/{slug}.ownerUid should exist
-  const ownerUid = stallData?.ownerUid;
-  if (ownerUid && looksLikeUid(ownerUid)) return ownerUid;
-
-  // fallback: if stallData.publicStallId is UID-ish (rare)
-  const p = stallData?.publicStallId;
-  if (p && looksLikeUid(p)) return p;
-
-  return null;
+  // IMPORTANT: operatorBills is stored under stalls/{STALL_DOC_ID}
+  // So never convert slug -> ownerUid.
+  return stallDocId || null;
 }
 
 // For Authentication one
@@ -401,8 +389,7 @@ async function updateOverview() {
   setBadge("badgeRentals", totalRentals);
 }
 
-
-   // Stalls (per selected centre)
+// Stalls (per selected centre)
 
 async function loadStalls() {
   const list = document.getElementById("stallList");
@@ -523,20 +510,8 @@ async function loadRentals() {
     );
     const stallDocData = stallSnap.exists() ? stallSnap.data() : null;
 
-    // bill under uid
-    let billingStallId = ra.billingUid || ra.stallId;
+    let billingStallId = ra.stallCentreDocId || ra.stallId;
 
-    
-    if (!looksLikeUid(billingStallId)) {
-      const slugSnap = await getDoc(doc(db, "stalls", billingStallId));
-      if (slugSnap.exists()) {
-        const slugData = slugSnap.data() || {};
-        const resolved = resolveStallUid(billingStallId, slugData);
-        if (resolved) billingStallId = resolved;
-      }
-    }
-
-    
     if (!looksLikeUid(billingStallId)) {
       const q = query(
         collection(db, "stalls"),
@@ -546,6 +521,8 @@ async function loadRentals() {
       const s = await getDocs(q);
       if (!s.empty) billingStallId = s.docs[0].id;
     }
+
+    console.log("billingStallId =", billingStallId);
 
     await ensureMonthlyBill(billingStallId, ra.monthlyRent, monthKey);
 
@@ -857,72 +834,69 @@ window.createRentalAgreementFromModal = async () => {
     return;
   }
 
-  
   if (!stall.ownerUid) {
     console.warn("Creating agreement: stall is missing ownerUid", stallDocId);
   }
 
   window.createRentalAgreementFromModal = async () => {
-  if (!SELECTED_CENTRE_ID) return;
+    if (!SELECTED_CENTRE_ID) return;
 
-  const sel = document.getElementById("addRentalStallSelect");
-  const stallDocId = sel?.value;
-  if (!stallDocId) return alert("Pick a stall first.");
+    const sel = document.getElementById("addRentalStallSelect");
+    const stallDocId = sel?.value;
+    if (!stallDocId) return alert("Pick a stall first.");
 
-  const stall = modalStalls.find((x) => x.id === stallDocId) || {};
+    const stall = modalStalls.find((x) => x.id === stallDocId) || {};
 
-  const ownerName =
-    document.getElementById("addRentalOwnerName")?.value?.trim() || "";
-  const monthlyRent = Number(
-    document.getElementById("addRentalMonthlyRent")?.value || 0,
-  );
-  const startDate = document.getElementById("addRentalStartDate")?.value || "";
+    const ownerName =
+      document.getElementById("addRentalOwnerName")?.value?.trim() || "";
+    const monthlyRent = Number(
+      document.getElementById("addRentalMonthlyRent")?.value || 0,
+    );
+    const startDate =
+      document.getElementById("addRentalStartDate")?.value || "";
 
-  if (!ownerName) return alert("Owner name is required.");
-  if (!startDate) return alert("Start date is required.");
-  if (!Number.isFinite(monthlyRent) || monthlyRent < 0)
-    return alert("Monthly rent must be 0 or more.");
+    if (!ownerName) return alert("Owner name is required.");
+    if (!startDate) return alert("Start date is required.");
+    if (!Number.isFinite(monthlyRent) || monthlyRent < 0)
+      return alert("Monthly rent must be 0 or more.");
 
-  const topLevelStallId = stall.publicStallId || stall.stallId || stallDocId;
+    const topLevelStallId = stall.publicStallId || stall.stallId || stallDocId;
 
-  // Create agreement 
-  let createdId = null;
-  try {
-    const ref = await addDoc(collection(db, "rentalAgreements"), {
-      centreId: SELECTED_CENTRE_ID,
-      stallId: topLevelStallId,
-      billingUid: stall.ownerUid || "",
-      stallCentreDocId: stallDocId,
+    // Create agreement
+    let createdId = null;
+    try {
+      const ref = await addDoc(collection(db, "rentalAgreements"), {
+        centreId: SELECTED_CENTRE_ID,
+        stallId: topLevelStallId,
+        billingUid: stall.ownerUid || "",
+        stallCentreDocId: stallDocId,
 
-      stallName: stall.stallName || topLevelStallId,
-      unitNo: stall.unitNo || "-",
-      ownerUid: stall.ownerUid || stall.ownerId || "",
-      ownerName,
-      monthlyRent,
-      startDate,
+        stallName: stall.stallName || topLevelStallId,
+        unitNo: stall.unitNo || "-",
+        ownerUid: stall.ownerUid || stall.ownerId || "",
+        ownerName,
+        monthlyRent,
+        startDate,
 
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    });
-    createdId = ref.id;
-  } catch (err) {
-    console.error("CREATE RENTAL FAILED:", err);
-    alert(`Create rental failed: ${err.message}`);
-    return; 
-  }
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+      createdId = ref.id;
+    } catch (err) {
+      console.error("CREATE RENTAL FAILED:", err);
+      alert(`Create rental failed: ${err.message}`);
+      return;
+    }
 
-  
-  alert("Rental agreement created.");
-  closeAddRentalModal();
+    alert("Rental agreement created.");
+    closeAddRentalModal();
 
-  
-  try {
-    await loadRentals();
-  } catch (err) {
-    console.warn("Agreement created, but refresh failed:", err);
-    
-  }
-};
+    try {
+      await loadRentals();
+    } catch (err) {
+      console.warn("Agreement created, but refresh failed:", err);
+    }
+  };
 };
 
 // LogOut
