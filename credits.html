@@ -8,19 +8,19 @@
     <style>
       body {
         font-family: "Segoe UI", Arial, sans-serif;
-        background: #f5f5f5;
+        background-color: #f4f6f8;
         margin: 0;
         padding: 0;
         color: #333;
       }
 
       .container {
-        max-width: 800px;
+        max-width: 900px;
         margin: 60px auto;
         background: #ffffff;
         padding: 40px;
-        border-radius: 16px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        border-radius: 14px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
       }
 
       h1 {
@@ -35,17 +35,29 @@
       }
 
       h2 {
-        margin-top: 30px;
+        margin-top: 35px;
         font-size: 20px;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 6px;
       }
 
       ul {
-        margin-top: 10px;
+        margin-top: 15px;
         padding-left: 20px;
       }
 
       li {
         margin-bottom: 8px;
+        line-height: 1.5;
+      }
+
+      a {
+        color: #0066cc;
+        text-decoration: none;
+      }
+
+      a:hover {
+        text-decoration: underline;
       }
 
       .footer {
@@ -54,54 +66,603 @@
         font-size: 14px;
         color: #888;
       }
-
-      a {
-        color: #007bff;
-        text-decoration: none;
-      }
-
-      a:hover {
-        text-decoration: underline;
-      }
     </style>
   </head>
   <body>
     <div class="container">
       <h1>Credits</h1>
-      <p class="subtitle">Acknowledgements & Resources Used</p>
+      <p class="subtitle">External Resources and Acknowledgements</p>
 
-      <h2>👤 Project Author</h2>
+      <h2>Project Team</h2>
       <ul>
-        <li>Shawn Ho</li>
+        <li>Shawn Ho S10275058</li>
+        <li>Matthew Tay S10273266</li>
+        <li>Ryan Ng S10275062</li>
+        <li>Ryan Tan S10275517</li>
+        <li>Kaden Toh S10273868</li>
+
+        <!-- Add other team members if applicable -->
       </ul>
 
-      <h2>🛠️ Technologies & Tools</h2>
+      <h2>Technologies and Platforms</h2>
       <ul>
-        <li>HTML, CSS, JavaScript</li>
+        <li>HTML5, CSS3, JavaScript</li>
         <li>Firebase (Authentication, Firestore, Storage)</li>
+        <li>GitHub and GitHub Pages</li>
       </ul>
 
-      <h2>📚 Libraries & Resources</h2>
+      <h2>Libraries and APIs</h2>
       <ul>
-        <li>Firebase Web SDK</li>
-        <li>Google Fonts</li>
-        <li>Icons & emojis used for UI indicators</li>
+        <li>Firebase Web SDK – https://firebase.google.com</li>
+        <li>Browser Web APIs (Local Storage, Fetch API)</li>
       </ul>
 
-      <h2>🎓 Learning References</h2>
+      <h2>Fonts, Icons and Media</h2>
       <ul>
-        <li>Course materials and sample files provided</li>
-        <li>Official documentation (Firebase, MDN Web Docs)</li>
-        <li>Online tutorials and examples for reference</li>
+        <li>Google Fonts – https://fonts.google.com</li>
+        <li>Apple Font - https://developer.apple.com/fonts/</li>
+        <li>Icons and images used are for educational purposes</li>
       </ul>
 
-      <h2>🙏 Acknowledgements</h2>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="food">Food Images</button>
+        <button class="tab-btn" data-tab="hawker">
+          Hawker / Stall References
+        </button>
+        <button class="tab-btn" data-tab="icons">Icons / UI Assets</button>
+      </div>
+
+      <!-- TAB 1: FOOD -->
+      <section class="tab-panel active" id="tab-food">
+        <h2>Pictures of Food and Background Images</h2>
+        <ul>
+          <li>
+            <a
+              href="https://www.simplyairfryer.com/frozen-curly-fries-in-air-fryer/"
+              target="_blank"
+              rel="noopener"
+              >https://www.simplyairfryer.com/frozen-curly-fries-in-air-fryer/</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.onceuponachef.com/recipes/korean-style-beef-bulgogi-burgers.html"
+              target="_blank"
+              rel="noopener"
+              >https://www.onceuponachef.com/recipes/korean-style-beef-bulgogi-burgers.html</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.allrecipes.com/recipe/232375/natashas-chicken-burgers/"
+              target="_blank"
+              rel="noopener"
+              >https://www.allrecipes.com/recipe/232375/natashas-chicken-burgers/</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://leitesculinaria.com/10030/recipes-spaghetti-carbonara.html"
+              target="_blank"
+              rel="noopener"
+              >https://leitesculinaria.com/10030/recipes-spaghetti-carbonara.html</a
+            >
+          </li>
+
+          <!-- Your Google redirect link kept exactly as you pasted -->
+          <li>
+            <a
+              href="google.com/url?sa=i&url=https%3A%2F%2Fwww.sizzlefish.com%2Fblogs%2Fcod%2Fauthentic-fish-and-chips%3Fsrsltid%3DAfmBOopN4M-3p2LHzOx8PcbWsQR9JhqY8ie4-mIKp32pHEq7Qpqv5b8E&psig=AOvVaw3OWw72sQe7AhnKSC1ftaN0&ust=1768283864553000&source=images&cd=vfe&opi=89978449&ved=0CBUQjRxqFwoTCLC36_aohZIDFQAAAAAdAAAAABAE"
+              target="_blank"
+              rel="noopener"
+              >google.com/url?... (Sizzlefish image)</a
+            >
+          </li>
+
+          <li>
+            <a
+              href="https://www.scrambledchefs.com/quick-easy-spaghetti-bolognese-recipe/"
+              target="_blank"
+              rel="noopener"
+              >https://www.scrambledchefs.com/quick-easy-spaghetti-bolognese-recipe/</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.pxfuel.com/en/desktop-wallpaper-pccqx"
+              target="_blank"
+              rel="noopener"
+              >https://www.pxfuel.com/en/desktop-wallpaper-pccqx</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://stock.adobe.com/search?k=food+background"
+              target="_blank"
+              rel="noopener"
+              >https://stock.adobe.com/search?k=food+background</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.freepik.com/free-photos-vectors/hainanese-chicken-rice"
+              target="_blank"
+              rel="noopener"
+              >https://www.freepik.com/free-photos-vectors/hainanese-chicken-rice</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.istockphoto.com/photos/nasi-lemak"
+              target="_blank"
+              rel="noopener"
+              >https://www.istockphoto.com/photos/nasi-lemak</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.thefoodinmybeard.com/butter-chicken-soup-naan-grilled-cheese/"
+              target="_blank"
+              rel="noopener"
+              >https://www.thefoodinmybeard.com/butter-chicken-soup-naan-grilled-cheese/</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://ykgi.com.sg/cpt_food/chicken-cutlet-rice/chicken-cutlet-rice-3/"
+              target="_blank"
+              rel="noopener"
+              >https://ykgi.com.sg/cpt_food/chicken-cutlet-rice/chicken-cutlet-rice-3/</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.averiecooks.com/easy-better-takeout-chicken-fried-rice/"
+              target="_blank"
+              rel="noopener"
+              >https://www.averiecooks.com/easy-better-takeout-chicken-fried-rice/</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.tripadvisor.com/LocationPhotoDirectLink-g294265-d12332807-i429909474-Mchefz_Cuisine-Singapore.html"
+              target="_blank"
+              rel="noopener"
+              >https://www.tripadvisor.com/LocationPhotoDirectLink-g294265-d12332807-i429909474-Mchefz_Cuisine-Singapore.html</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.foodandwine.com/recipes/shredded-ginger-chicken-congee"
+              target="_blank"
+              rel="noopener"
+              >https://www.foodandwine.com/recipes/shredded-ginger-chicken-congee</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.istockphoto.com/photos/malay-food"
+              target="_blank"
+              rel="noopener"
+              >https://www.istockphoto.com/photos/malay-food</a
+            >
+          </li>
+        </ul>
+      </section>
+
+      <!-- TAB 2: HAWKER / STALL -->
+      <section class="tab-panel" id="tab-hawker">
+        <h2>Hawker Centre and Stall References</h2>
+        <ul>
+          <li>
+            <a
+              href="https://www.theurbanlist.com/singapore/a-list/best-hawker-centres-singapore"
+              target="_blank"
+              rel="noopener"
+              >https://www.theurbanlist.com/singapore/a-list/best-hawker-centres-singapore</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://ieatishootipost.sg/eng-kee-chicken-wings-one-big-family-business/"
+              target="_blank"
+              rel="noopener"
+              >https://ieatishootipost.sg/eng-kee-chicken-wings-one-big-family-business/</a
+            >
+          </li>
+
+          <li>
+            <a
+              href="https://www.foodpanda.sg/restaurant/f2bk/al-azhar-restaurant-bukit-timah-restaurant-delivery?utm_source=google&utm_medium=cpc&utm_campaign=23049429290&sem_tracker=23049429290&gad_source=1&gad_campaignid=23049429290&gbraid=0AAAAADiVv6M5a8WDKO6V1MD2MA1mKy_Rc&gclid=EAIaIQobChMI8bq48eiHkgMV_kJBAh011CXTEAAYASAAEgKiffD_BwE"
+              target="_blank"
+              rel="noopener"
+              >Foodpanda – Al Azhar</a
+            >
+          </li>
+
+          <li>
+            <a
+              href="https://www.foodpanda.sg/restaurant/oipz/kopifellas-kiosk-oasis"
+              target="_blank"
+              >Foodpanda – Kopifellas Oasis</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.foodpanda.sg/restaurant/ghut/asia-wok-ayer-rajah-crescent?srsltid=AfmBOoq7JnFConbu8UvGo98yqmyvfztp3gEjCw8xkIQ1ZLHqXa_MbhBm"
+              target="_blank"
+              rel="noopener"
+              >Foodpanda – Asia Wok</a
+            >
+          </li>
+
+          <li>
+            <a
+              href="https://www.misstamchiak.com/tiong-bahru-hainanese-boneless-chicken-rice/"
+              target="_blank"
+              rel="noopener"
+              >https://www.misstamchiak.com/tiong-bahru-hainanese-boneless-chicken-rice/</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://guide.michelin.com/sg/en/singapore-region/singapore/restaurant/tiong-bahru-hainanese-boneless-chicken-rice"
+              target="_blank"
+              rel="noopener"
+              >https://guide.michelin.com/sg/en/singapore-region/singapore/restaurant/tiong-bahru-hainanese-boneless-chicken-rice</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.foodpanda.sg/restaurant/kgw1/tiong-bahru-hainanese-boneless-chicken-rice-bukit-batok-west"
+              target="_blank"
+              rel="noopener"
+              >Foodpanda – Tiong Bahru Hainanese Chicken Rice</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://hungrygowhere.com/food-news/ah-lim-chicken-rice-bedok/"
+              target="_blank"
+              rel="noopener"
+              >https://hungrygowhere.com/food-news/ah-lim-chicken-rice-bedok/</a
+            >
+          </li>
+        </ul>
+      </section>
+
+      <!-- TAB 3: ICONS / UI -->
+      <section class="tab-panel" id="tab-icons">
+        <h2>Icons Used (Flaticon)</h2>
+        <ul>
+          <li>
+            <a
+              href="https://www.flaticon.com/free-icon/delete_1214428?term=delete&page=1&position=1&origin=search&related_id=1214428"
+              target="_blank"
+              rel="noopener"
+              >Delete icon</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.flaticon.com/free-icon/right-arrow_271228?term=arrow&page=1&position=6&origin=search&related_id=271228"
+              target="_blank"
+              rel="noopener"
+              >Right arrow icon</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.flaticon.com/search?word=PErson"
+              target="_blank"
+              rel="noopener"
+              >Person icons search</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.flaticon.com/free-icon/check_9249233?term=tick&page=1&position=15&origin=search&related_id=9249233"
+              target="_blank"
+              rel="noopener"
+              >Check icon</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.flaticon.com/free-icon/hourglass_2027580?term=hourglass&page=1&position=47&origin=search&related_id=2027580"
+              target="_blank"
+              rel="noopener"
+              >Hourglass icon</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.flaticon.com/free-icon/check_1828644?term=tick&page=1&position=41&origin=search&related_id=1828644"
+              target="_blank"
+              rel="noopener"
+              >Check icon (alt)</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.flaticon.com/free-icon/takeaway-food_17845812?term=takeaway+bag&page=1&position=21&origin=search&related_id=17845812"
+              target="_blank"
+              rel="noopener"
+              >Takeaway bag icon</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.flaticon.com/free-icon/cooking_1830839?term=preparing+food&page=1&position=2&origin=search&related_id=1830839"
+              target="_blank"
+              rel="noopener"
+              >Cooking icon</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.flaticon.com/free-icon/checked_190411"
+              target="_blank"
+              rel="noopener"
+              >Checked icon</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.flaticon.com/free-icon/restaurant_16391181?term=fork&page=1&position=1&origin=search&related_id=16391181"
+              target="_blank"
+              rel="noopener"
+              >Restaurant icon</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.flaticon.com/free-icon/clipboard_1103440?term=clipboard&page=1&position=2&origin=search&related_id=1103440"
+              target="_blank"
+              rel="noopener"
+              >Clipboard icon</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.flaticon.com/free-icon/filter_3839020?term=filter&page=1&position=2&origin=search&related_id=3839020"
+              target="_blank"
+              rel="noopener"
+              >Filter icon</a
+            >
+          </li>
+
+          <li>
+            <a
+              href="https://www.flaticon.com/free-icon/home_1946436?term=home&page=1&position=4&origin=search&related_id=1946436"
+              target="_blank"
+              rel="noopener"
+              >Home icon</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.flaticon.com/free-icon/order_10167747?term=order&page=1&position=15&origin=search&related_id=10167747"
+              target="_blank"
+              rel="noopener"
+              >Order icon</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.flaticon.com/free-icon/store_726569?term=shop&page=1&position=15&origin=search&related_id=726569"
+              target="_blank"
+              rel="noopener"
+              >Store icon</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.flaticon.com/free-icon/bell_3602123?term=bell&page=1&position=9&origin=search&related_id=3602123"
+              target="_blank"
+              rel="noopener"
+              >Bell icon</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.flaticon.com/free-icon/back_130882?term=back+arrow&page=1&position=3&origin=search&related_id=130882"
+              target="_blank"
+              rel="noopener"
+              >Back icon</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.flaticon.com/free-icon/star_1828884?term=star&page=1&position=2&origin=search&related_id=1828884"
+              target="_blank"
+              rel="noopener"
+              >Star icon</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.flaticon.com/free-icon/padlock_3064155?term=lock&page=1&position=5&origin=search&related_id=3064155"
+              target="_blank"
+              rel="noopener"
+              >Padlock icon</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.flaticon.com/free-icon/i_5788441?term=i&page=1&position=4&origin=search&related_id=5788441"
+              target="_blank"
+              rel="noopener"
+              >Info icon</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.flaticon.com/free-icon/chat_9742173?term=faq&page=1&position=6&origin=search&related_id=9742173"
+              target="_blank"
+              rel="noopener"
+              >Chat/FAQ icon</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.flaticon.com/free-icon/multiple-users-silhouette_33308?term=people&page=1&position=2&origin=search&related_id=33308"
+              target="_blank"
+              rel="noopener"
+              >Users icon</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.flaticon.com/free-icon/safe_18251256?term=hygiene&page=1&position=15&origin=search&related_id=18251256"
+              target="_blank"
+              rel="noopener"
+              >Hygiene icon</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.flaticon.com/free-icon/graph_2567943?term=analytic&page=1&position=35&origin=search&related_id=2567943"
+              target="_blank"
+              rel="noopener"
+              >Graph/analytics icon</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.flaticon.com/free-icon/lock_483408?term=lock&page=1&position=1&origin=search&related_id=483408"
+              target="_blank"
+              rel="noopener"
+              >Lock icon (alt)</a
+            >
+          </li>
+        </ul>
+
+        <h2>Figma / UI References</h2>
+        <ul>
+          <li>
+            <a
+              href="https://www.figma.com/design/s6Ebv8iAOyQRuGSPcHFAA7/profile-icon--Community-?node-id=102-2&t=OnGEqUGAWpg92aOt-0"
+              target="_blank"
+              rel="noopener"
+              >Profile icon (Figma Community)</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.figma.com/design/sESROwNgBHq8rlRT9pULK7/Toggle-Buttons--Community-?node-id=1-91&t=v1IATHfz96QLVbeC-0"
+              target="_blank"
+              rel="noopener"
+              >Toggle Buttons (Figma Community)</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.figma.com/design/P2NMbgfZBe5um9rmYiWnfw/Alert-Attention-Icon--Community-?node-id=0-1&p=f&t=vL6YLv0ZG5CsDu1f-0"
+              target="_blank"
+              rel="noopener"
+              >Alert icon (Figma Community)</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.figma.com/design/cRyAm9wfuwh9pWtOOpN7Cm/Envelope---E-Mail-Icon-Set--Community-?node-id=1-987&t=ki2E7VkPaH8m2xFy-0"
+              target="_blank"
+              rel="noopener"
+              >Envelope icons (Figma Community)</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.figma.com/design/GK1WsHqtJrXqjKEvLCCs70/Date---Time-Icons---Open-Source-Figma-Icon-Library--SVG-Download---Community-?node-id=6-102&t=kK1grJZfRq7n4m9g-0"
+              target="_blank"
+              rel="noopener"
+              >Date/Time icons (Figma Community)</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.figma.com/design/sMFd48r3xAttOdvqJvzmAq/Check-Validation-Icons---Free-Download---SVG-Icons---Community-?node-id=12-102&p=f&t=j9dHg5Ji7wswhBxm-0"
+              target="_blank"
+              rel="noopener"
+              >Validation icons (Figma Community)</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.figma.com/design/LqIzQtF2JIV3k0LSEKGXpx/Shop-icons--Community-?node-id=1-2&t=AGYOAu6ctbKK0KNl-0"
+              target="_blank"
+              rel="noopener"
+              >Shop icons (Figma Community)</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.figma.com/design/1JlsgsBI5G5SszjRoLwkgx/Interactive-Dropdown-Menu--Community-?node-id=207-208&t=mDYaHeViENChSsFQ-0"
+              target="_blank"
+              rel="noopener"
+              >Interactive Dropdown Menu (Figma Community)</a
+            >
+          </li>
+        </ul>
+
+        <h2>Other UI Reference</h2>
+        <ul>
+          <li>
+            <a
+              href="https://moqups.com/hc/your-account/payments/"
+              target="_blank"
+              rel="noopener"
+              >https://moqups.com/hc/your-account/payments/</a
+            >
+          </li>
+        </ul>
+      </section>
+
+      <h2>UI Design and Wireframe References</h2>
       <ul>
-        <li>Lecturers and instructors for guidance</li>
-        <li>Friends and classmates for feedback and testing</li>
+        <li>
+          <a href="https://www.figma.com" target="_blank"
+            >Figma Community UI Kits</a
+          >
+        </li>
+        <li>
+          <a href="https://moqups.com/hc/your-account/payments/" target="_blank"
+            >Moqups</a
+          >
+        </li>
+        <li>Some background designs were generated using AI tools</li>
       </ul>
 
-      <div class="footer">© 2026 • Project Credits</div>
+      <h2>Technologies and Documentation</h2>
+      <ul>
+        <li>HTML5, CSS3, JavaScript</li>
+        <li>
+          <a href="https://firebase.google.com" target="_blank"
+            >Firebase Web SDK</a
+          >
+        </li>
+        <li>
+          <a href="https://developer.mozilla.org" target="_blank"
+            >MDN Web Docs</a
+          >
+        </li>
+      </ul>
+
+      <h2>Learning References</h2>
+      <ul>
+        <li>Front-End Development course materials</li>
+        <li>MDN Web Docs – https://developer.mozilla.org</li>
+        <li>Firebase Documentation – https://firebase.google.com/docs</li>
+      </ul>
+
+      <h2>Ai</h2>
+      <li>
+        Some of the images used were generated by ai eg. Promotions images,
+        Website Logo Website background
+      </li>
+      <li>Generated using Chatgpt Gemini pro</li>
+      <div class="footer">&copy; 2026 Front-End Development Assignment</div>
     </div>
   </body>
 </html>
