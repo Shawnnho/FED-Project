@@ -26,6 +26,22 @@ The focus of this project is on front-end development, responsive design, user i
 
 ---
 
+### 
+Login Details for Testing
+
+Customer : Test1@gmail.com
+Password : Test1234
+
+StallHolder : Kopifellas@gmail.com
+Password : Test1234
+
+Operator : bossmanjoebiden@gmail.com
+Password : Test1234
+
+Operator2 : bossmantrump@gmail.com
+Password : Test1234
+
+
 ## Features
 
 
