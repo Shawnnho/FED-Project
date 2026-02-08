@@ -401,9 +401,9 @@ async function updateOverview() {
   setBadge("badgeRentals", totalRentals);
 }
 
-/* =========================
-   Stalls (per selected centre)
-========================= */
+
+   // Stalls (per selected centre)
+
 async function loadStalls() {
   const list = document.getElementById("stallList");
   if (!SELECTED_CENTRE_ID) {
@@ -511,7 +511,7 @@ async function loadRentals() {
   for (const ra of rentalsRaw) {
     if (!ra.stallId) continue;
 
-    // load stall from centres/{centreId}/stalls/{stallId} (works for Maxwell too)
+    // load stall from centres/{centreId}/stalls/{stallId} (for referecnce cos i forget)
     const stallSnap = await getDoc(
       doc(
         db,
@@ -523,10 +523,10 @@ async function loadRentals() {
     );
     const stallDocData = stallSnap.exists() ? stallSnap.data() : null;
 
-    // ALWAYS BILL UNDER UID (safe for both slug stalls + UID stalls)
+    // bill under uid
     let billingStallId = ra.billingUid || ra.stallId;
 
-    // 1) if rental agreement stores a slug like "asia-wok", read stalls/{slug} and use its ownerUid
+    
     if (!looksLikeUid(billingStallId)) {
       const slugSnap = await getDoc(doc(db, "stalls", billingStallId));
       if (slugSnap.exists()) {
@@ -536,7 +536,7 @@ async function loadRentals() {
       }
     }
 
-    // 2) if still not UID, try lookup by publicStallId
+    
     if (!looksLikeUid(billingStallId)) {
       const q = query(
         collection(db, "stalls"),
@@ -708,7 +708,7 @@ async function ensureMonthlyBill(stallId, rent, monthKey) {
 }
 
 window.saveMonthlyBill = async (stallId, rentalDocId, monthKey) => {
-  // monthKey is passed from button so UI & write are always same month
+  // monthKey is passed from button
   try {
     const utilities = Number(
       document.getElementById(`util-${rentalDocId}`)?.value || 0,
@@ -857,25 +857,41 @@ window.createRentalAgreementFromModal = async () => {
     return;
   }
 
-  // ownerUid is nice to have, but NOT required to create an agreement
+  
   if (!stall.ownerUid) {
     console.warn("Creating agreement: stall is missing ownerUid", stallDocId);
   }
 
+  window.createRentalAgreementFromModal = async () => {
+  if (!SELECTED_CENTRE_ID) return;
+
+  const sel = document.getElementById("addRentalStallSelect");
+  const stallDocId = sel?.value;
+  if (!stallDocId) return alert("Pick a stall first.");
+
+  const stall = modalStalls.find((x) => x.id === stallDocId) || {};
+
+  const ownerName =
+    document.getElementById("addRentalOwnerName")?.value?.trim() || "";
+  const monthlyRent = Number(
+    document.getElementById("addRentalMonthlyRent")?.value || 0,
+  );
+  const startDate = document.getElementById("addRentalStartDate")?.value || "";
+
+  if (!ownerName) return alert("Owner name is required.");
+  if (!startDate) return alert("Start date is required.");
+  if (!Number.isFinite(monthlyRent) || monthlyRent < 0)
+    return alert("Monthly rent must be 0 or more.");
+
+  const topLevelStallId = stall.publicStallId || stall.stallId || stallDocId;
+
+  // Create agreement 
+  let createdId = null;
   try {
-    // Allow creating agreements even if one already exists:
-
-    // Top-level stall id for billing (slug)
-    const topLevelStallId = stall.publicStallId || stall.stallId || stallDocId;
-
-    await addDoc(collection(db, "rentalAgreements"), {
+    const ref = await addDoc(collection(db, "rentalAgreements"), {
       centreId: SELECTED_CENTRE_ID,
-
-      // use TOP-LEVEL stall id for bills
-      stallId: topLevelStallId, // keep slug for display/search
-      billingUid: stall.ownerUid || "", // add this for guaranteed billing
-
-      // keep nested centre-stall doc id for reading stall details
+      stallId: topLevelStallId,
+      billingUid: stall.ownerUid || "",
       stallCentreDocId: stallDocId,
 
       stallName: stall.stallName || topLevelStallId,
@@ -888,16 +904,25 @@ window.createRentalAgreementFromModal = async () => {
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
-
-    alert("Rental agreement created.");
-    closeAddRentalModal();
-
-    // refresh rentals list
-    await loadRentals();
+    createdId = ref.id;
   } catch (err) {
     console.error("CREATE RENTAL FAILED:", err);
     alert(`Create rental failed: ${err.message}`);
+    return; 
   }
+
+  
+  alert("Rental agreement created.");
+  closeAddRentalModal();
+
+  
+  try {
+    await loadRentals();
+  } catch (err) {
+    console.warn("Agreement created, but refresh failed:", err);
+    
+  }
+};
 };
 
 // LogOut

@@ -93,18 +93,13 @@ function isHttpUrl(s) {
 }
 
 function pickImage(d) {
-  // Prefer Storage URL if present (works everywhere)
+  
   if (isHttpUrl(d.imageUrl)) return d.imageUrl;
-
-  // If img is already a URL, use it
   if (isHttpUrl(d.img)) return d.img;
-
-  // If img looks like a local path, only use it if you actually host it
-  // (Most projects don't host "/menu/xxx.png" at root, so fallback)
   if (typeof d.img === "string" && d.img.trim()) {
-    // If your local images are under "images/", allow those
+    
     if (d.img.startsWith("images/")) return d.img;
-    // Otherwise, don't risk broken image
+    
   }
 
   return "images/menu/placeholder.png";
@@ -121,19 +116,19 @@ function normalizePricesMap(prices) {
 }
 
 const PRICE_LABELS = {
-  // 🔥 Drinks
+  // Drinks
   hot: "Hot",
   cold_s: "Cold (S)",
   cold_m: "Cold (M)",
   cold_l: "Cold (L)",
 
-  // 🍗 Chicken rice
+  // Chicken rice
   quarter_upper: "Quarter (Upper) 四分之一(上庄)",
   quarter_lower: "Quarter (Lower) 四分之一(下庄)",
   half: "Half (半只鸡)",
   whole: "Whole (一只鸡)",
 
-  // 🍱 Generic fallbacks (optional future use)
+  
   small: "Small",
   medium: "Medium",
   large: "Large",
@@ -143,7 +138,7 @@ function pickDefaultPriceKey(pricesObj) {
   // preferred order
   const pref = ["hot", "cold_s", "cold_m", "cold_l"];
   for (const k of pref) if (pricesObj[k] != null) return k;
-  // otherwise first key
+ 
   return Object.keys(pricesObj)[0];
 }
 
@@ -167,7 +162,7 @@ let variantWrap = null;
 function ensureVariantUI() {
   if (variantWrap) return variantWrap;
 
-  // Put it under the description (nice + simple)
+  
   variantWrap = document.createElement("div");
   variantWrap.id = "variantWrap";
   variantWrap.style.margin = "12px 0 6px";
@@ -188,7 +183,7 @@ function ensureVariantUI() {
 
   variantWrap.append(title, row);
 
-  // Insert after itemDesc
+  
   itemDesc?.insertAdjacentElement("afterend", variantWrap);
 
   return variantWrap;
@@ -228,7 +223,7 @@ function renderVariantsIfAny() {
 
       if (selectedVariantText)
         selectedVariantText.textContent = `Selected: ${label}`;
-      renderVariantsIfAny(); // re-outline buttons
+      renderVariantsIfAny(); 
       updateTotal();
     });
 
@@ -245,17 +240,15 @@ async function loadStall() {
 
   const d = snap.data();
 
-  // SAVE public stall id (slug) for later
+  
   STALL = {
     supportsAddons: d.supportsAddons !== false,
     supportsSizePricing: d.supportsSizePricing !== false,
-    publicStallId: d.publicStallId || "", // ⭐ THIS IS THE KEY FIX
+    publicStallId: d.publicStallId || "", 
   };
 }
 
-/* =========================
-   LOAD ITEM
-========================= */
+// loading item
 async function loadItem() {
   const ref = doc(db, "centres", centreId, "stalls", stallUid, "menu", itemId);
   const snap = await getDoc(ref);
@@ -271,10 +264,7 @@ async function loadItem() {
   const pricesMap = normalizePricesMap(d.prices);
   const singlePrice = Number(d.price);
 
-  // Decide base price:
-  // - if single price exists, use it
-  // - else if prices map exists, use default key from map
-  // - else 0
+ 
   let price = 0;
   let variantKey = null;
   let variantLabel = "";
@@ -293,11 +283,11 @@ async function loadItem() {
     desc: d.desc || d.description || "",
     img: pickImage(d),
 
-    category: d.category || "", // ADD THIS
+    category: d.category || "", 
 
     // pricing
     price,
-    prices: pricesMap, // null or object
+    prices: pricesMap, 
     variantKey,
     variantLabel,
   };
@@ -332,9 +322,7 @@ function filterAddonsForItem(addons, item) {
   });
 }
 
-/* =========================
-   LOAD ADDONS
-========================= */
+// load the add ons
 async function loadAddons() {
   selectedAddons.clear();
   if (!STALL?.supportsAddons) {
@@ -369,9 +357,7 @@ async function loadAddons() {
   renderAddons();
 }
 
-/* =========================
-   RENDER ITEM
-========================= */
+// render the item info
 function renderItem() {
   itemImg.src = ITEM.img;
   itemImg.alt = ITEM.name;
@@ -381,9 +367,7 @@ function renderItem() {
   updateTotal();
 }
 
-/* =========================
-   RENDER ADDONS
-========================= */
+// render add ons
 function renderAddons() {
   addonsList.innerHTML = "";
 
@@ -416,9 +400,7 @@ function renderAddons() {
   });
 }
 
-/* =========================
-   PRICE CALC
-========================= */
+// calculate price based on addon's etc..
 function addonsTotal() {
   return ADDONS.reduce(
     (sum, a) => sum + (selectedAddons.has(a.id) ? a.price : 0),
@@ -435,9 +417,7 @@ function updateTotal() {
   addToCartBtn.textContent = `Add to Cart (${money(total)})`;
 }
 
-/* =========================
-   QTY
-========================= */
+// Amount 
 qtyMinus.addEventListener("click", () => {
   qty = Math.max(1, qty - 1);
   qtyVal.textContent = qty;
