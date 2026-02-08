@@ -65,7 +65,7 @@ function getGradeColor(grade) {
   if (grade === "B") return "#2f6bff";
   if (grade === "C") return "#ca8a04";
   if (grade === "D") return "#dc2626";
-  return "#16a34a";
+  return "#6b7280"; // gray for unknown
 }
 
 function getGradeText(grade) {
@@ -411,7 +411,7 @@ onAuthStateChanged(auth, async (user) => {
 
     if (stallTitle) stallTitle.textContent = displayName;
 
-    const fallbackGrade = stall?.hygieneGrade || stall?.grade || "B";
+    const fallbackGrade = stall?.hygieneGrade ?? stall?.grade ?? null; // no default B
 
     renderLicenseValidity(stall?.licenseIssued, stall?.licenseExpiry);
 
