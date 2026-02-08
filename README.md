@@ -139,9 +139,13 @@ Each team member handled distinct features to ensure clear individual contributi
 - JavaScript  
 - GitHub & GitHub Pages
 
+---
+
 ## Firebase Integration
 
 This project uses **Firebase** as the backend platform to support authentication, data management, and media storage.
+
+---
 
 ### Firebase Services Used
 
