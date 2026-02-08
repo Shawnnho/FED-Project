@@ -266,7 +266,7 @@ FED-Project/
 │   ├── stall-hygiene.js                # Stall hygiene logic
 │   └── stall-account.js                # Stall holder account logic
 
-
+```
 
 ## Design & Development Approach
 
