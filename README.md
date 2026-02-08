@@ -144,10 +144,29 @@ Each team member handled distinct features to ensure clear individual contributi
 - HTML5  
 - CSS3  
 - JavaScript  
-- Firebase (Authentication, Firestore, Storage)  
-- GitHub & GitHub Pages  
+- GitHub & GitHub Pages
+
+## Firebase Integration
+
+This project uses **Firebase** as the backend platform to support authentication, data management, and media storage.
+
+### Firebase Services Used
+
+- **Firebase Authentication**
+  - Email and password authentication
+  - Google Sign-In for faster user registration and login
+
+- **Cloud Firestore**
+  - Stores application data such as users, stalls, menus, orders, reviews, complaints, and billing records
+  - Supports role-based data access and management
+
+- **Firebase Storage**
+  - Stores images and media assets for stalls and food items
+  - Enables secure image upload and retrieval
 
 ---
+
+
 
 ## Design & Development Approach
 
