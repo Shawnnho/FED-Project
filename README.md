@@ -2,6 +2,7 @@
 
 Front-End Development (FED) Assignment  
 Academic Year 2025–2026
+Version: 1.0
 
 ---
 
