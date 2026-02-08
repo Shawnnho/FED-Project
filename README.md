@@ -130,7 +130,7 @@ The project is deployed using GitHub Pages.
 https://github.com/Shawnnho/FED-Project.git
 
 **Live Site:**  
-https://YOUR_GITHUB_USERNAME.github.io/YOUR_REPO_NAME/
+https://shawnnho.github.io/FED-Project/
 
 To run locally:
 1. Clone or download the repository
