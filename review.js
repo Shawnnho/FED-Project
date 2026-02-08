@@ -21,17 +21,17 @@ import {
   serverTimestamp,
   getDocs,
   query,
+  where,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import {
   getAuth,
   onAuthStateChanged,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-
 const firebaseConfig = {
-  apiKey: "AIzaSyC-NTWADB-t1OGl7NbdyMVXjpVjnqjpTXg", 
-  authDomain: "fedproject-8d254.firebaseapp.com", 
-  projectId: "fedproject-8d254", 
+  apiKey: "AIzaSyC-NTWADB-t1OGl7NbdyMVXjpVjnqjpTXg",
+  authDomain: "fedproject-8d254.firebaseapp.com",
+  projectId: "fedproject-8d254",
   storageBucket: "fedproject-8d254.firebasestorage.app",
   messagingSenderId: "477538553634",
   appId: "1:477538553634:web:a14b93bbd93d33b9281f7b",
@@ -72,7 +72,8 @@ async function loadStallsIntoSelect() {
   stallSelect.innerHTML = `<option value="" disabled selected>Loading stalls...</option>`;
 
   try {
-    const q = query(collection(db, "stalls"));
+    const q = query(collection(db, "stalls"), where("isCanonical", "==", true));
+
     const snap = await getDocs(q);
 
     const stalls = snap.docs.map((d) => {

@@ -112,24 +112,36 @@ async function loadStalls() {
     const q = query(collection(db, "stalls"));
     const snap = await getDocs(q);
 
+    // ✅ build stalls list first
     const stalls = snap.docs.map((d) => {
       const data = d.data() || {};
       return {
         id: d.id,
-        name: data.stallName || data.name || d.id, 
+        name: data.stallName || data.name || d.id,
       };
     });
 
-    stalls.sort((a, b) => a.name.localeCompare(b.name));
+    // ✅ dedupe by stall name (case-insensitive)
+    const seen = new Set();
+    const dedupedStalls = [];
 
-    if (!stalls.length) {
+    for (const s of stalls) {
+      const key = (s.name || "").trim().toLowerCase();
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      dedupedStalls.push(s);
+    }
+
+    dedupedStalls.sort((a, b) => a.name.localeCompare(b.name));
+
+    if (!dedupedStalls.length) {
       select.innerHTML = `<option value="" disabled selected>No stalls found</option>`;
       return;
     }
 
     select.innerHTML = `
       <option value="" disabled selected>Select a stall</option>
-      ${stalls.map((s) => `<option value="${s.id}">${s.name}</option>`).join("")}
+      ${dedupedStalls.map((s) => `<option value="${s.id}">${s.name}</option>`).join("")}
     `;
   } catch (err) {
     console.error("Failed to load stalls:", err);
