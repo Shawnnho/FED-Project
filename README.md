@@ -95,6 +95,35 @@ Password : Test1234
 - Schedule Inspections for all stores
 
 ---
+## Role–Permission Matrix
+
+| Feature / Permission | Guest | Customer | Stall Holder | Operator | NEA Officer |
+|----------------------|:----:|:--------:|:------------:|:--------:|:-----------:|
+| View hawker stalls & menus | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Place orders | ✅ (Local only) | ✅ | ❌ | ❌ | ❌ |
+| Orders saved to database | ❌ | ✅ | ❌ | ❌ | ❌ |
+| Track order status | ❌ | ✅ | ❌ | ❌ | ❌ |
+| Submit reviews | ❌ | ✅ | ❌ | ❌ | ❌ |
+| Submit complaints | ❌ | ✅ | ❌ | ❌ | ❌ |
+| View review & complaint history | ❌ | ✅ | ❌ | ❌ | ✅ |
+| View promotions & vouchers | ❌ | ✅ | ❌ | ❌ | ❌ |
+| Manage account details | ❌ | ✅ | ✅ | ✅ | ✅ |
+| View incoming orders | ❌ | ❌ | ✅ | ❌ | ❌ |
+| Update order status | ❌ | ❌ | ✅ | ❌ | ❌ |
+| Edit stall information | ❌ | ❌ | ✅ | ❌ | ❌ |
+| Activate / deactivate stall | ❌ | ❌ | ✅ | ❌ | ❌ |
+| View stall analytics | ❌ | ❌ | ✅ | ✅ | ❌ |
+| Access hygiene inspection records | ❌ | ❌ | ✅ | ❌ | ✅ |
+| Issue rental bills | ❌ | ❌ | ❌ | ✅ | ❌ |
+| Pay rental bills | ❌ | ❌ | ✅ | ❌ | ❌ |
+| View rental agreements | ❌ | ❌ | ❌ | ✅ | ❌ |
+| View all stall complaints | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Schedule hygiene inspections | ❌ | ❌ | ❌ | ❌ | ✅ |
+
+### Notes
+- Guest orders are stored locally and are **not persisted** in the database.
+- All payment features are **simulated** and do not involve real transactions.
+- Role-based permissions are enforced using front-end logic and Firebase Authentication.
 
 ## Team Members
 
