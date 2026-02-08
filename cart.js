@@ -27,7 +27,7 @@ import {
   addDoc,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* ✅ SAME config as your other files */
+
 const firebaseConfig = {
   apiKey: "AIzaSyC-NTWADB-t1OGl7NbdyMVXjpVjnqjpTXg",
   authDomain: "fedproject-8d254.firebaseapp.com",
@@ -73,7 +73,7 @@ async function getOrderPrefixForStall(stallId, centreId = null) {
           .replace(/[^A-Z0-9]/g, "")
           .slice(0, 4);
 
-      // ✅ if this doc is an "ownerUid doc", jump to slug doc
+      // if this doc is an "ownerUid doc", jump to slug doc
       const slug = (d.publicStallId || "").trim(); // e.g. "kopi-fellas"
       if (slug) {
         const s2 = await getDoc(doc(db, "stalls", slug));
@@ -194,7 +194,7 @@ function inferMinSpend(promo) {
   return m ? Number(m[1]) : 0;
 }
 
-/** ✅ NEW helper: consistent discount calculation for order creation */
+/**  NEW helper: consistent discount calculation for order creation */
 function calcPromoDiscount(promo, subtotal) {
   if (!promo) return 0;
 
@@ -223,7 +223,7 @@ async function clearAppliedPromo(message = "") {
   const msg = document.getElementById("redeemMsg");
   if (msg && message) msg.textContent = message;
 
-  // ✅ also clear on user doc if signed in
+  //  also clear on user doc if signed in
   if (currentUser) {
     try {
       await saveAppliedPromoToUser(currentUser.uid, null);
@@ -545,7 +545,7 @@ async function render() {
   proceedBtn && (proceedBtn.style.display = "");
   fulfillBox && (fulfillBox.style.display = "");
 
-  // ✅ Requirement: by default (every time you open cart), no payment method selected
+  //  Requirement: by default (every time you open cart), no payment method selected
   clearPaySelection();
 
   let subtotal = 0;
@@ -728,7 +728,7 @@ document.addEventListener("click", async (e) => {
       document.querySelector('input[name="fulfillment"]:checked')?.value ||
       "pickup";
 
-    // ✅ Validate delivery ONCE and store addressObj
+    //  Validate delivery ONCE and store addressObj
     let addressObj = null;
 
     if (fulfillment === "delivery") {
@@ -742,7 +742,7 @@ document.addEventListener("click", async (e) => {
 
       addressObj = v.addressObj;
 
-      // ✅ Save address ONLY if checkbox is checked
+      //  Save address ONLY if checkbox is checked
       const saveChecked = Boolean(
         document.getElementById("saveAddrChk")?.checked,
       );
@@ -766,7 +766,7 @@ document.addEventListener("click", async (e) => {
       }
     }
 
-    // ✅ Require signed-in user for checkout
+    //  Require signed-in user for checkout
     if (!currentUser) {
       alert("Please sign in to checkout.");
       return;
@@ -778,7 +778,7 @@ document.addEventListener("click", async (e) => {
       return;
     }
 
-    // ✅ Normalise items
+    //  Normalise items
     const items = cart.map((it) => {
       const qty = Number(it.qty ?? 1) || 1;
       const unitPrice =
@@ -803,7 +803,7 @@ document.addEventListener("click", async (e) => {
       };
     });
 
-    // ✅ Group by stall
+    //  Group by stall
     const itemsByStall = new Map();
     for (const it of items) {
       const sid = it.stallId;
@@ -906,13 +906,13 @@ document.addEventListener("click", async (e) => {
           },
         };
 
-        const publicId = stallItems?.[0]?.publicStallId || sid; // ✅ slug if available
+        const publicId = stallItems?.[0]?.publicStallId || sid; //  slug if available
         const orderNo = await nextOrderNoForStall(publicId, centreId);
 
         const ref = await addDoc(collection(db, "orders"), {
           ...orderPayload,
-          orderNo, // ✅ BEST UX ID stored in Firestore
-          orderId: orderNo, // optional (since your dashboard checks data.orderId first)
+          orderNo, 
+          orderId: orderNo, 
         });
 
         createdOrderIds.push(ref.id);
@@ -991,7 +991,7 @@ document.addEventListener("click", async (e) => {
       alert("Could not create order(s). Try again.");
     }
 
-    return; // ✅ prevent falling into qty logic
+    return; // prevent falling into qty logic
   }
 
   // ==============================
@@ -1033,7 +1033,7 @@ document.addEventListener("click", async (e) => {
   const input = document.getElementById("redeemInput");
   const msg = document.getElementById("redeemMsg");
 
-  // ✅ Guests cannot redeem promo codes
+  // Guests cannot redeem promo codes
   if (!currentUser) {
     if (msg) msg.textContent = "Please sign in to use promo codes.";
     return;
@@ -1117,7 +1117,7 @@ document.addEventListener("click", async (e) => {
       return;
     }
 
-    // ✅ transaction: decrement redemptionsLeft + claimOnce enforcement
+    // transaction: decrement redemptionsLeft + claimOnce enforcement
     await runTransaction(db, async (tx) => {
       const pRef = promoDocRef(promo.id);
       const pSnap = await tx.get(pRef);
@@ -1146,7 +1146,7 @@ document.addEventListener("click", async (e) => {
 
     appliedPromo = promo;
 
-    // ✅ persist promo per user
+    // persist promo per user
     await saveAppliedPromoToUser(currentUser.uid, promo);
 
     if (msg) msg.textContent = `Promo "${promo.code}" applied!`;
@@ -1228,7 +1228,7 @@ async function consumeVoucherHandoffFromAccount() {
 onAuthStateChanged(auth, async (u) => {
   currentUser = u;
 
-  // ✅ Load applied promo for this user (account only)
+  // Load applied promo for this user (account only)
   if (u) {
     await consumeVoucherHandoffFromAccount();
     try {
@@ -1241,7 +1241,7 @@ onAuthStateChanged(auth, async (u) => {
     appliedPromo = null;
   }
 
-  // ✅ auto-fill saved address if exists
+  // auto-fill saved address if exists
   if (u) {
     try {
       const saved = await loadSavedAddress(u.uid);
@@ -1259,7 +1259,7 @@ onAuthStateChanged(auth, async (u) => {
     }
   }
 
-  // ✅ migrate guest localStorage cart into account cart once
+  // migrate guest localStorage cart into account cart once
   if (u) {
     const local = readLocalCart();
     if (local.length) {

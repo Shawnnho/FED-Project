@@ -247,7 +247,7 @@ function renderMenu(filter) {
           const auth = getAuth();
           const user = auth.currentUser;
           if (user) {
-            const itemKey = `${stallId}::${item.id}`; // ✅ use item.id (exists)
+            const itemKey = `${stallId}::${item.id}`; 
 
             await setDoc(
               doc(db, "users", user.uid),

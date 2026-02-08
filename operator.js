@@ -19,7 +19,7 @@ import {
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* ✅ CONFIG */
+/* CONFIG */
 const firebaseConfig = {
   apiKey: "AIzaSyC-NTWADB-t1OGl7NbdyMVXjpVjnqjpTXg",
   authDomain: "fedproject-8d254.firebaseapp.com",
@@ -129,7 +129,7 @@ function looksLikeUid(id) {
   return typeof id === "string" && id.length >= 20 && !id.includes("-");
 }
 
-// ✅ Always resolve to UID for INTERNAL billing (operatorBills / rental)
+// Always resolve to UID for INTERNAL billing (operatorBills / rental)
 // - If already UID => use it
 // - If slug doc exists => use its ownerUid
 function resolveStallUid(stallDocId, stallData) {
@@ -523,7 +523,7 @@ async function loadRentals() {
     );
     const stallDocData = stallSnap.exists() ? stallSnap.data() : null;
 
-    // ✅ ALWAYS BILL UNDER UID (safe for both slug stalls + UID stalls)
+    // ALWAYS BILL UNDER UID (safe for both slug stalls + UID stalls)
     let billingStallId = ra.billingUid || ra.stallId;
 
     // 1) if rental agreement stores a slug like "asia-wok", read stalls/{slug} and use its ownerUid
@@ -871,11 +871,11 @@ window.createRentalAgreementFromModal = async () => {
     await addDoc(collection(db, "rentalAgreements"), {
       centreId: SELECTED_CENTRE_ID,
 
-      // ✅ use TOP-LEVEL stall id for bills
+      // use TOP-LEVEL stall id for bills
       stallId: topLevelStallId, // keep slug for display/search
-      billingUid: stall.ownerUid || "", // ✅ add this for guaranteed billing
+      billingUid: stall.ownerUid || "", // add this for guaranteed billing
 
-      // ✅ keep nested centre-stall doc id for reading stall details
+      // keep nested centre-stall doc id for reading stall details
       stallCentreDocId: stallDocId,
 
       stallName: stall.stallName || topLevelStallId,

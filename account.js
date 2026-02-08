@@ -621,7 +621,7 @@ onAuthStateChanged(auth, async (user) => {
       // Mark used in Firestore
       await markVoucherUsed(user.uid, docId);
 
-      // ✅ go straight to cart page
+     
       window.location.href = "cart.html";
     });
 

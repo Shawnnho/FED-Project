@@ -328,7 +328,7 @@ async function main() {
     try {
       const { stallId, stallName } = await getMyStallInfo(user.uid);
 
-      // ✅ IMPORTANT: your HTML uses id="stallName"
+      
       setText("stallName", stallName);
 
       await refresh(stallId);

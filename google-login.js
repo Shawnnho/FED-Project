@@ -14,7 +14,7 @@ const role = sessionStorage.getItem("signin_role") || "customer";
 
 /* Guest redirect */
 if (role === "guest") {
-  // ✅ make guest a true "logged out" state
+  // make guest a true "logged out" state
   await signOut(auth).catch(() => {});
   window.location.href = "index.html?mode=guest";
   return;

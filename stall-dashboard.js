@@ -168,7 +168,7 @@ let activeStatus = ""; // default tab
 let allOrders = []; // latest snapshot
 let unsubOrders = null; // to clean up listener
 
-// ✅ Filters state (Apply Filter button)
+//  Filters state (Apply Filter button)
 let activeDate = ""; // today | yesterday | last7 | thisMonth | lastMonth | all
 let activeYear = ""; // "2026", "2025", ...
 
@@ -239,7 +239,7 @@ function rebuildFilterOptions() {
     if (o.cuisine) cuisines.add(o.cuisine);
   }
 
-  // ✅ Date dropdown static options
+  //  Date dropdown static options
   const dateSel = $("dateFilter");
   if (dateSel) {
     dateSel.innerHTML = `
@@ -254,7 +254,7 @@ function rebuildFilterOptions() {
     if (activeDate) dateSel.value = activeDate;
   }
 
-  // ✅ Year dropdown from orders
+  //  Year dropdown from orders
   const yearSel = $("yearFilter");
   if (yearSel) {
     const sorted = Array.from(years).sort((a, b) => Number(b) - Number(a));
@@ -264,7 +264,7 @@ function rebuildFilterOptions() {
     if (activeYear) yearSel.value = activeYear;
   }
 
-  // ✅ Cuisine dropdown from orders (if none, keep just placeholder)
+  //  Cuisine dropdown from orders (if none, keep just placeholder)
   const cuisineSel = $("cuisineFilter");
   if (cuisineSel) {
     const sorted = Array.from(cuisines).sort((a, b) => a.localeCompare(b));
@@ -284,7 +284,7 @@ function renderOrdersTable() {
   const filtered = allOrders
     .filter((o) => !activeStatus || o.status === activeStatus)
 
-    // ✅ Year filter
+    // Year filter
     .filter((o) => {
       if (!activeYear) return true;
       const d = o.createdAt?.toDate
@@ -295,10 +295,10 @@ function renderOrdersTable() {
       return d && String(d.getFullYear()) === String(activeYear);
     })
 
-    // ✅ Date filter
+    //  Date filter
     .filter((o) => inDateRange(o.createdAt, activeDate))
 
-    // ✅ Search filter
+    //  Search filter
     .filter((o) => {
       if (!qtxt) return true;
       return (
@@ -409,7 +409,7 @@ function mapOrderDoc(d) {
     data.customerId ||
     "—";
 
-  // ✅ Item summary (support your stall-orders items shape)
+  //  Item summary (support your stall-orders items shape)
   let itemSummary = "—";
   if (Array.isArray(data.items) && data.items.length) {
     const first = data.items[0];
@@ -425,7 +425,7 @@ function mapOrderDoc(d) {
     itemSummary = data.item;
   }
 
-  // ✅ Amount (your stall-orders uses pricing.total)
+  //  Amount (your stall-orders uses pricing.total)
   const pricing = data.pricing || {};
   const amount =
     Number(pricing.total) ||

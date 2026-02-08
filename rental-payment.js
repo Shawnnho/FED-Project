@@ -907,7 +907,7 @@ onAuthStateChanged(auth, async (user) => {
       if (slugSnap.exists()) {
         const slugData = slugSnap.data() || {};
         if (slugData.ownerUid && looksLikeUid(slugData.ownerUid)) {
-          uidStallId = slugData.ownerUid; // ✅ now we use the real UID stall doc
+          uidStallId = slugData.ownerUid; // now we use the real UID stall doc
         }
       }
     }

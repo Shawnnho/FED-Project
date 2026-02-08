@@ -467,21 +467,21 @@ form.addEventListener("submit", async (e) => {
         statusMsg.textContent =
           "✅ Storeholder account created. Redirecting...";
         setTimeout(() => redirectByRole("storeholder"), 900);
-        return; // ✅ IMPORTANT: stop so we don't run customer code below
+        return; // IMPORTANT: stop so we don't run customer code below
       } catch (e) {
         console.error("Stall creation failed:", e);
         statusMsg.textContent = `❌ Stall setup failed: ${e.code || e.message}`;
-        return; // ✅ don't redirect
+        return; // don't redirect
       }
     }
 
-    // ✅ customer path only
+    // customer path only
     const role = await ensureUserProfile(
       cred.user,
       "customer",
       phone.value.trim(),
     );
-    statusMsg.textContent = `✅ Account created as ${role}. Redirecting...`;
+    statusMsg.textContent = `Account created as ${role}. Redirecting...`;
     setTimeout(() => redirectByRole(role), 900);
   } catch (err) {
     console.error(err);

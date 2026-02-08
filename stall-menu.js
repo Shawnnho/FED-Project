@@ -197,7 +197,7 @@ function closeOverlay(modalEl) {
   document.body.style.overflow = "";
 }
 
-// ✅ Universal labels (you can keep adding keys over time)
+// Universal labels (you can keep adding keys over time)
 const PRICE_LABELS = {
   // Drinks
   hot: "Hot",
@@ -443,7 +443,7 @@ async function getStoreholderContext(uid) {
     userName: u.name || "Owner",
     stallName: stallData.stallName || "Your Stall",
 
-    // ✅ CAPABILITIES (THIS WAS MISSING)
+    // CAPABILITIES (THIS WAS MISSING)
     supportsSizePricing: !!stallData.supportsSizePricing,
     supportsAddons: !!stallData.supportsAddons,
 
@@ -526,7 +526,7 @@ onAuthStateChanged(auth, async (user) => {
     editImgPreview.src = URL.createObjectURL(f);
   });
 
-  // ✅ Menu collection (FIXED: uses stallId, not user.uid)
+  
   const menuCol = collection(
     db,
     "centres",
@@ -752,7 +752,7 @@ onAuthStateChanged(auth, async (user) => {
 
         const it = snap.data() || {};
 
-        // ✅ Add-ons UI (only if this stall supports it)
+        
         ensureAddonsUI(supportsAddons);
 
         let selectedAddonIds = Array.isArray(it.addons) ? [...it.addons] : [];

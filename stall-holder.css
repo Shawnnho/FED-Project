@@ -2051,12 +2051,12 @@ body.stallHolder .searchWrap .filters {
   justify-content: center;
 
   gap: 12px;
-  flex-wrap: nowrap; /* ✅ prevent stacking */
+  flex-wrap: nowrap; /
 }
 
 /* Prevent selects from taking full width */
 body.stallHolder .searchWrap .filters select {
-  width: 160px !important; /* ✅ fixed width */
+  width: 160px !important; 
   max-width: 160px;
   height: 34px;
 }

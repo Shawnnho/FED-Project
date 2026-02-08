@@ -37,8 +37,8 @@ const db = getFirestore(app);
 ========================= */
 const params = new URLSearchParams(window.location.search);
 const centreId = params.get("centreId");
-const stallId = params.get("stallId"); // ✅ public id (slug) for orders
-const stallUid = params.get("stallUid") || stallId; // ✅ uid for centres/... path
+const stallId = params.get("stallId"); // public id (slug) for orders
+const stallUid = params.get("stallUid") || stallId; // uid for centres/... path
 
 const itemId = params.get("itemId");
 
@@ -237,7 +237,7 @@ function renderVariantsIfAny() {
 }
 
 async function loadStall() {
-  // ✅ ALWAYS use UID for centres path
+  // ALWAYS use UID for centres path
   const ref = doc(db, "centres", centreId, "stalls", stallUid);
   const snap = await getDoc(ref);
 
@@ -245,7 +245,7 @@ async function loadStall() {
 
   const d = snap.data();
 
-  // ✅ SAVE public stall id (slug) for later
+  // SAVE public stall id (slug) for later
   STALL = {
     supportsAddons: d.supportsAddons !== false,
     supportsSizePricing: d.supportsSizePricing !== false,
@@ -293,7 +293,7 @@ async function loadItem() {
     desc: d.desc || d.description || "",
     img: pickImage(d),
 
-    category: d.category || "", // ✅ ADD THIS
+    category: d.category || "", // ADD THIS
 
     // pricing
     price,

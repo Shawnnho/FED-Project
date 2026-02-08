@@ -98,7 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
      Auth state (block deactivated)
   ============================== */
   onAuthStateChanged(auth, async (user) => {
-    if (fromGuest) return; // ✅ allow signin page to stay
+    if (fromGuest) return; // allow signin page to stay
     if (!user || isLoggingIn) return;
 
     try {
@@ -297,7 +297,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const role = sessionStorage.getItem("signin_role") || selectedRole;
     if (role === "guest") {
-      // ✅ make guest a true "logged out" state
+      //  make guest a true "logged out" state
       await signOut(auth).catch(() => {});
       window.location.href = "index.html?mode=guest";
       return;

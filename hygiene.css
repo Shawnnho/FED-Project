@@ -1046,7 +1046,7 @@ button:active {
 .hpSimpleModal {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.35); /* ✅ fixed alpha */
+  background: rgba(0, 0, 0, 0.35); /* fixed alpha */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1099,7 +1099,7 @@ button:active {
 }
 @media (max-width: 520px) {
   .menuCard .menuActionRow {
-    width: 100% !important; /* ✅ kill fixed width */
+    width: 100% !important; /* kill fixed width */
     max-width: 100% !important;
   }
 }

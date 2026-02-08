@@ -112,7 +112,7 @@ async function loadStalls() {
     const q = query(collection(db, "stalls"));
     const snap = await getDocs(q);
 
-    // ✅ build stalls list first
+    // build stalls list first
     const stalls = snap.docs.map((d) => {
       const data = d.data() || {};
       return {
@@ -121,7 +121,7 @@ async function loadStalls() {
       };
     });
 
-    // ✅ dedupe by stall name (case-insensitive)
+    // dedupe by stall name (case-insensitive)
     const seen = new Set();
     const dedupedStalls = [];
 

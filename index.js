@@ -466,7 +466,7 @@ onAuthStateChanged(auth, (user) => {
 const params = new URLSearchParams(window.location.search);
 const isGuest = params.get("mode") === "guest";
 
-// ✅ if user enters guest discover page, guarantee they are logged out
+// if user enters guest discover page, guarantee they are logged out
 if (isGuest) {
   signOut(auth).catch(() => {});
 }

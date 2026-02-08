@@ -16,7 +16,7 @@ import {
   getDoc,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* ✅ Use SAME config as your other files */
+
 const firebaseConfig = {
   apiKey: "AIzaSyC-NTWADB-t1OGl7NbdyMVXjpVjnqjpTXg",
   authDomain: "fedproject-8d254.firebaseapp.com",
@@ -43,7 +43,7 @@ function prettyPayMethod(m) {
   return (m || "—").toString();
 }
 
-/* ✅ Delivery box (Address, Postal, Unit only) */
+/* Delivery box (Address, Postal, Unit only) */
 function setDeliveryBox(fulfillment) {
   const box = document.getElementById("prDeliveryBox");
   if (!box) return;
@@ -225,10 +225,10 @@ async function loadByCheckoutId(checkoutId) {
     orderIdEl.textContent = ids.length === 1 ? ids[0] : ids.join(", ");
   }
 
-  // ✅ Delivery details
+  // Delivery details
   setDeliveryBox(checkout?.fulfillment);
 
-  // ✅ PaidAt from CHECKOUT (QR/Card)
+  // PaidAt from CHECKOUT (QR/Card)
   setPaidAtAndPickup(checkout?.payment?.paidAt);
 
   const stallNames = Array.from(
@@ -275,7 +275,7 @@ async function loadByOrderId(orderId) {
   if (orderIdEl)
     orderIdEl.textContent = order.orderNo || makeDisplayId("OD", orderId);
 
-  // ✅ Delivery details
+  // Delivery details
   setDeliveryBox(order?.fulfillment);
 
   const stallsEl = document.getElementById("prStalls");
@@ -288,7 +288,7 @@ async function loadByOrderId(orderId) {
   const totalEl = document.getElementById("prTotalPaid");
   if (totalEl) totalEl.textContent = `$${money(order?.pricing?.total)}`;
 
-  // ✅ PaidAt from ORDER (Cash, or single order)
+  // PaidAt from ORDER (Cash, or single order)
   setPaidAtAndPickup(order?.payment?.paidAt);
 
   const btnStatus = document.getElementById("btnStatus");
@@ -306,7 +306,7 @@ async function loadByOrderId(orderId) {
   if (card) card.hidden = false;
 }
 
-/* ✅ Auth gate + load */
+/* Auth gate + load */
 onAuthStateChanged(auth, async (user) => {
   try {
     if (!user) {

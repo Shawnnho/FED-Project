@@ -21,7 +21,7 @@ import {
   getDoc,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* ✅ SAME config as your other files */
+/* SAME config as your other files */
 const firebaseConfig = {
   apiKey: "AIzaSyC-NTWADB-t1OGl7NbdyMVXjpVjnqjpTXg",
   authDomain: "fedproject-8d254.firebaseapp.com",
@@ -259,7 +259,7 @@ function renderOrders(orders, checkoutIdFilter) {
   pending.sort((a, b) => ts(b) - ts(a));
   completed.sort((a, b) => ts(b) - ts(a));
 
-  // ✅ ADD HERE (tab counts)
+  // ADD HERE (tab counts)
   const pendingCountEl = document.getElementById("pendingCount");
   const completedCountEl = document.getElementById("completedCount");
   if (pendingCountEl) pendingCountEl.textContent = String(pending.length);

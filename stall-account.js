@@ -285,7 +285,7 @@ function wireEditStallDetails(user) {
       s.cuisine ||
       ""
     ).trim();
-    // ✅ support new operatingHours object OR old string
+    // support new operatingHours object OR old string
     const currentHours = (() => {
       const ui = ($("operatingHours")?.textContent || "").trim();
       if (ui && ui !== "—") return ui;
@@ -967,7 +967,7 @@ onAuthStateChanged(auth, async (user) => {
     setText("stallName2", s.stallName);
     setText("unitNo", formatUnitForDisplay(s.unitNo) || "—");
     setText("cuisine", s.cuisine || "—");
-    // ✅ Operating hours: supports old string OR new object (mon/tue/...)
+    // Operating hours: supports old string OR new object (mon/tue/...)
     // old: "07:00AM - 9:00PM"
     // new: { mon:{open:"07:00",close:"21:00"}, ... }
     let hoursText = "—";

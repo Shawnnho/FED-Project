@@ -131,7 +131,7 @@ document.addEventListener(
   "click",
   async (e) => {
     const heart = e.target.closest(".likeBtn");
-    if (!heart) return; // ✅ ADD THIS LINE
+    if (!heart) return; 
 
     const user = auth.currentUser;
     if (!user) return;

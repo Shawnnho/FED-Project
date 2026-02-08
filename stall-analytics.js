@@ -459,7 +459,7 @@ function drawChart({ labels, today, yesterday, compare }) {
 
   const ctx = canvas.getContext("2d");
 
-  // ✅ measure the chart box (real layout), not the canvas itself
+  //  measure the chart box (real layout), not the canvas itself
   const box = canvas.parentElement; // .anChartBox
   const rect = (box || canvas).getBoundingClientRect();
 
@@ -482,13 +482,13 @@ function drawChart({ labels, today, yesterday, compare }) {
   if (!Array.isArray(today)) today = [];
   if (!Array.isArray(yesterday)) yesterday = [];
 
-  // ✅ if only 1 label (e.g. Today in DAILY mode), duplicate it so we can draw
+  // if only 1 label (e.g. Today in DAILY mode), duplicate it so we can draw
   if (labels.length === 1) labels = [labels[0], labels[0]];
   if (today.length === 1) today = [today[0], today[0]];
   if (compare && yesterday.length === 1)
     yesterday = [yesterday[0], yesterday[0]];
 
-  // ✅ if still empty, fallback
+  // if still empty, fallback
   if (labels.length < 2) labels = ["", ""];
   if (today.length < 2) today = [today[0] ?? 0, 0];
   if (compare && yesterday.length < 2) yesterday = [yesterday[0] ?? 0, 0];
@@ -716,7 +716,7 @@ async function loadNextInspection(stallId) {
 }
 
 async function resolveTopLevelStallId(stallIdFromCentre, stallData) {
-  // ✅ 0) Explicit mapping if present
+  //  0) Explicit mapping if present
   if (stallData?.publicStallId) return stallData.publicStallId;
 
   // 1) If stalls/{id} exists, use it
@@ -891,7 +891,7 @@ document.addEventListener("DOMContentLoaded", () => {
           async (ordersInRange) => {
             const { totalSales, totalOrders } = calcTotals(ordersInRange);
 
-            // ✅ Make KPIs follow the filter too
+            //  Make KPIs follow the filter too
             renderKpis({
               salesToday: totalSales,
               ordersToday: totalOrders,
@@ -954,7 +954,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const effectiveMode =
               daysInRange <= 1
-                ? "hourly" // ✅ always time for 1-day ranges
+                ? "hourly" //  always time for 1-day ranges
                 : chartMode !== "auto"
                   ? chartMode
                   : preset === "today" || preset === "yesterday"
@@ -969,11 +969,11 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             if (effectiveMode === "hourly") {
-              // ✅ bucket by the actual selected day
+              //  bucket by the actual selected day
               const whichDay = startOfDay(rangeStart);
               nowSeries = calcHourlySales(ordersInRange, whichDay, stall, 60);
 
-              // ✅ previous day for hourly comparison
+              //  previous day for hourly comparison
               const prevDay = new Date(whichDay);
               prevDay.setDate(prevDay.getDate() - 1);
 
@@ -1068,7 +1068,7 @@ document.addEventListener("DOMContentLoaded", () => {
         chartBtn.title = title;
       }
 
-      syncChartBtnUI(); // ✅ call once on load (after loadPrefs)
+      syncChartBtnUI(); //  call once on load (after loadPrefs)
 
       compare = compareEl ? compareEl.checked : true;
       applyLegend(compare);
@@ -1119,7 +1119,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       presetEl?.addEventListener("change", applyPreset);
-      applyPreset(); // ✅ initial load
+      applyPreset(); //  initial load
 
       // reviews listener
       // reviews listener
