@@ -88,18 +88,18 @@ The focus of this project is on front-end development, responsive design, user i
 | Track order status | ❌ | ✅ | ❌ | ❌ | ❌ |
 | Submit reviews | ❌ | ✅ | ❌ | ❌ | ❌ |
 | Submit complaints | ❌ | ✅ | ❌ | ❌ | ❌ |
-| View review & complaint history | ❌ | ✅ | ❌ | ❌ | ✅ |
-| View promotions & vouchers | ❌ | ✅ | ❌ | ❌ | ❌ |
+| View review & complaint history | ✅ (Review Only) | ✅ | ❌ | ❌ | ✅ |
+| View promotions & vouchers | ✅ (Can Only View) | ✅ | ❌ | ❌ | ❌ |
 | Manage account details | ❌ | ✅ | ✅ | ✅ | ✅ |
 | View incoming orders | ❌ | ❌ | ✅ | ❌ | ❌ |
 | Update order status | ❌ | ❌ | ✅ | ❌ | ❌ |
 | Edit stall information | ❌ | ❌ | ✅ | ❌ | ❌ |
 | Activate / deactivate stall | ❌ | ❌ | ✅ | ❌ | ❌ |
 | View stall analytics | ❌ | ❌ | ✅ | ✅ | ❌ |
-| Access hygiene inspection records | ❌ | ❌ | ✅ | ❌ | ✅ |
+| Access hygiene inspection records | ❌ | ✅  | ✅ | ❌ | ✅ |
 | Issue rental bills | ❌ | ❌ | ❌ | ✅ | ❌ |
 | Pay rental bills | ❌ | ❌ | ✅ | ❌ | ❌ |
-| View rental agreements | ❌ | ❌ | ❌ | ✅ | ❌ |
+| View rental agreements | ❌ | ❌ | ✅  | ✅ | ❌ |
 | View all stall complaints | ❌ | ❌ | ❌ | ❌ | ✅ |
 | Schedule hygiene inspections | ❌ | ❌ | ❌ | ❌ | ✅ |
 
