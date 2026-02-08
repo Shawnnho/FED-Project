@@ -105,6 +105,17 @@ The focus of this project is on front-end development, responsive design, user i
 - Guest orders are stored locally and are **not persisted** in the database.
 - All payment features are **simulated** and do not involve real transactions.
 - Role-based permissions are enforced using front-end logic and Firebase Authentication.
+  
+---
+## Role-Based Access Control
+
+Access to pages and features is controlled based on the user’s assigned role (Guest, Customer, Stall Holder, Operator, NEA Officer).
+
+- Authentication and role information are managed using Firebase Authentication.
+- User roles are stored in Cloud Firestore.
+- Page access and data visibility are restricted through front-end logic and Firebase security rules.
+
+---
 
 ## Team Members
 
@@ -267,7 +278,17 @@ FED-Project/
 │   └── stall-account.js                # Stall holder account logic
 
 ```
+---
+## System Architecture Overview
 
+This application follows a client-side architecture using HTML, CSS, and JavaScript for the front end, with Firebase providing backend services.
+
+- Front-end pages handle user interaction and UI rendering.
+- Firebase Authentication manages user sign-in and role-based access.
+- Cloud Firestore stores application data such as users, stalls, orders, reviews, and complaints.
+- Firebase Storage is used for storing stall and food images.
+
+---
 ## Design & Development Approach
 
 - Responsive design for desktop and mobile devices
