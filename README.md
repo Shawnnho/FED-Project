@@ -147,6 +147,125 @@ This project uses **Firebase** as the backend platform to support authentication
 
 ---
 
+## Project File Structure (Role-Based Overview)
+
+The project uses a role-based logical structure to organise pages and scripts according to different user roles, while keeping configuration, assets, styles, and shared logic separate.
+
+```text
+FED-Project/
+│
+├── .firebase/                          # Firebase hosting cache and build artifacts
+├── .git/                               # Git version control directory
+├── images/                             # Image assets (stall images, food photos, UI assets)
+├── node_modules/                       # Node.js dependencies
+├── public/                             # Firebase Hosting public directory
+│
+├── .firebaserc                         # Firebase project environment settings
+├── firebase.json                       # Firebase hosting configuration
+├── package.json                        # Project dependencies and scripts
+├── package-lock.json                   # Dependency lock file
+├── README.md                           # Project documentation
+├── .gitignore                          # Files ignored by Git
+│
+├── css/                                # Stylesheets
+│   ├── styles.css                      # Global styles shared across all pages
+│   ├── footer.css                      # Footer layout and styling
+│   ├── hygiene.css                     # Hygiene-related page styles
+│   ├── operator.css                    # Operator dashboard styles
+│   ├── nea.css                         # NEA officer page styles
+│   └── stall-holder.css                # Stall holder specific styles
+│
+├── js/                                 # Shared JavaScript files
+│   ├── firebase.js                     # Firebase initialization and configuration
+│   ├── script.js                       # Shared/global utility logic
+│   ├── google-login.js                 # Google Sign-In authentication logic
+│   ├── cart-badge.js                   # Shopping cart badge counter logic
+│   └── storeholder-context.js          # Shared context for stall holder pages
+│
+├── pages/                              # HTML pages grouped by user role
+│
+│   ├── common/                         # Public and shared informational pages
+│   │   ├── index.html                  # Landing page (guest view)
+│   │   ├── home.html                   # Home page after login
+│   │   ├── about.html                  # About the system
+│   │   ├── contact.html                # Contact information
+│   │   ├── help.html                   # Help and FAQ
+│   │   ├── how-it-works.html           # Explanation of system workflow
+│   │   ├── pricing.html                # Pricing information
+│   │   ├── privacy.html                # Privacy policy
+│   │   ├── terms-of-service.html       # Terms and conditions
+│   │   ├── credits.html                # Credits for external assets/resources
+│   │   └── 404.html                    # Custom error page
+│
+│   ├── auth/                           # Authentication-related pages
+│   │   ├── signin.html                 # User sign-in page
+│   │   ├── signup.html                 # User sign-up page
+│   │   └── forgot-password.html        # Password recovery page
+│
+│   ├── customer/                       # Customer-facing pages
+│   │   ├── centres.html                # Hawker centre listing
+│   │   ├── stall.html                  # Stall details page
+│   │   ├── menu.html                   # Menu browsing
+│   │   ├── item.html                   # Individual food item details
+│   │   ├── cart.html                   # Shopping cart
+│   │   ├── orders.html                 # Customer order history
+│   │   ├── review.html                 # Submit reviews
+│   │   ├── feedback.html               # Submit feedback
+│   │   ├── feedback_history.html       # Feedback submission history
+│   │   ├── complaint.html              # Submit complaints
+│   │   ├── promotions.html             # Promotions and vouchers
+│   │   ├── qr.html                     # QR code payment page
+│   │   ├── payment_received.html       # Payment confirmation page
+│   │   ├── hygiene.html                # View current hygiene grade
+│   │   ├── hygiene-history.html        # View historical hygiene inspections
+│   │   └── hygiene-trend.html          # View hygiene grade trends
+│
+│   ├── stall-holder/                   # Stall holder pages
+│   │   ├── stall-dashboard.html        # Stall holder dashboard overview
+│   │   ├── stall-orders.html           # Incoming orders management
+│   │   ├── stall-menu.html             # Stall menu management
+│   │   ├── stall-review.html           # View customer reviews
+│   │   ├── stall-analytics.html        # Stall performance analytics
+│   │   ├── stall-hygiene.html          # Stall hygiene records
+│   │   ├── rental-payment.html         # Rental payment page
+│   │   └── stall-account.html          # Stall holder account settings
+│
+│   ├── operator/                       # Operator pages
+│   │   └── operator.html               # Operator dashboard and management tools
+│
+│   └── nea/                            # NEA officer pages
+│       └── nea.html                    # NEA dashboard (inspections & records)
+│
+├── js-pages/                           # Page-specific JavaScript logic
+│   ├── index.js                        # Landing page logic
+│   ├── home.js                         # Home page logic
+│   ├── centres.js                      # Hawker centre listing logic
+│   ├── stall.js                        # Stall details logic
+│   ├── menu.js                         # Menu browsing logic
+│   ├── item.js                         # Food item logic
+│   ├── cart.js                         # Cart functionality
+│   ├── orders.js                       # Order history logic
+│   ├── review.js                       # Review submission logic
+│   ├── feedback.js                     # Feedback submission logic
+│   ├── feedback_history.js             # Feedback history logic
+│   ├── complaint.js                    # Complaint submission logic
+│   ├── promotions.js                  # Promotions logic
+│   ├── qr.js                           # QR payment logic
+│   ├── payment_received.js             # Payment confirmation logic
+│   ├── hygiene.js                      # Hygiene grade display logic
+│   ├── hygiene-history.js              # Hygiene history logic
+│   ├── hygiene-trend.js                # Hygiene trend visualization
+│   ├── nea.js                          # NEA dashboard logic
+│   ├── operator.js                     # Operator dashboard logic
+│   ├── stall-dashboard.js              # Stall holder dashboard logic
+│   ├── stall-orders.js                 # Stall order management logic
+│   ├── stall-menu.js                   # Stall menu management logic
+│   ├── stallmenu.js                    # Stall menu helper logic
+│   ├── stall-review.js                 # Stall review logic
+│   ├── stall-analytics.js              # Stall analytics logic
+│   ├── stall-hygiene.js                # Stall hygiene logic
+│   └── stall-account.js                # Stall holder account logic
+
 
 
 ## Design & Development Approach
